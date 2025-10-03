@@ -33,6 +33,7 @@ const GroupActivity = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const [selected, setSelected] = useState("All");
+  console.log("✌️selected --->", selected);
   const { auth } = useAuth();
 
   const [loaData, setLoaData] = useState<string[]>([]);
@@ -53,12 +54,14 @@ const GroupActivity = () => {
   });
 
   const dropdownData = useSelector((store: RootState) => store.dropdown);
+console.log('✌️dropdownData --->', dropdownData);
   const [data, setData] = useState<IData[]>([]);
 
   const [tabdata, settabData] = useState<{ _id?: string; tabInfo?: ITabData[] }>({
     tabInfo: [],
     _id: ""
   });
+  console.log("✌️tabdata --->", tabdata);
 
   const [rememeberstring, setRememberstring] = useState("");
   const [rememeberstringTab, setRememberstringTab] = useState("");
@@ -71,18 +74,30 @@ const GroupActivity = () => {
     let centers;
     if (selected === "All" || !selected) {
       centers = auth.user.centerId.map((data) => data._id);
+console.log('✌️centers in All--->', centers);
       if (centers.length <= 0) navigate("/");
     } else {
       centers = [selected];
+      console.log('✌️centers in selected--->', centers);
     }
     try {
       const tabs = dropdownData.groupActivityTabs.data.map((data) => ({
         name: data,
-        note: ""
+        note: "",
+        notes: {}
       }));
 
+      // determine centerId: if a specific center is selected use it, otherwise default to user's first center
+      const currentCenterId =
+        selected && selected !== "All"
+          ? selected
+          : auth.user?.centerId && auth.user.centerId.length
+          ? auth.user.centerId[0]._id
+          : undefined;
+
       const tabsdatareponse = await getGroupActivitytabs({
-        date: new Date(`${state.activityDateTime} 00:00`).toISOString()
+        date: new Date(`${state.activityDateTime} 00:00`).toISOString(),
+        centerId: currentCenterId
       });
 
       const updateMap = new Map(
@@ -98,7 +113,8 @@ const GroupActivity = () => {
           typeof updateMap.get(item.name) === "string"
             ? (updateMap.get(item.name) as string)
             : item.note
-      }));
+          }));
+          console.log('✌️updatedtabs --->', updatedtabs);
 
       settabData({ _id: tabsdatareponse?.data?.data[0]?._id || "", tabInfo: [...updatedtabs] });
 
@@ -110,6 +126,7 @@ const GroupActivity = () => {
         fields: "_id firstName lastName patientPic gender uhid"
       });
 
+      console.log('response --->', response);
       const data = response?.data?.data?.length
         ? response?.data?.data?.map((data: IData) => ({
             _id: "",
@@ -128,7 +145,8 @@ const GroupActivity = () => {
         : [];
 
       const groupData = await getGroupActivity({
-        date: new Date(`${state.activityDateTime} ${"00:00"}`).toISOString()
+        date: new Date(`${state.activityDateTime} ${"00:00"}`).toISOString(),
+        centerId: currentCenterId
       });
       setLoaData(groupData?.data?.data.loaPatientIds);
       const updatedArray = data?.map((item: IData) => {
@@ -378,8 +396,19 @@ const GroupActivity = () => {
   const handleSubmitTab = async () => {
     try {
       const filterData = tabdata?.tabInfo?.filter((value) => value.note.trim());
+      // determine centerId similar to fetch
+      const currentCenterId =
+        selected && selected !== "All"
+          ? selected
+          : auth.user?.centerId && auth.user.centerId.length
+          ? auth.user.centerId[0]._id
+          : undefined;
+
       if (tabdata._id) {
-        const response = await updateNewGroupActivitytabs(tabdata._id, { tabInfo: filterData });
+        const response = await updateNewGroupActivitytabs(tabdata._id, {
+          tabInfo: filterData,
+          centerId: currentCenterId
+        });
         if (response.data.status === "success") {
           toast.success("Tabs note added successfully");
         }
@@ -387,7 +416,8 @@ const GroupActivity = () => {
       } else {
         const response = await createNewGroupActivitytabs({
           activityDateTime: new Date(`${state.activityDateTime} ${"00:00"}`).toISOString(),
-          tabInfo: filterData
+          tabInfo: filterData,
+          centerId: currentCenterId
         });
         settabData((prevData) => ({ ...prevData, _id: response?.data?.data?._id }));
 
@@ -615,6 +645,7 @@ const GroupActivity = () => {
                           </th>
 
                           {tabdata?.tabInfo?.map((data) => {
+console.log('✌️data --->', data);
                             if (!headerTextAreaRefs.current[data.name]) {
                               headerTextAreaRefs.current[data.name] =
                                 React.createRef<HTMLTextAreaElement>();
@@ -661,9 +692,12 @@ const GroupActivity = () => {
                                               ref={headerTextAreaRefs.current[data.name]}
                                               value={data?.note}
                                               onChange={(e) =>
-                                                handleNoteChange1(data.name, e.target.value)
+                                                selected === "All"
+                                                  ? undefined
+                                                  : handleNoteChange1(data.name, e.target.value)
                                               }
                                               placeholder="Enter note..."
+                                              // disabled={selected === "All"}
                                               className="text-xs border-black bg-white p-2 h-[100px] resize-none border-2 focus:outline-none focus:border-primary-dark rounded-lg w-full"
                                             ></textarea>
                                             <RBACGuard
@@ -677,27 +711,27 @@ const GroupActivity = () => {
                                                 >
                                                   Cancel
                                                 </button>
-                                                {data.note.trim() ? (
-                                                  <Button
-                                                    name="save"
-                                                    onClick={() => handleSubmitTab()}
-                                                    className=" text-xs! bg-[#323E2A]! px-[15px]! py-[4px]! rounded-lg!"
-                                                    variant="contained"
-                                                    size="base"
-                                                  >
-                                                    Save
-                                                  </Button>
-                                                ) : (
-                                                  <Button
-                                                    // name="save"
-                                                    // onClick={() => handleSubmitTab()}
-                                                    className=" text-xs! cursor-not-allowed bg-gray-400! px-[15px]! py-[4px]! rounded-lg!"
-                                                    variant="contained"
-                                                    size="base"
-                                                  >
-                                                    Save
-                                                  </Button>
-                                                )}
+                                                {/* only show save when a specific center is selected */}
+                                                {selected !== "All" &&
+                                                  (data.note.trim() ? (
+                                                    <Button
+                                                      name="save"
+                                                      onClick={() => handleSubmitTab()}
+                                                      className=" text-xs! bg-[#323E2A]! px-[15px]! py-[4px]! rounded-lg!"
+                                                      variant="contained"
+                                                      size="base"
+                                                    >
+                                                      Save
+                                                    </Button>
+                                                  ) : (
+                                                    <Button
+                                                      className=" text-xs! cursor-not-allowed bg-gray-400! px-[15px]! py-[4px]! rounded-lg!"
+                                                      variant="contained"
+                                                      size="base"
+                                                    >
+                                                      Save
+                                                    </Button>
+                                                  ))}
                                               </div>
                                             </RBACGuard>
                                           </div>

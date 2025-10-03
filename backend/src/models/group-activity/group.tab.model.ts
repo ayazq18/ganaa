@@ -7,7 +7,13 @@ const groupTabSchema = new mongoose.Schema<IGroupTab>({
   activityDateTime: {
     type: Date,
     required: [true, 'Activity Datetime is Mandatory'],
-    unique: true,
+  },
+
+  // Scope tab info to a specific center so notes can be per-center
+  centerId: {
+    type: mongoose.Schema.ObjectId,
+    ref: Collections.center?.name || 'Center',
+    required: true,
   },
 
   tabInfo: [
@@ -41,6 +47,9 @@ const groupTabSchema = new mongoose.Schema<IGroupTab>({
     default: Date.now,
   },
 });
+
+// Ensure uniqueness per date + center
+groupTabSchema.index({ activityDateTime: 1, centerId: 1 }, { unique: true });
 
 const GroupTab = mongoose.model<IGroupTab>(Collections.groupTab.name, groupTabSchema);
 

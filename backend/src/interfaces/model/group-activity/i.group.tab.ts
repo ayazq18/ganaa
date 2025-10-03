@@ -4,6 +4,7 @@ import { IActivityName } from './i.group.activity';
 
 export interface IGroupTab extends mongoose.Document {
   activityDateTime: Date;
+  centerId: ObjectId;
   tabInfo: [
     {
       name: IActivityName;
