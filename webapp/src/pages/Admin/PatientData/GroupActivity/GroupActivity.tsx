@@ -54,13 +54,11 @@ const GroupActivity = () => {
 
   const dropdownData = useSelector((store: RootState) => store.dropdown);
   const [data, setData] = useState<IData[]>([]);
-  console.log("data: ", data);
 
   const [tabdata, settabData] = useState<{ _id?: string; tabInfo?: ITabData[] }>({
     tabInfo: [],
     _id: ""
   });
-  console.log("tabdata: ", tabdata);
 
   const [rememeberstring, setRememberstring] = useState("");
   const [rememeberstringTab, setRememberstringTab] = useState("");
@@ -88,35 +86,19 @@ const GroupActivity = () => {
       });
 
       const updateMap = new Map(
-        tabsdatareponse?.data?.data[0]?.tabInfo.map(
-          (item: { name: string; note: string; notes: [] }) => [item.name, item.note, item.notes]
-        )
+        tabsdatareponse?.data?.data[0]?.tabInfo.map((item: { name: string; note: string }) => [
+          item.name,
+          item.note
+        ])
       );
 
-      const updatedtabs = tabs.map((item) => {
-        const mapValue = updateMap.get(item.name);
-        let note = item.note;
-        let notes: { [centerId: string]: string } = {};
-
-        if (typeof mapValue === "string") {
-          note = mapValue;
-        }
-        if (
-          typeof mapValue === "object" &&
-          mapValue !== null &&
-          "notes" in (mapValue as object) &&
-          typeof (mapValue as unknown as { notes?: unknown }).notes === "object" &&
-          (mapValue as unknown as { notes?: unknown }).notes !== null
-        ) {
-          notes = (mapValue as unknown as { notes?: unknown }).notes as { [centerId: string]: string };
-        }
-
-        return {
-          ...item,
-          note,
-          notes
-        };
-      });
+      const updatedtabs = tabs.map((item) => ({
+        ...item,
+        note:
+          typeof updateMap.get(item.name) === "string"
+            ? (updateMap.get(item.name) as string)
+            : item.note
+      }));
 
       settabData({ _id: tabsdatareponse?.data?.data[0]?._id || "", tabInfo: [...updatedtabs] });
 
@@ -316,14 +298,14 @@ const GroupActivity = () => {
     }
   }, [hoveredIndex, hoveredIndexTab]);
 
-  const handleNoteChange1 = (name: string, value: string, selected: string) => {
+  const handleNoteChange1 = (name: string, value: string) => {
     settabData((prevData) => ({
       _id: prevData._id,
       tabInfo: prevData?.tabInfo?.map((row) => {
         if (row.name !== name) return row;
         return {
           ...row,
-          notes: { ...row.notes, [selected]: value }
+          note: value
         };
       })
     }));
@@ -633,7 +615,6 @@ const GroupActivity = () => {
                           </th>
 
                           {tabdata?.tabInfo?.map((data) => {
-                            console.log('data in tabs: ', data);
                             if (!headerTextAreaRefs.current[data.name]) {
                               headerTextAreaRefs.current[data.name] =
                                 React.createRef<HTMLTextAreaElement>();
@@ -678,9 +659,9 @@ const GroupActivity = () => {
                                           <div className="bg-[#F2F2F2] rounded-lg ">
                                             <textarea
                                               ref={headerTextAreaRefs.current[data.name]}
-                                              value={data?.notes?.[selected] || ""}
+                                              value={data?.note}
                                               onChange={(e) =>
-                                                handleNoteChange1(data.name, e.target.value, selected)
+                                                handleNoteChange1(data.name, e.target.value)
                                               }
                                               placeholder="Enter note..."
                                               className="text-xs border-black bg-white p-2 h-[100px] resize-none border-2 focus:outline-none focus:border-primary-dark rounded-lg w-full"
@@ -696,7 +677,7 @@ const GroupActivity = () => {
                                                 >
                                                   Cancel
                                                 </button>
-                                                {data?.notes?.[selected]?.trim() ? (
+                                                {data.note.trim() ? (
                                                   <Button
                                                     name="save"
                                                     onClick={() => handleSubmitTab()}
@@ -726,7 +707,7 @@ const GroupActivity = () => {
                                               <textarea
                                                 disabled
                                                 className="resize-none text-gray-700 p-3 rounded-sm focus:outline-none focus:border-primary-dark border-2 h-[100px] font-semibold bg-white text-xs leading-5 w-full"
-                                                value={data.notes?.[selected] || ""}
+                                                value={data.note}
                                               ></textarea>
                                             </div>
                                             <RBACGuard
