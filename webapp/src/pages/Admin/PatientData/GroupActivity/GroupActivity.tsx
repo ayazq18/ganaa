@@ -54,7 +54,7 @@ const GroupActivity = () => {
   });
 
   const dropdownData = useSelector((store: RootState) => store.dropdown);
-console.log('✌️dropdownData --->', dropdownData);
+  console.log("✌️dropdownData --->", dropdownData);
   const [data, setData] = useState<IData[]>([]);
 
   const [tabdata, settabData] = useState<{ _id?: string; tabInfo?: ITabData[] }>({
@@ -72,15 +72,19 @@ console.log('✌️dropdownData --->', dropdownData);
       loading: true
     }));
     let centers: string[] = [];
-  // array of center objects for name lookup when aggregating notes
-  const userCenters = (auth.user?.centerId || []) as { _id: string; name?: string; centerName?: string }[];
+    // array of center objects for name lookup when aggregating notes
+    const userCenters = (auth.user?.centerId || []) as {
+      _id: string;
+      name?: string;
+      centerName?: string;
+    }[];
     if (selected === "All" || !selected) {
       centers = userCenters.map((data: any) => data._id);
       console.log("✌️centers in All--->", centers);
       if (centers.length <= 0) navigate("/");
     } else {
       centers = [selected];
-      console.log('✌️centers in selected--->', centers);
+      console.log("✌️centers in selected--->", centers);
     }
     try {
       const tabs = dropdownData.groupActivityTabs.data.map((data) => ({
@@ -98,7 +102,7 @@ console.log('✌️dropdownData --->', dropdownData);
           : undefined;
 
       // Fetch and aggregate tab notes. If 'All' is selected, fetch tabs for every center and combine notes.
-  let updatedtabs: ITabData[] = [];
+      let updatedtabs: ITabData[] = [];
       let tabsResponseId = "";
       if (selected === "All") {
         const tabsResponses = await Promise.all(
@@ -114,7 +118,9 @@ console.log('✌️dropdownData --->', dropdownData);
         const aggregated: Record<string, string[]> = {};
         tabsResponses.forEach((resp, idx) => {
           const cId = centers[idx];
-          const centerObj = userCenters.find((c) => c._id === cId) || ({} as { _id?: string; name?: string; centerName?: string });
+          const centerObj =
+            userCenters.find((c) => c._id === cId) ||
+            ({} as { _id?: string; name?: string; centerName?: string });
           const centerName = centerObj.name || centerObj.centerName || cId;
           const tabInfo: ITabData[] = resp?.data?.data?.[0]?.tabInfo || [];
           tabInfo.forEach((t) => {
@@ -164,7 +170,7 @@ console.log('✌️dropdownData --->', dropdownData);
         fields: "_id firstName lastName patientPic gender uhid"
       });
 
-      console.log('response --->', response);
+      console.log("response --->", response);
       const data = response?.data?.data?.length
         ? response?.data?.data?.map((data: IData) => ({
             _id: "",
@@ -196,7 +202,9 @@ console.log('✌️dropdownData --->', dropdownData);
         );
         groupResponses.forEach((resp, idx) => {
           const cId = centers[idx];
-          const centerObj = userCenters.find((c) => c._id === cId) || ({} as { _id?: string; name?: string; centerName?: string });
+          const centerObj =
+            userCenters.find((c) => c._id === cId) ||
+            ({} as { _id?: string; name?: string; centerName?: string });
           const centerName = centerObj.name || centerObj.centerName || cId;
           const dataList: IData[] = resp?.data?.data?.data || [];
           // collect loa ids from first response that contains it
@@ -205,7 +213,9 @@ console.log('✌️dropdownData --->', dropdownData);
           }
           dataList.forEach((p) => {
             const key = p.patientId || "";
-            const existing = (mergedGroupMap.get(key) as IData & { activity: IActivity[] }) || ({ ...p, activity: [] } as IData & { activity: IActivity[] });
+            const existing =
+              (mergedGroupMap.get(key) as IData & { activity: IActivity[] }) ||
+              ({ ...p, activity: [] } as IData & { activity: IActivity[] });
             p.activity?.forEach((act: IActivity) => {
               const existingAct = existing.activity.find((a: IActivity) => a.name === act.name);
               const notePrefix = act.note ? `${centerName}: ${act.note}` : "";
@@ -226,7 +236,9 @@ console.log('✌️dropdownData --->', dropdownData);
           centerId: currentCenterId
         });
         loaPatientIds = groupData?.data?.data?.loaPatientIds || [];
-        (groupData?.data?.data?.data || []).forEach((p: IData) => mergedGroupMap.set(p.patientId || "", p));
+        (groupData?.data?.data?.data || []).forEach((p: IData) =>
+          mergedGroupMap.set(p.patientId || "", p)
+        );
       }
 
       setLoaData(loaPatientIds);
@@ -250,7 +262,9 @@ console.log('✌️dropdownData --->', dropdownData);
 
         // Add new activities from match that aren't in item.activity
         const existingNames = new Set((item?.activity || []).map((act: IActivity) => act.name));
-        const newActivities = matchActivities.filter((act: IActivity) => !existingNames.has(act.name));
+        const newActivities = matchActivities.filter(
+          (act: IActivity) => !existingNames.has(act.name)
+        );
 
         return {
           ...item,
@@ -726,7 +740,6 @@ console.log('✌️dropdownData --->', dropdownData);
                           </th>
 
                           {tabdata?.tabInfo?.map((data) => {
-console.log('✌️data --->', data);
                             if (!headerTextAreaRefs.current[data.name]) {
                               headerTextAreaRefs.current[data.name] =
                                 React.createRef<HTMLTextAreaElement>();
@@ -818,12 +831,23 @@ console.log('✌️data --->', data);
                                           </div>
                                         ) : (
                                           <div className="bg-[#F2F2F2] rounded-sm ">
-                                            <div className="px-0.5">
-                                              <textarea
-                                                disabled
-                                                className="resize-none text-gray-700 p-3 rounded-sm focus:outline-none focus:border-primary-dark border-2 h-[100px] font-semibold bg-white text-xs leading-5 w-full"
-                                                value={data.note}
-                                              ></textarea>
+                                            {/* Render each center's note with a border */}
+                                            <div className="bg-white p-2 rounded-sm border-2 h-[100px] overflow-y-auto">
+                                              {data.note
+                                                .split("\n")
+                                                .filter(Boolean)
+                                                .map((line, idx, arr) => (
+                                                  <div
+                                                    key={idx}
+                                                    className={`text-xs text-start text-gray-700 font-semibold py-1 px-2 ${
+                                                      idx !== arr.length - 1
+                                                        ? "border-b border-gray-300"
+                                                        : ""
+                                                    }`}
+                                                  >
+                                                    {line}
+                                                  </div>
+                                                ))}
                                             </div>
                                             <RBACGuard
                                               resource={RESOURCES.GROUP_ACTIVITY}
