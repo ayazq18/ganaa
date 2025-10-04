@@ -2,7 +2,7 @@ export interface IActivity {
   name?: string;
   isSelected?: boolean;
   note?: string;
-  notes?: { [centerId: string]: string };
+  centerId?: string;
 }
 export interface IData {
   _id?: string;
@@ -18,5 +18,5 @@ export interface IData {
 export interface ITabData {
   name: string;
   note: string;
-  notes: { [centerId: string]: string };
+  centerId?: string; // <-- add this
 }
