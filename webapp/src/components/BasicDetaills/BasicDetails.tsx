@@ -1411,6 +1411,7 @@ const BasicDetails = () => {
             />
             {errors?.patientPic && <p className="text-red-600">{errors?.patientPic}</p>}
           </div>
+          
         </div>
         <div className="grid lg:grid-cols-2 md:grid-cols-1 w-full items-start gap-20">
           <div className="w-full">

@@ -91,6 +91,7 @@ export const uploadPatientAdmissionChecklist = uploadMemoryFields.fields([
   { name: 'capacityAssessment', maxCount: 5 },
   { name: 'hospitalGuidelineForm', maxCount: 5 },
   { name: 'finacialCounselling', maxCount: 5 },
+  { name: 'admissionAssessment', maxCount: 5 },
   { name: 'orientationOfFamily', maxCount: 5 },
   { name: 'orientationOfPatient', maxCount: 5 },
   { name: 'insuredFile', maxCount: 5 },
@@ -185,11 +186,13 @@ export const createNewPatientAdmissionHistory = catchAsync(
 
 export const getSinglePatientAdmissionHistory = catchAsync(
   async (req: UserRequest, res: Response, next: NextFunction) => {
+console.log('✌️req --->', req);
     if (req.params.id === null) return next(new AppError('ID in Params is Mandatory', 400));
     if (req.params.patientId === null)
       return next(new AppError('Patient in Params is Mandatory', 400));
 
     const data = await PatientAdmissionHistory.findById(req.params.id).lean();
+console.log('✌️data --->', data);
 
     if (!data) return next(new AppError('No Data Found', 400));
     if (data.patientId.toString() !== req.params.patientId)
@@ -226,9 +229,11 @@ export const updateSinglePatientAdmissionHistory = catchAsync(
     }
 
     const patient = await Patient.findById(req.params.patientId).lean();
+console.log('✌️patient --->', patient);
     if (!patient) return next(new AppError('Please Send Valid Patient ID', 400));
 
     const admissionHistoryDoc = await getAdmissionHistoryDoc(req.params.id, req.params.patientId);
+console.log('✌️admissionHistoryDoc --->', admissionHistoryDoc);
     if (!admissionHistoryDoc.isSuccess)
       return next(new AppError(admissionHistoryDoc.message ?? 'Something went wrong', 400));
     if (admissionHistoryDoc.data?.currentStatus === 'Discharged')
@@ -243,6 +248,7 @@ export const updateSinglePatientAdmissionHistory = catchAsync(
     const data = await PatientAdmissionHistory.findByIdAndUpdate(req.params.id, modifiedBody, {
       new: true,
     });
+    console.log('✌️data --->', data);
     if (!data) return next(new AppError('Please Send Valid Patient Admission History ID', 400));
 
     // TODO: Add Check, If No Data is Changed Then Don't Create Revision History
@@ -263,7 +269,13 @@ export const updateSinglePatientAdmissionCheckList = catchAsync(
     if (req.body.createdBy) delete req.body.createdBy;
     if (req.body.updatedBy) delete req.body.updatedBy;
 
-    const checkIds = await Helper.validateDocIds({ patientId: req.params.patientId });
+  // Debug: log incoming files and body to help debug missing data
+  // eslint-disable-next-line no-console
+  console.log('updateSinglePatientAdmissionCheckList - req.files:', req.files);
+  // eslint-disable-next-line no-console
+  console.log('updateSinglePatientAdmissionCheckList - req.body:', req.body);
+
+  const checkIds = await Helper.validateDocIds({ patientId: req.params.patientId });
     if (!checkIds.isSuccess)
       return next(new AppError(checkIds.message || 'Something went Wrong', 400));
 
@@ -285,6 +297,7 @@ export const updateSinglePatientAdmissionCheckList = catchAsync(
       'capacityAssessment',
       'hospitalGuidelineForm',
       'finacialCounselling',
+      'admissionAssessment',
       'insuredFile',
     ];
 
@@ -395,12 +408,14 @@ export const updateSinglePatientAdmissionCheckList = catchAsync(
       updatedBy: req.user?._id,
       admissionChecklist,
     };
+    // console.log('✌️updateQuery --->', updateQuery);
 
     const updatedData = await PatientAdmissionHistory.findByIdAndUpdate(
       req.params.id,
       { $set: updateQuery },
       { new: true }
     );
+    // console.log('✌️updatedData --->', updatedData);
     if (!updatedData) return next(new AppError('Please Provide Valid Patient ID', 400));
 
     // TODO: Add Check, If No Data is Changed Then Don't Create Revision History

@@ -73,6 +73,7 @@ export interface IPatientAdmissionHistory {
   iscapacityAssessment?: boolean;
   ishospitalGuidelineForm?: boolean;
   isfinacialCounselling?: boolean;
+  isadmissionAssessment?: boolean;
 
   voluntaryAdmissionFormLink?: { filePath: string; fileUrl: string; fileName?: string }[];
   applicationForAdmissionLink?: { filePath: string; fileUrl: string; fileName?: string }[];
@@ -84,6 +85,7 @@ export interface IPatientAdmissionHistory {
   hospitalGuidelineFormLink?: { filePath: string; fileUrl: string; fileName?: string }[];
   finacialCounsellingLink?: { filePath: string; fileUrl: string; fileName?: string }[];
   insuredFileLink?: { filePath: string; fileUrl: string; fileName?: string }[];
+  admissionAssessmentLink?: { filePath: string; fileUrl: string; fileName?: string }[];
 
   patientChecklist?: string[];
   patientIdProof?: string;
@@ -190,6 +192,7 @@ const initalPatientAdmission: IPatientAdmissionHistory = {
   iscapacityAssessment: false,
   ishospitalGuidelineForm: false,
   isfinacialCounselling: false,
+  isadmissionAssessment: false,
 
   voluntaryAdmissionFormLink: [],
   applicationForAdmissionLink: [],
@@ -200,6 +203,7 @@ const initalPatientAdmission: IPatientAdmissionHistory = {
   capacityAssessmentLink: [],
   hospitalGuidelineFormLink: [],
   finacialCounsellingLink: [],
+  admissionAssessmentLink: [],
   insuredFileLink: [],
 
   patientCheck: "",

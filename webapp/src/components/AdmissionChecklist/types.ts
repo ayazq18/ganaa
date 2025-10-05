@@ -19,6 +19,7 @@ export interface IisAdmissionChecklist {
   iscapacityAssessment: boolean;
   ishospitalGuidelineForm: boolean;
   isfinacialCounselling: boolean;
+  isadmissionAssessment: boolean;
 }
 
 export interface IAdmissionChecklistArray {
@@ -31,6 +32,7 @@ export interface IAdmissionChecklistArray {
   capacityAssessment: string[];
   hospitalGuidelineForm: string[];
   finacialCounselling: string[];
+  admissionAssessment: string[];
   insuredFile: string[];
 }
 
@@ -45,4 +47,5 @@ export interface IAdmissionChecklistLink {
   hospitalGuidelineFormLink: { filePath: string; fileUrl: string; fileName?: string }[];
   finacialCounsellingLink: { filePath: string; fileUrl: string; fileName?: string }[];
   insuredFileLink: { filePath: string; fileUrl: string; fileName?: string }[];
+  admissionAssessmentLink: { filePath: string; fileUrl: string; fileName?: string }[];
 }
