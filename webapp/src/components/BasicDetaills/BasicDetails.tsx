@@ -30,6 +30,7 @@ import { ISelectOption } from "@/components/Select/types";
 import {
   createSinglePatientResources,
   existPatient,
+  getSinglePatient,
   updatePatient,
   updateSinglePatinetAdmissionHistory
 } from "@/apis";
@@ -58,8 +59,8 @@ const BasicDetails = () => {
   const [existModal, setExistModal] = useState<boolean>(false);
   const [uhid, setUhid] = useState<string>();
 
-  const [idProofFile, setIdProofFile] = useState<File | null>(null);
-  const [patientidProofUrl, setIdProofUrl] = useState<string>(""); // for displaying uploaded file
+  const [idProofFiles, setIdProofFiles] = useState<File[]>([]);
+  const [patientIdProofUrls, setIdProofUrls] = useState<string[]>([]); // uploaded or fetched URLs
   const [idProofError, setIdProofError] = useState<string>("");
 
   const patientData = useSelector((store: RootState) => store.patient);
@@ -70,7 +71,7 @@ const BasicDetails = () => {
   const [state, setState] = useState<BasicDetailsState>({
     showModal: false,
     croppedImage: "",
-    idProof: null,
+    idProof: [],
     loading: false,
     firstName: "",
     lastName: "",
@@ -137,8 +138,10 @@ const BasicDetails = () => {
   // ...existing code...
 
   const handleDropIdProof = (files: File[]) => {
-    if (files && files[0]) {
-      const file = files[0];
+    if (!files || files.length === 0) return;
+
+    const validFiles: File[] = [];
+    for (const file of files) {
       if (file.type !== "application/pdf") {
         setIdProofError("Only PDF files are allowed.");
         return;
@@ -147,25 +150,55 @@ const BasicDetails = () => {
         setIdProofError("File size should be less than 5MB.");
         return;
       }
-      setIdProofFile(file);
-      setState((prev) => ({ ...prev, idProof: file }));
-      setIdProofError("");
-      setIdProofUrl(""); // Remove old url if uploading new file
+      validFiles.push(file);
     }
-  };
 
-  const handleDeleteIdProof = () => {
-    setIdProofFile(null);
-    setState((prev) => ({ ...prev, file: null }));
-    setIdProofUrl("");
+    setIdProofFiles((prev) => [...prev, ...validFiles]);
+    setState((prev) => ({
+      ...prev,
+      idProof: [...(prev.idProof || []), ...validFiles]
+    }));
     setIdProofError("");
+    setIdProofUrls([]); // reset URLs if uploading new ones
   };
 
-  useEffect(() => {
-    if (patientData.patientDetails.idProof) {
-      setIdProofUrl(patientData.patientDetails.idProof);
-    }
-  }, [patientData.patientDetails.idProof]);
+  const handleDeleteIdProof = (index: number) => {
+    setIdProofFiles((prev) => prev.filter((_, i) => i !== index));
+    setIdProofUrls((prev) => prev.filter((_, i) => i !== index));
+    setState((prev) => ({
+      ...prev,
+      idProof: Array.isArray(prev.idProof)
+        ? prev.idProof.filter((_: any, i: number) => i !== index)
+        : []
+    }));
+  };
+
+  //  useEffect(() => {
+  //   const id = patientData.patientDetails._id;
+  //   if (typeof id === "string" && id.trim() !== "") {
+  //     (async () => {
+  //       try {
+  //         const response = await getSinglePatient(id);
+  //         const patient = response.data.data;
+
+  //         dispatch(setPatientDetails(patient));
+  //         setState((prev) => ({
+  //           ...prev,
+  //           ...patient,
+  //           idProof: patient.idProof || patient.patientidProofUrl || "",
+  //         }));
+  //       } catch (error) {
+  //         console.error("Error fetching patient:", error);
+  //       }
+  //     })();
+  //   }
+  // }, [patientData.patientDetails._id, dispatch]);
+
+  // useEffect(() => {
+  //   if (patientData.patientDetails.idProof) {
+  //     setIdProofUrl(patientData.patientDetails.idProof);
+  //   }
+  // }, [patientData.patientDetails.idProof]);
 
   const phonecode = useMemo<ISelectOption[]>(() => {
     if (dropdownData.country.loading) return [];
@@ -328,15 +361,20 @@ const BasicDetails = () => {
     if (typeof state.patientPic == "string" && state.patientPic.trim() === "")
       formData.append("patientPic", state.patientPic);
 
-    if (state.idProof && typeof state.idProof !== "string") {
-      formData.append("idProof", state.idProof);
+    if (Array.isArray(state.idProof)) {
+      state.idProof
+        .filter((file): file is File => file instanceof File)
+        .forEach((file) => formData.append("idProof", file));
     }
-    
+
+    // if (typeof state.idProof === "string" && state.idProof.trim() !== "") {
+    //   formData.append("idProof", state.idProof);
+    // }
+
     if (![...formData.entries()].length) {
       console.log("No changes detected, skipping update.");
       return;
     }
-
 
     console.log("formData: ", formData);
     return updatePatient(formData, pid);
@@ -1489,36 +1527,28 @@ const BasicDetails = () => {
           </div>
 
           <div className="flex flex-col items-start">
-            <label htmlFor="" className="block mb-1.5 ml-0.5 text-sm font-medium ">
-              ID Proof
-            </label>
+            <label className="block mb-1.5 ml-0.5 text-sm font-medium">ID Proof</label>
             <div className="flex flex-col gap-1">
-              {/* Show uploaded file link if exists */}
-
               <CheckBox
                 name=""
                 checked={true}
-                files={idProofFile ? [idProofFile] : []}
+                files={idProofFiles}
                 filesString={
-                  patientidProofUrl
-                    ? [
-                        {
-                          filePath: patientidProofUrl,
-                          fileUrl: patientidProofUrl,
-                          fileName: "ID_Proof.pdf"
-                        }
-                      ]
+                  patientIdProofUrls.length
+                    ? patientIdProofUrls.map((url, idx) => ({
+                        filePath: url,
+                        fileUrl: url,
+                        fileName: `ID_Proof_${idx + 1}.pdf`
+                      }))
                     : undefined
                 }
                 ContainerClass="-ml-5"
                 checkHide
                 handleDeletes={handleDeleteIdProof}
                 handleDrop={handleDropIdProof}
-                handleCheck={function (_e: SyntheticEvent): void {
-                  throw new Error("Function not implemented.");
-                }}
+                handleCheck={() => {}}
               />
-              <span className="text-[11px] text-gray-500">Format: PDF, Max size: 5MB</span>
+              <span className="text-[11px] text-gray-500">Format: PDF, Max size: 5MB each</span>
               {idProofError && <span className="text-xs text-red-500">{idProofError}</span>}
             </div>
           </div>
