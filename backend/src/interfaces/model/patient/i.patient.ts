@@ -21,6 +21,9 @@ export interface IPatient extends mongoose.Document {
   patientPic: string;
   patientPicUrl?: string;
   patientPicFileName: string;
+  patientidProofUrl?: string;
+  idProof: string;
+  patientIdProofName: string;
 
   // Reference
   referredTypeId: ObjectId | IReferredType;

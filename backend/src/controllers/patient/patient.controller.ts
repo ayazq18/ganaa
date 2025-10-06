@@ -26,13 +26,37 @@ import { IPatientRevision } from '../../interfaces/model/patient/i.patient.revis
 import { IPatientDischarge } from '../../interfaces/model/patient/i.patient.discharge';
 import PatientAdmissionHistory from '../../models/patient/patient.admission.history.model';
 
-const upload = multer({
+// const upload = multer({
+//   storage: multer.memoryStorage(),
+//   limits: { fileSize: 2 * 1024 * 1024 },
+//   fileFilter: MFileFilter.imageFilter,
+// });
+
+// const uploadFile = multer({
+//   storage: multer.memoryStorage(),
+//   limits: { fileSize: 2 * 1024 * 1024 },
+//   fileFilter: MFileFilter.pdfFilter,
+// });
+
+// export const uploadPatientPic = upload.single('patientPic');
+// export const idProof = uploadFile.single('idProof');
+
+export const uploadPatientFiles = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 2 * 1024 * 1024 },
-  fileFilter: MFileFilter.imageFilter,
-});
-
-export const uploadPatientPic = upload.single('patientPic');
+  fileFilter: (req, file, cb) => {
+    if (file.fieldname === 'patientPic') {
+      return MFileFilter.imageFilter(req, file, cb);
+    }
+    if (file.fieldname === 'idProof') {
+      return MFileFilter.pdfFilter(req, file, cb);
+    }
+    cb(null, false);
+  },
+}).fields([
+  { name: 'patientPic', maxCount: 1 },
+  { name: 'idProof', maxCount: 1 },
+]);
 
 /**
  * Controllers
@@ -142,6 +166,7 @@ export const isPatientExist = catchAsync(
 
 export const createNewPatient = catchAsync(
   async (req: UserRequest, res: Response, next: NextFunction) => {
+    console.log('hiiiiiiiiiiiiii');
     if (!req.body.firstName) return next(new AppError('First Name is Mandatory', 400));
     if (!req.body.age) return next(new AppError('Age is Mandatory', 400));
 
@@ -161,14 +186,30 @@ export const createNewPatient = catchAsync(
     req.body.createdBy = req.user?._id;
     const data = await Patient.create(req.body);
 
-    if (req.file) {
-      const fileName = `${Date.now()}-${random.randomAlphaNumeric(6)}-${req.file?.originalname}`;
+    const files = req.files as { [fieldname: string]: Express.Multer.File[] } | undefined;
+    const patientPic = files?.['patientPic']?.[0];
+    const idProof = files?.['idProof']?.[0];
+
+    if (patientPic) {
+      const fileName = `${Date.now()}-${random.randomAlphaNumeric(6)}-${patientPic?.originalname}`;
       const filePath = S3Path.patientPic(data._id?.toString() ?? '', fileName);
 
-      await S3.uploadFile(filePath, req.file?.buffer, req.file?.mimetype);
+      await S3.uploadFile(filePath, patientPic?.buffer, patientPic?.mimetype);
       await Patient.findByIdAndUpdate(data._id, {
         patientPic: filePath,
         patientPicFileName: fileName,
+        updatedBy: req.user?._id,
+      });
+    }
+
+    if (idProof) {
+      const fileName = `${Date.now()}-${random.randomAlphaNumeric(6)}-${idProof?.originalname}`;
+      const filePath = S3Path.idProof(data._id?.toString() ?? '', fileName);
+
+      await S3.uploadFile(filePath, idProof?.buffer, idProof?.mimetype);
+      await Patient.findByIdAndUpdate(data._id, {
+        idProof: filePath,
+        patientIdProofName: fileName,
         updatedBy: req.user?._id,
       });
     }
@@ -260,6 +301,8 @@ export const updateSinglePatient = catchAsync(
       'area',
       'patientPic',
       'patientPicFileName',
+      'idProof',
+      'patientIdProofName',
       'referredTypeId',
       'referralDetails',
       'education',
@@ -274,18 +317,32 @@ export const updateSinglePatient = catchAsync(
       '$unset'
     ).get();
 
+
     if (filterObj.email) {
       const check = await User.exists({ email: filterObj.email });
       if (check) return next(new AppError('Email address already registered', 400));
     }
 
-    if (req.file) {
-      const fileName = `${Date.now()}-${random.randomAlphaNumeric(6)}-${req.file?.originalname}`;
+    const files = req.files as { [fieldname: string]: Express.Multer.File[] } | undefined;
+    const patientPic = files?.['patientPic']?.[0];
+    const idProof = files?.['idProof']?.[0];
+
+    if (patientPic) {
+      const fileName = `${Date.now()}-${random.randomAlphaNumeric(6)}-${patientPic?.originalname}`;
       const filePath = S3Path.patientPic(req.params.id ?? '', fileName);
 
-      await S3.uploadFile(filePath, req.file?.buffer, req.file?.mimetype);
+      await S3.uploadFile(filePath, patientPic?.buffer, patientPic?.mimetype);
       filterObj.patientPic = filePath;
       filterObj.patientPicFileName = fileName;
+    }
+
+    if (idProof) {
+      const fileName = `${Date.now()}-${random.randomAlphaNumeric(6)}-${idProof?.originalname}`;
+      const filePath = S3Path.idProof(req.params.id ?? '', fileName);
+
+      await S3.uploadFile(filePath, idProof?.buffer, idProof?.mimetype);
+      filterObj.idProof = filePath;
+      filterObj.patientIdProofName = fileName;
     }
 
     const patientPreviousDoc = await Patient.findById(req.params.id).lean();
@@ -751,8 +808,6 @@ export const reAdmitPatient = catchAsync(
     if (caseHistory?._id) delete (caseHistory as any)._id;
     if (caseHistory?._id) delete (caseHistory as any).patientId;
     if (caseHistory?._id) delete (caseHistory as any).patientAdmissionHistoryId;
-
-
 
     // Create New Admission
     const newAdmissionHistory = await PatientAdmissionHistory.create({

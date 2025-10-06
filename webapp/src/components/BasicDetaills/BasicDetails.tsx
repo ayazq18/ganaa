@@ -18,7 +18,8 @@ import {
   CropperImage,
   CustomCalendar,
   CustomTimePicker,
-  Modal
+  Modal,
+  CheckBox
 } from "@/components";
 
 import calender from "@/assets/images/calender.svg";
@@ -57,13 +58,19 @@ const BasicDetails = () => {
   const [existModal, setExistModal] = useState<boolean>(false);
   const [uhid, setUhid] = useState<string>();
 
+  const [idProofFile, setIdProofFile] = useState<File | null>(null);
+  const [patientidProofUrl, setIdProofUrl] = useState<string>(""); // for displaying uploaded file
+  const [idProofError, setIdProofError] = useState<string>("");
+
   const patientData = useSelector((store: RootState) => store.patient);
+  console.log("patientData: ", patientData);
   const stepperData = useSelector((store: RootState) => store.stepper);
   const dropdownData = useSelector((store: RootState) => store.dropdown);
 
   const [state, setState] = useState<BasicDetailsState>({
     showModal: false,
     croppedImage: "",
+    idProof: null,
     loading: false,
     firstName: "",
     lastName: "",
@@ -96,6 +103,8 @@ const BasicDetails = () => {
     involuntaryAdmissionType: { label: "", value: "" }
   });
 
+  console.log("state: ", state);
+
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
@@ -124,6 +133,39 @@ const BasicDetails = () => {
   useEffect(() => {
     window.scrollTo({ top: 0 });
   }, []);
+
+  // ...existing code...
+
+  const handleDropIdProof = (files: File[]) => {
+    if (files && files[0]) {
+      const file = files[0];
+      if (file.type !== "application/pdf") {
+        setIdProofError("Only PDF files are allowed.");
+        return;
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        setIdProofError("File size should be less than 5MB.");
+        return;
+      }
+      setIdProofFile(file);
+      setState((prev) => ({ ...prev, idProof: file }));
+      setIdProofError("");
+      setIdProofUrl(""); // Remove old url if uploading new file
+    }
+  };
+
+  const handleDeleteIdProof = () => {
+    setIdProofFile(null);
+    setState((prev) => ({ ...prev, file: null }));
+    setIdProofUrl("");
+    setIdProofError("");
+  };
+
+  useEffect(() => {
+    if (patientData.patientDetails.idProof) {
+      setIdProofUrl(patientData.patientDetails.idProof);
+    }
+  }, [patientData.patientDetails.idProof]);
 
   const phonecode = useMemo<ISelectOption[]>(() => {
     if (dropdownData.country.loading) return [];
@@ -234,7 +276,15 @@ const BasicDetails = () => {
 
   const updatePateintData = (pid: string) => {
     const formData = new FormData();
-    const states = compareObjects(patientData?.patientDetails, { ...state, patientPic: "" }, true);
+    const states = compareObjects(
+      patientData?.patientDetails,
+      {
+        ...state,
+        patientPic: "",
+        idProof: typeof state.idProof === "string" ? state.idProof : undefined
+      },
+      true
+    );
     if (states.firstName !== undefined)
       formData.append(
         "firstName",
@@ -278,10 +328,17 @@ const BasicDetails = () => {
     if (typeof state.patientPic == "string" && state.patientPic.trim() === "")
       formData.append("patientPic", state.patientPic);
 
+    if (state.idProof && typeof state.idProof !== "string") {
+      formData.append("idProof", state.idProof);
+    }
+    
     if (![...formData.entries()].length) {
+      console.log("No changes detected, skipping update.");
       return;
     }
 
+
+    console.log("formData: ", formData);
     return updatePatient(formData, pid);
   };
 
@@ -349,6 +406,7 @@ const BasicDetails = () => {
       setErrors({});
       if (patientData.patientDetails._id) {
         const patientResponse = await updatePateintData(patientData.patientDetails._id);
+        console.log("patientResponse: ", patientResponse);
 
         if (patientResponse && patientResponse.data.status === "success") {
           const {
@@ -374,7 +432,10 @@ const BasicDetails = () => {
             ...prev,
             patientPic: patientResponse?.data?.data?.patientPicUrl
               ? patientResponse?.data?.data?.patientPicUrl
-              : patientResponse?.data?.data?.patientPic
+              : patientResponse?.data?.data?.patientPic,
+            idProof: patientResponse?.data?.data?.patientidProofUrl
+              ? patientResponse?.data?.data?.patientidProofUrl
+              : patientResponse?.data?.data?.idProof
           }));
 
           dispatch(
@@ -382,9 +443,13 @@ const BasicDetails = () => {
               ...patientData.patientDetails,
               uhid: patientResponse?.data?.data?.uhid,
               patientFileName: patientResponse.data?.data?.patientPicFileName,
+              patientIdProofName: patientResponse.data?.data?.patientIdProofName,
               patientPic: patientResponse?.data?.data?.patientPicUrl
                 ? patientResponse?.data?.data?.patientPicUrl
                 : patientResponse?.data?.data?.patientPic,
+              idProof: patientResponse?.data?.data?.patientidProofUrl
+                ? patientResponse?.data?.data?.patientidProofUrl
+                : patientResponse?.data?.data?.idProof,
               firstName,
               lastName,
               dob,
@@ -479,7 +544,10 @@ const BasicDetails = () => {
             ...prev,
             patientPic: patientResponse?.data?.data?.patientPicUrl
               ? patientResponse?.data?.data?.patientPicUrl
-              : state.patientPic
+              : state.patientPic,
+            idProof: patientResponse?.data?.data?.patientidProofUrl
+              ? patientResponse?.data?.data?.patientidProofUrl
+              : patientResponse?.data?.data?.idProof
           }));
           dispatch(
             setPatientDetails({
@@ -487,7 +555,9 @@ const BasicDetails = () => {
               _id: patientResponse?.data?.data?._id,
               uhid: patientResponse?.data?.data?.uhid,
               patientFileName: patientResponse?.data?.data?.patientPicFileName,
+              patientIdProofName: patientResponse?.data?.data?.patientIdProofName,
               patientPic: patientResponse?.data?.data?.patientPicUrl,
+              idProof: patientResponse?.data?.data?.patientidProofUrl,
               firstName,
               lastName,
               dob,
@@ -660,9 +730,13 @@ const BasicDetails = () => {
               ...patientData.patientDetails,
               uhid: patientResponse?.data?.data?.uhid,
               patientFileName: patientResponse.data?.data?.patientPicFileName,
+              patientIdProofName: patientResponse?.data?.data?.patientIdProofName,
               patientPic: patientResponse?.data?.data?.patientPicUrl
                 ? patientResponse?.data?.data?.patientPicUrl
                 : patientResponse?.data?.data?.patientPic,
+              idProof: patientResponse?.data?.data?.patientidProofUrl
+                ? patientResponse?.data?.data?.patientidProofUrl
+                : patientResponse?.data?.data?.idProof,
               firstName,
               lastName,
               dob,
@@ -765,7 +839,9 @@ const BasicDetails = () => {
               _id: patientResponse?.data?.data?._id,
               uhid: patientResponse?.data?.data?.uhid,
               patientFileName: patientResponse?.data?.data?.patientPicFileName,
+              patientIdProofName: patientResponse?.data?.data?.patientIdProofName,
               patientPic: patientResponse?.data?.data?.patientPicUrl,
+              idProof: patientResponse?.data?.data?.patientidProofUrl,
               firstName,
               lastName,
               dob,
@@ -1411,7 +1487,41 @@ const BasicDetails = () => {
             />
             {errors?.patientPic && <p className="text-red-600">{errors?.patientPic}</p>}
           </div>
-          
+
+          <div className="flex flex-col items-start">
+            <label htmlFor="" className="block mb-1.5 ml-0.5 text-sm font-medium ">
+              ID Proof
+            </label>
+            <div className="flex flex-col gap-1">
+              {/* Show uploaded file link if exists */}
+
+              <CheckBox
+                name=""
+                checked={true}
+                files={idProofFile ? [idProofFile] : []}
+                filesString={
+                  patientidProofUrl
+                    ? [
+                        {
+                          filePath: patientidProofUrl,
+                          fileUrl: patientidProofUrl,
+                          fileName: "ID_Proof.pdf"
+                        }
+                      ]
+                    : undefined
+                }
+                ContainerClass="-ml-5"
+                checkHide
+                handleDeletes={handleDeleteIdProof}
+                handleDrop={handleDropIdProof}
+                handleCheck={function (_e: SyntheticEvent): void {
+                  throw new Error("Function not implemented.");
+                }}
+              />
+              <span className="text-[11px] text-gray-500">Format: PDF, Max size: 5MB</span>
+              {idProofError && <span className="text-xs text-red-500">{idProofError}</span>}
+            </div>
+          </div>
         </div>
         <div className="grid lg:grid-cols-2 md:grid-cols-1 w-full items-start gap-20">
           <div className="w-full">

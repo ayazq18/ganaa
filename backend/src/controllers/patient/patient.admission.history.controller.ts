@@ -186,13 +186,11 @@ export const createNewPatientAdmissionHistory = catchAsync(
 
 export const getSinglePatientAdmissionHistory = catchAsync(
   async (req: UserRequest, res: Response, next: NextFunction) => {
-console.log('✌️req --->', req);
     if (req.params.id === null) return next(new AppError('ID in Params is Mandatory', 400));
     if (req.params.patientId === null)
       return next(new AppError('Patient in Params is Mandatory', 400));
 
     const data = await PatientAdmissionHistory.findById(req.params.id).lean();
-console.log('✌️data --->', data);
 
     if (!data) return next(new AppError('No Data Found', 400));
     if (data.patientId.toString() !== req.params.patientId)
@@ -248,7 +246,6 @@ console.log('✌️admissionHistoryDoc --->', admissionHistoryDoc);
     const data = await PatientAdmissionHistory.findByIdAndUpdate(req.params.id, modifiedBody, {
       new: true,
     });
-    console.log('✌️data --->', data);
     if (!data) return next(new AppError('Please Send Valid Patient Admission History ID', 400));
 
     // TODO: Add Check, If No Data is Changed Then Don't Create Revision History

@@ -74,6 +74,12 @@ const patientSchema = new mongoose.Schema<IPatient>({
   patientPicFileName: {
     type: String,
   },
+  idProof: {
+    type: String,
+  },
+  patientIdProofName: {
+    type: String,
+  },
 
   // Reference
   referredTypeId: {
@@ -142,6 +148,18 @@ const generateSignedUrl = async (doc: any) => {
     } else {
       delete doc.patientPic;
       doc.patientPicUrl = signedUrl;
+    }
+  }
+
+  const patientidProofKey = doc?.idProof;
+  if (patientidProofKey?.length > 0) {
+    const signedUrl = await getSignedUrlByKey(patientidProofKey);
+    if (doc._doc) {
+      delete doc._doc.idProof;
+      doc._doc.patientidProofUrl = signedUrl;
+    } else {
+      delete doc.idProof;
+      doc.patientidProofUrl = signedUrl;
     }
   }
 };

@@ -133,6 +133,7 @@ export const getSingleFamilyDetails = catchAsync(
     if (!req.params.patientId) return next(new AppError('Patient Id is Mandatory', 400));
 
     const data = await PatientFamilyDetails.findById(req.params.id).lean();
+    console.log('data in family: ', data);
     if (!data) return next(new AppError('No Data Found', 400));
     if (data.patientId.toString() !== req.params.patientId)
       return next(new AppError('Patient Id does not match with Family Details', 400));

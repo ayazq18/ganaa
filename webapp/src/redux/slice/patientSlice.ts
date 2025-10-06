@@ -27,9 +27,11 @@ export interface IPatientDetails {
   area?: string;
   patientPic?: string;
   patientFileName?: string;
+  patientIdProofName?:string;
+  idProof?: string;
   referredTypeId?: ISelectOption;
   referralDetails?: string;
-
+  patientidProofUrl?: string;
   education?: string;
   familyIncome?: string;
   religion?: string;
@@ -38,7 +40,7 @@ export interface IPatientDetails {
   numberOfChildren?: ISelectOption;
   occupation?: string;
   diagnosis?: ISelectOption;
-
+  // file: null;
   injuryDetails?: IInjuryDetails[];
   diabeticStatus?: string;
   allergyArray?: ISelectOption[];
@@ -129,6 +131,7 @@ const initialPatientDetails: IPatientDetails = {
   age: 0,
   email: "",
   patientFileName: "",
+  patientIdProofName:"",
   phoneNumberCountryCode: { label: "", value: "" },
   phoneNumber: "",
   alternativephoneNumberCountryCode: { label: "", value: "" },
@@ -139,7 +142,7 @@ const initialPatientDetails: IPatientDetails = {
   fullAddress: "",
   area: "",
   patientPic: "",
-
+  idProof: "",
   referredTypeId: { label: "", value: "" },
   referralDetails: "",
 

@@ -50,16 +50,13 @@ const ProfileContacts = () => {
   });
 
   const [newFamilyDetails, setNewFamilyDetails] = useState<IFamilyData[]>([]);
-console.log('✌️newFamilyDetails --->', newFamilyDetails);
+  console.log('newFamilyDetails: ', newFamilyDetails);
 
   const [existingFamilyDetails, setExistingFamilyDetails] = useState<IFamilyData[]>([]);
-console.log('✌️existingFamilyDetails --->', existingFamilyDetails);
   const [initialFamilyDetails, setInitialFamilyDetails] = useState<IFamilyData[]>([]);
-console.log('✌️initialFamilyDetails --->', initialFamilyDetails);
 
   const patientData = useSelector((store: RootState) => store.patient);
   const stepperData = useSelector((store: RootState) => store.stepper);
-console.log('✌️stepperData --->', stepperData);
 
   const dropdownData = useSelector((store: RootState) => store.dropdown);
 
@@ -312,14 +309,12 @@ console.log('✌️stepperData --->', stepperData);
       );
 
       formData.append("patientFamilyDetails", jsonString);
-console.log('✌️formData --->', formData);
 
       existingFamilyDetails.forEach((member) => {
         if (member.file) formData.append(`idProff_${member.tempId}`, member.file);
       });
 
       const response = await UpdatePatientFamilyDetail(id, formData);
-console.log('✌️response --->', response);
       setInitialFamilyDetails(existingFamilyDetails);
       return response;
     } else {
@@ -612,6 +607,8 @@ console.log('✌️response --->', response);
   };
 
   const handleDropFiles = useCallback((files: File[], index: number) => {
+    console.log('index: ', index);
+    console.log('files: ', files);
     const maxSize = 5 * 1024 * 1024;
     if (!stepperData.discardModal.isFormChanged) dispatch(setDiscardModal({ isFormChanged: true }));
     try {
