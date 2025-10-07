@@ -185,7 +185,7 @@ const BasicDetails = () => {
   //         setState((prev) => ({
   //           ...prev,
   //           ...patient,
-  //           idProof: patient.idProof || patient.patientidProofUrl || "",
+  //           idProof: patient.idProof || patient.patientIdProofUrls || "",
   //         }));
   //       } catch (error) {
   //         console.error("Error fetching patient:", error);
@@ -471,8 +471,8 @@ const BasicDetails = () => {
             patientPic: patientResponse?.data?.data?.patientPicUrl
               ? patientResponse?.data?.data?.patientPicUrl
               : patientResponse?.data?.data?.patientPic,
-            idProof: patientResponse?.data?.data?.patientidProofUrl
-              ? patientResponse?.data?.data?.patientidProofUrl
+            idProof: patientResponse?.data?.data?.patientIdProofUrls
+              ? patientResponse?.data?.data?.patientIdProofUrls
               : patientResponse?.data?.data?.idProof
           }));
 
@@ -485,8 +485,8 @@ const BasicDetails = () => {
               patientPic: patientResponse?.data?.data?.patientPicUrl
                 ? patientResponse?.data?.data?.patientPicUrl
                 : patientResponse?.data?.data?.patientPic,
-              idProof: patientResponse?.data?.data?.patientidProofUrl
-                ? patientResponse?.data?.data?.patientidProofUrl
+              idProof: patientResponse?.data?.data?.patientIdProofUrls
+                ? patientResponse?.data?.data?.patientIdProofUrls
                 : patientResponse?.data?.data?.idProof,
               firstName,
               lastName,
@@ -583,8 +583,8 @@ const BasicDetails = () => {
             patientPic: patientResponse?.data?.data?.patientPicUrl
               ? patientResponse?.data?.data?.patientPicUrl
               : state.patientPic,
-            idProof: patientResponse?.data?.data?.patientidProofUrl
-              ? patientResponse?.data?.data?.patientidProofUrl
+            idProof: patientResponse?.data?.data?.patientIdProofUrls
+              ? patientResponse?.data?.data?.patientIdProofUrls
               : patientResponse?.data?.data?.idProof
           }));
           dispatch(
@@ -595,7 +595,7 @@ const BasicDetails = () => {
               patientFileName: patientResponse?.data?.data?.patientPicFileName,
               patientIdProofName: patientResponse?.data?.data?.patientIdProofName,
               patientPic: patientResponse?.data?.data?.patientPicUrl,
-              idProof: patientResponse?.data?.data?.patientidProofUrl,
+              idProof: patientResponse?.data?.data?.patientIdProofUrls,
               firstName,
               lastName,
               dob,
@@ -772,8 +772,8 @@ const BasicDetails = () => {
               patientPic: patientResponse?.data?.data?.patientPicUrl
                 ? patientResponse?.data?.data?.patientPicUrl
                 : patientResponse?.data?.data?.patientPic,
-              idProof: patientResponse?.data?.data?.patientidProofUrl
-                ? patientResponse?.data?.data?.patientidProofUrl
+              idProof: patientResponse?.data?.data?.patientIdProofUrls
+                ? patientResponse?.data?.data?.patientIdProofUrls
                 : patientResponse?.data?.data?.idProof,
               firstName,
               lastName,
@@ -879,7 +879,7 @@ const BasicDetails = () => {
               patientFileName: patientResponse?.data?.data?.patientPicFileName,
               patientIdProofName: patientResponse?.data?.data?.patientIdProofName,
               patientPic: patientResponse?.data?.data?.patientPicUrl,
-              idProof: patientResponse?.data?.data?.patientidProofUrl,
+              idProof: patientResponse?.data?.data?.patientIdProofUrls,
               firstName,
               lastName,
               dob,
@@ -1534,12 +1534,14 @@ const BasicDetails = () => {
                 checked={true}
                 files={idProofFiles}
                 filesString={
-                  patientIdProofUrls.length
-                    ? patientIdProofUrls.map((url, idx) => ({
-                        filePath: url,
-                        fileUrl: url,
-                        fileName: `ID_Proof_${idx + 1}.pdf`
-                      }))
+                  state.idProof.length
+                    ? state.idProof
+                        // .filter((url) => typeof url === "string")
+                        .map((url, idx) => ({
+                          filePath: url as string,
+                          fileUrl: url as string,
+                          fileName: `ID_Proof_${idx + 1}.pdf`
+                        }))
                     : undefined
                 }
                 ContainerClass="-ml-5"

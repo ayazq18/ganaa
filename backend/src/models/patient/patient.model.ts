@@ -75,10 +75,12 @@ const patientSchema = new mongoose.Schema<IPatient>({
     type: String,
   },
   idProof: {
-    type: String,
+    type: [String], // Array of file paths
+    default: [],
   },
   patientIdProofName: {
-    type: String,
+     type: [String], // <-- Change from String to [String]
+  default: [],
   },
 
   // Reference
@@ -151,15 +153,16 @@ const generateSignedUrl = async (doc: any) => {
     }
   }
 
-  const patientidProofKey = doc?.idProof;
-  if (patientidProofKey?.length > 0) {
-    const signedUrl = await getSignedUrlByKey(patientidProofKey);
+  // For idProof (array)
+  const idProofKeys = doc?.idProof;
+  if (Array.isArray(idProofKeys) && idProofKeys.length > 0) {
+    const signedUrls = await Promise.all(idProofKeys.map((key: string) => getSignedUrlByKey(key)));
     if (doc._doc) {
       delete doc._doc.idProof;
-      doc._doc.patientidProofUrl = signedUrl;
+      doc._doc.patientIdProofUrls = signedUrls;
     } else {
       delete doc.idProof;
-      doc.patientidProofUrl = signedUrl;
+      doc.patientIdProofUrls = signedUrls;
     }
   }
 };

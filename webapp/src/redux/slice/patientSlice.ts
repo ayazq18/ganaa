@@ -27,8 +27,8 @@ export interface IPatientDetails {
   area?: string;
   patientPic?: string;
   patientFileName?: string;
-  patientIdProofName?:string;
-  idProof?: string;
+  patientIdProofName?:[string];
+  idProof?: [string];
   referredTypeId?: ISelectOption;
   referralDetails?: string;
   patientidProofUrl?: string;
@@ -131,7 +131,7 @@ const initialPatientDetails: IPatientDetails = {
   age: 0,
   email: "",
   patientFileName: "",
-  patientIdProofName:"",
+  patientIdProofName: [""],
   phoneNumberCountryCode: { label: "", value: "" },
   phoneNumber: "",
   alternativephoneNumberCountryCode: { label: "", value: "" },
@@ -142,7 +142,7 @@ const initialPatientDetails: IPatientDetails = {
   fullAddress: "",
   area: "",
   patientPic: "",
-  idProof: "",
+  idProof: [""],
   referredTypeId: { label: "", value: "" },
   referralDetails: "",
 

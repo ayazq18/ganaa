@@ -55,7 +55,7 @@ export const uploadPatientFiles = multer({
   },
 }).fields([
   { name: 'patientPic', maxCount: 1 },
-  { name: 'idProof', maxCount: 1 },
+  { name: 'idProof', maxCount: 5 },
 ]);
 
 /**
@@ -166,7 +166,6 @@ export const isPatientExist = catchAsync(
 
 export const createNewPatient = catchAsync(
   async (req: UserRequest, res: Response, next: NextFunction) => {
-    console.log('hiiiiiiiiiiiiii');
     if (!req.body.firstName) return next(new AppError('First Name is Mandatory', 400));
     if (!req.body.age) return next(new AppError('Age is Mandatory', 400));
 
@@ -188,7 +187,10 @@ export const createNewPatient = catchAsync(
 
     const files = req.files as { [fieldname: string]: Express.Multer.File[] } | undefined;
     const patientPic = files?.['patientPic']?.[0];
-    const idProof = files?.['idProof']?.[0];
+    const idProofFiles = files?.['idProof'] || [];
+
+    const idProofPaths: string[] = [];
+    const idProofNames: string[] = [];
 
     if (patientPic) {
       const fileName = `${Date.now()}-${random.randomAlphaNumeric(6)}-${patientPic?.originalname}`;
@@ -202,14 +204,21 @@ export const createNewPatient = catchAsync(
       });
     }
 
-    if (idProof) {
-      const fileName = `${Date.now()}-${random.randomAlphaNumeric(6)}-${idProof?.originalname}`;
+    for (const file of idProofFiles) {
+      const fileName = `${Date.now()}-${random.randomAlphaNumeric(6)}-${file.originalname}`;
       const filePath = S3Path.idProof(data._id?.toString() ?? '', fileName);
 
-      await S3.uploadFile(filePath, idProof?.buffer, idProof?.mimetype);
+      await S3.uploadFile(filePath, file.buffer, file.mimetype);
+      idProofPaths.push(filePath);
+      idProofNames.push(fileName);
+    }
+
+    if (idProofPaths.length > 0) {
       await Patient.findByIdAndUpdate(data._id, {
-        idProof: filePath,
-        patientIdProofName: fileName,
+        $push: {
+          idProof: { $each: idProofPaths },
+          patientIdProofName: { $each: idProofNames },
+        },
         updatedBy: req.user?._id,
       });
     }
@@ -317,7 +326,6 @@ export const updateSinglePatient = catchAsync(
       '$unset'
     ).get();
 
-
     if (filterObj.email) {
       const check = await User.exists({ email: filterObj.email });
       if (check) return next(new AppError('Email address already registered', 400));
@@ -325,7 +333,11 @@ export const updateSinglePatient = catchAsync(
 
     const files = req.files as { [fieldname: string]: Express.Multer.File[] } | undefined;
     const patientPic = files?.['patientPic']?.[0];
-    const idProof = files?.['idProof']?.[0];
+    const idProofFiles = files?.['idProof'] || [];
+    console.log('idProofFiles: ', idProofFiles);
+
+    const idProofPaths: string[] = [];
+    const idProofNames: string[] = [];
 
     if (patientPic) {
       const fileName = `${Date.now()}-${random.randomAlphaNumeric(6)}-${patientPic?.originalname}`;
@@ -336,20 +348,31 @@ export const updateSinglePatient = catchAsync(
       filterObj.patientPicFileName = fileName;
     }
 
-    if (idProof) {
-      const fileName = `${Date.now()}-${random.randomAlphaNumeric(6)}-${idProof?.originalname}`;
-      const filePath = S3Path.idProof(req.params.id ?? '', fileName);
-
-      await S3.uploadFile(filePath, idProof?.buffer, idProof?.mimetype);
-      filterObj.idProof = filePath;
-      filterObj.patientIdProofName = fileName;
-    }
-
+    
     const patientPreviousDoc = await Patient.findById(req.params.id).lean();
     if (!patientPreviousDoc) return next(new AppError('Please Provide Valid Patient ID', 400));
-
+    
     const data = await Patient.findByIdAndUpdate(req.params.id, filterObj, { new: true });
     if (!data) return next(new AppError('Please Provide Valid Patient ID', 400));
+    
+    for (const file of idProofFiles) {
+      const fileName = `${Date.now()}-${random.randomAlphaNumeric(6)}-${file.originalname}`;
+      const filePath = S3Path.idProof(data._id?.toString() ?? '', fileName);
+
+      await S3.uploadFile(filePath, file.buffer, file.mimetype);
+      idProofPaths.push(filePath);
+      idProofNames.push(fileName);
+    }
+
+    if (idProofPaths.length > 0) {
+      await Patient.findByIdAndUpdate(data._id, {
+        $push: {
+          idProof: { $each: idProofPaths },
+          patientIdProofName: { $each: idProofNames },
+        },
+        updatedBy: req.user?._id,
+      });
+    }
 
     const admissionHistoryMap = await PatientAdmissionHistory.getLatestPatientHistory([
       data._id as ObjectId,
