@@ -88,7 +88,7 @@ export interface IPatientAdmissionHistory {
   finacialCounsellingLink?: { filePath: string; fileUrl: string; fileName?: string }[];
   insuredFileLink?: { filePath: string; fileUrl: string; fileName?: string }[];
   admissionAssessmentLink?: { filePath: string; fileUrl: string; fileName?: string }[];
-
+admissionAssessment?:{ filePath: string; fileUrl: string; fileName?: string }[];
   patientChecklist?: string[];
   patientIdProof?: string;
   patientIdProofNumber?: string;
@@ -207,6 +207,7 @@ const initalPatientAdmission: IPatientAdmissionHistory = {
   hospitalGuidelineFormLink: [],
   finacialCounsellingLink: [],
   admissionAssessmentLink: [],
+  admissionAssessment: [],
   insuredFileLink: [],
 
   patientCheck: "",
