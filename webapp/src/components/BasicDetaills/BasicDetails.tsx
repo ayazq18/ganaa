@@ -53,6 +53,10 @@ import {
 } from "@/validations/Yup/BasicDetailValidation";
 import { useAuth } from "@/providers/AuthProvider";
 
+const isFile = (item: any): item is File => {
+  return item instanceof File;
+};
+
 const BasicDetails = () => {
   const { auth } = useAuth();
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -163,8 +167,19 @@ const BasicDetails = () => {
   };
 
   const handleDeleteIdProof = (index: number) => {
-    setIdProofFiles((prev) => prev.filter((_, i) => i !== index));
-    setIdProofUrls((prev) => prev.filter((_, i) => i !== index));
+    // Check if we're deleting a locally uploaded file or a stored URL
+    const isDeletingLocalFile = index < idProofFiles.length;
+
+    if (isDeletingLocalFile) {
+      // Delete from local files
+      setIdProofFiles((prev) => prev.filter((_, i) => i !== index));
+    } else {
+      // Delete from stored URLs (adjust index for URL array)
+      const urlIndex = index - idProofFiles.length;
+      setIdProofUrls((prev) => prev.filter((_, i) => i !== urlIndex));
+    }
+
+    // Update the state.idProof array
     setState((prev) => ({
       ...prev,
       idProof: Array.isArray(prev.idProof)
@@ -173,32 +188,42 @@ const BasicDetails = () => {
     }));
   };
 
-  //  useEffect(() => {
-  //   const id = patientData.patientDetails._id;
-  //   if (typeof id === "string" && id.trim() !== "") {
-  //     (async () => {
-  //       try {
-  //         const response = await getSinglePatient(id);
-  //         const patient = response.data.data;
+useEffect(() => {
+  const id = patientData.patientDetails._id;
+  if (typeof id === "string" && id.trim() !== "") {
+    (async () => {
+      try {
+        const response = await getSinglePatient(id);
+        const patient = response.data.data;
 
-  //         dispatch(setPatientDetails(patient));
-  //         setState((prev) => ({
-  //           ...prev,
-  //           ...patient,
-  //           idProof: patient.idProof || patient.patientIdProofUrls || "",
-  //         }));
-  //       } catch (error) {
-  //         console.error("Error fetching patient:", error);
-  //       }
-  //     })();
-  //   }
-  // }, [patientData.patientDetails._id, dispatch]);
+        // Only update ID proof related data, not the entire form state
+        if (patient.idProof || patient.patientIdProofUrls) {
+          const idProofUrls = Array.isArray(patient.idProof)
+            ? patient.idProof
+            : Array.isArray(patient.patientIdProofUrls)
+            ? patient.patientIdProofUrls
+            : [];
 
-  // useEffect(() => {
-  //   if (patientData.patientDetails.idProof) {
-  //     setIdProofUrl(patientData.patientDetails.idProof);
-  //   }
-  // }, [patientData.patientDetails.idProof]);
+          setIdProofUrls(idProofUrls);
+          
+          // Update only ID proof in the state without affecting other fields
+          setState((prev) => ({
+            ...prev,
+            idProof: idProofUrls
+          }));
+        }
+      } catch (error) {
+        console.error("Error fetching patient:", error);
+      }
+    })();
+  }
+}, [patientData.patientDetails._id]);
+
+  useEffect(() => {
+    if (patientData.patientDetails.idProof) {
+      setIdProofUrls(patientData.patientDetails.idProof);
+    }
+  }, [patientData.patientDetails.idProof]);
 
   const phonecode = useMemo<ISelectOption[]>(() => {
     if (dropdownData.country.loading) return [];
@@ -314,7 +339,7 @@ const BasicDetails = () => {
       {
         ...state,
         patientPic: "",
-        idProof: typeof state.idProof === "string" ? state.idProof : undefined
+        idProof: undefined
       },
       true
     );
@@ -1530,17 +1555,19 @@ const BasicDetails = () => {
             <label className="block mb-1.5 ml-0.5 text-sm font-medium">ID Proof</label>
             <div className="flex flex-col gap-1">
               <CheckBox
-                name=""
+                name="idProof"
                 checked={true}
-                files={idProofFiles}
+                files={idProofFiles} // Currently uploaded files
                 filesString={
-                  state.idProof.length
+                  state.idProof && state.idProof.length > 0
                     ? state.idProof
-                        // .filter((url) => typeof url === "string")
+                        .filter((url): url is string => typeof url === "string")
                         .map((url, idx) => ({
-                          filePath: url as string,
-                          fileUrl: url as string,
-                          fileName: `ID_Proof_${idx + 1}.pdf`
+                          filePath: url,
+                          fileUrl: url,
+                          fileName:
+                            patientData.patientDetails.patientIdProofName?.[idx] ||
+                            `ID_Proof_${idx + 1}.pdf`
                         }))
                     : undefined
                 }
