@@ -30,6 +30,7 @@ export interface ITherapistState {
   patientId: string;
   therapistName: string;
   isTodayNoteExist: boolean;
+  illnessType?:string;
 }
 
 export interface ITherapistNote {

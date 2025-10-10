@@ -44,6 +44,7 @@ import {
 } from "@/pages";
 import { RouteItem } from "@/router/type";
 import { RESOURCES, ROUTES } from "@/constants/resources";
+import PatientFollowUp from "@/pages/Admin/PatientData/FollowUp/PatientFollowUp";
 
 export const routes: RouteItem[] = [
   {
@@ -88,6 +89,11 @@ export const routes: RouteItem[] = [
                 path: ROUTES.ALL_PATIENT,
                 element: <AllPatientData />,
                 resource: RESOURCES.ALL_PATIENT
+              },
+              {
+                path: ROUTES.PATIENT_FOLLOWUP,
+                element: <PatientFollowUp />,
+                resource: RESOURCES.DOCOTOR_NOTES
               },
               {
                 path: ROUTES.IN_PATIENT,
