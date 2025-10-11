@@ -11,12 +11,12 @@ import { RootState } from "@/redux/store/store";
 import { resetTherapistNote, setTherapistNote } from "@/redux/slice/noteSlice";
 
 import {
-  getAllTherapistNotes,
-  createTherapistNotes,
+  getAllPatientFollowup,
+  createPatientFollowup,
   getAllUser,
   getSinglePatient,
-  deleteTherapistNotes,
-  updateTherapistNotes,
+  deletePatientFollowup,
+  updatePatientFollowup,
   getSinglePatientAdmissionHistory,
   getAllLoa,
   getPatientFamily
@@ -34,7 +34,6 @@ import {
   DeleteConfirm,
   Input,
   CheckBox,
-  DropDown,
   Select
 } from "@/components";
 
@@ -53,12 +52,12 @@ import handleError from "@/utils/handleError";
 import compareObjects from "@/utils/compareObjects";
 
 import {
-  ITherapistDropDownsState,
-  ITherapistNote,
-  ITherapistNoteState,
-  ITherapistState,
+  IPatientFollowupDropDownsState,
+  IPatientFollowup,
+  IPatientFollowupState,
+  IPatientState,
   IUser
-} from "@/pages/Admin/PatientData/TherapistNotes/types";
+} from "@/pages/Admin/PatientData/FollowUp/types";
 import moment from "moment";
 // import { ISessionType } from "@/redux/slice/dropDown";
 
@@ -86,7 +85,7 @@ const PatientFollowup = () => {
   const sessionMenuRef = useRef<HTMLDivElement>(null);
   const therapistMenuRef = useRef<HTMLDivElement>(null);
 
-  const [data, setData] = useState<ITherapistNoteState>({
+  const [data, setData] = useState<IPatientFollowupState>({
     id: "",
     patientId: "",
     patientAdmissionHistoryId: "",
@@ -104,7 +103,7 @@ const PatientFollowup = () => {
     { sessionType: string; subSessionType?: string }[]
   >([]);
 
-  const [state, setState] = useState<ITherapistState>({
+  const [state, setState] = useState<IPatientState>({
     totalPages: "",
     firstName: "",
     lastName: "",
@@ -148,7 +147,7 @@ const PatientFollowup = () => {
   });
 
   console.log("patientDetails: ", patientDetails);
-  const [dropDownsState, setDropDownsState] = useState<ITherapistDropDownsState>({
+  const [dropDownsState, setDropDownsState] = useState<IPatientFollowupDropDownsState>({
     displayAddForm: false,
     displayDropdown: false,
     isModalOpen: false,
@@ -160,7 +159,7 @@ const PatientFollowup = () => {
   const [allTherapists, setAllTherapists] = useState([]);
 
   const patient = useSelector((store: RootState) => store.patient);
-  console.log('patient: ', patient);
+  console.log("patient: ", patient);
 
   const fetchLoa = async () => {
     try {
@@ -228,7 +227,7 @@ const PatientFollowup = () => {
           dischargeStatus: ""
         }));
 
-        const { data: therapistNotesData } = await getAllTherapistNotes({
+        const { data: therapistNotesData } = await getAllPatientFollowup({
           limit: 20,
           page: page,
           sort: sort,
@@ -296,14 +295,14 @@ const PatientFollowup = () => {
 
   const fetchAllNotesToCheck = async (date?: string) => {
     try {
-      const response = await getAllTherapistNotes({
+      const response = await getAllPatientFollowup({
         patientAdmissionHistoryId: aId
       });
       setTotalTherapistNotes(response.data.data);
       setState((prev) => ({
         ...prev,
         isTodayNoteExist:
-          response.data.data.filter((elem: ITherapistNote) =>
+          response.data.data.filter((elem: IPatientFollowup) =>
             elem.noteDateTime.startsWith(date || data.noteDate)
           ).length > 0
       }));
@@ -317,7 +316,7 @@ const PatientFollowup = () => {
   //   if (totalTherapistNotes.length > 0) {
   //     const exist =
   //       totalTherapistNotes.filter(
-  //         (elem: ITherapistNote) =>
+  //         (elem: IPatientFollowup) =>
   //           elem.noteDateTime.startsWith(data.noteDate) && elem._id != data.id
   //       ).length > 0;
   //     setState((prev) => ({
@@ -350,7 +349,7 @@ const PatientFollowup = () => {
       ...prev,
       therapistName: `${auth?.user?.firstName} ${auth?.user?.lastName}`,
       isTodayNoteExist:
-        totalTherapistNotes.filter((elem: ITherapistNote) =>
+        totalTherapistNotes.filter((elem: IPatientFollowup) =>
           elem.noteDateTime.startsWith(data.noteDate)
         ).length > 0
     }));
@@ -380,7 +379,7 @@ const PatientFollowup = () => {
   //     return;
   //   }
 
-  //   return updateTherapistNotes(id, payload);
+  //   return updatePatientFollowup(id, payload);
   // };
 
   const updateFunctionTherapistNotes = (id: string) => {
@@ -444,7 +443,7 @@ const PatientFollowup = () => {
       return;
     }
 
-    return updateTherapistNotes(id, formData);
+    return updatePatientFollowup(id, formData);
   };
 
   const handleSubmit = async () => {
@@ -495,7 +494,7 @@ const PatientFollowup = () => {
           }
         });
 
-        const response = await createTherapistNotes(formData);
+        const response = await createPatientFollowup(formData);
         if (response && response?.status === 201) {
           toast.success("Note saved successfully");
           fetchTherapistNotes();
@@ -525,7 +524,7 @@ const PatientFollowup = () => {
     }));
   };
 
-  const toggleFunctionType = async (value: ITherapistNote, type: string) => {
+  const toggleFunctionType = async (value: IPatientFollowup, type: string) => {
     if (type == "edit") {
       const selected: { sessionType: string; subSessionType?: string }[] = [];
 
@@ -613,7 +612,7 @@ const PatientFollowup = () => {
   }, []);
 
   const confirmDeleteNote = async () => {
-    const response = await deleteTherapistNotes(data.id);
+    const response = await deletePatientFollowup(data.id);
     if (response.data?.status == "success") {
       resetState();
       toast.success(response.data?.message);
@@ -646,7 +645,7 @@ const PatientFollowup = () => {
     if (totalTherapistNotes.length > 0) {
       const exist =
         totalTherapistNotes.filter(
-          (elem: ITherapistNote) => elem.noteDateTime.startsWith(value) && elem._id != data.id
+          (elem: IPatientFollowup) => elem.noteDateTime.startsWith(value) && elem._id != data.id
         ).length > 0;
       setState((prev) => ({
         ...prev,
@@ -1204,11 +1203,338 @@ const PatientFollowup = () => {
                     </div>
                   )}
                 </div>
+
                 <div
                   className={`${
                     dropDownsState.displayAddForm ? "hidden" : "grid"
                   } pb-5 grid-cols-1 px-5 py-1 items-center`}
                 >
+                  <div className="grid lg:grid-cols-5 grid-cols-2 gap-y-4 p-2 gap-x-[52px]">
+                    <Input
+                      disabled={true}
+                      label="Center"
+                      labelClassName="text-black!"
+                      className="rounded-lg! font-bold placeholder:font-normal"
+                      placeholder="Enter"
+                      name="center"
+                      value={data?.totalDurationOfIllness}
+                      // onChange={handleChange}
+                    />
+
+                    <Input
+                      disabled={true}
+                      label="Patient Name"
+                      labelClassName="text-black!"
+                      className="rounded-lg! font-bold placeholder:font-normal"
+                      placeholder="Enter"
+                      name="patientName"
+                      value={data?.totalDurationOfIllness}
+                      // onChange={handleChange}
+                    />
+
+                    <Input
+                      disabled={true}
+                      label="UHID"
+                      labelClassName="text-black!"
+                      className="rounded-lg! font-bold placeholder:font-normal"
+                      placeholder="Enter"
+                      name="uhid"
+                      value={data?.totalDurationOfIllness}
+                      // onChange={handleChange}
+                    />
+
+                    <Input
+                      disabled={true}
+                      label="Age"
+                      labelClassName="text-black!"
+                      className="rounded-lg! font-bold placeholder:font-normal"
+                      placeholder="Enter"
+                      name="age"
+                      value={data?.totalDurationOfIllness}
+                      // onChange={handleChange}
+                    />
+
+                    <Input
+                      disabled={true}
+                      label="Gender"
+                      labelClassName="text-black!"
+                      className="rounded-lg! font-bold placeholder:font-normal"
+                      placeholder="Enter"
+                      name="gender"
+                      value={data?.totalDurationOfIllness}
+                      // onChange={handleChange}
+                    />
+
+                    <Input
+                      disabled={true}
+                      label="Contact"
+                      labelClassName="text-black!"
+                      className="rounded-lg! font-bold placeholder:font-normal"
+                      placeholder="Enter"
+                      name="contact"
+                      value={data?.totalDurationOfIllness}
+                      // onChange={handleChange}
+                    />
+
+                    <Input
+                      disabled={true}
+                      label="Discharge Date"
+                      labelClassName="text-black!"
+                      className="rounded-lg! font-bold placeholder:font-normal"
+                      placeholder="Enter"
+                      name="dischargeDate"
+                      value={data?.totalDurationOfIllness}
+                      // onChange={handleChange}
+                    />
+
+                    <Input
+                      disabled={true}
+                      label="Stay Duration"
+                      labelClassName="text-black!"
+                      className="rounded-lg! font-bold placeholder:font-normal"
+                      placeholder="Enter"
+                      name="stayDuration"
+                      value={data?.totalDurationOfIllness}
+                      // onChange={handleChange}
+                    />
+
+                    <Input
+                      disabled={true}
+                      label="Psychologist (Follow Up)"
+                      labelClassName="text-black!"
+                      className="rounded-lg! font-bold placeholder:font-normal"
+                      placeholder="Enter"
+                      name="psychologist"
+                      value={data?.totalDurationOfIllness}
+                      // onChange={handleChange}
+                    />
+
+                    <Select
+                      disable
+                      label="Discharge Plan"
+                      options={[
+                        { label: "Select", value: "" },
+                        { label: "Yes", value: "Yes" },
+                        { label: "No", value: "No" }
+                      ]}
+                      // value={historyData?.onset || { label: "Select", value: "" }}
+                      value={{ label: "Select", value: "" }}
+                      name="onset"
+                      // onChange={handleSelect}
+                    />
+                    {historyData?.onset && historyData?.onset?.value == "Other" && (
+                      <Input
+                        disabled
+                        label="Discharge Plan Shared"
+                        labelClassName="text-black!"
+                        className="rounded-lg! font-bold placeholder:font-normal"
+                        placeholder="Enter"
+                        name="onsetOther"
+                        value={historyData?.onsetOther}
+                      />
+                    )}
+
+                    <Input
+                      disabled={true}
+                      label="Followup Date"
+                      labelClassName="text-black!"
+                      className="rounded-lg! font-bold placeholder:font-normal"
+                      placeholder="Enter"
+                      name="followupDate"
+                      value={data?.totalDurationOfIllness}
+                      // onChange={handleChange}
+                    />
+
+                    <Input
+                      disabled={true}
+                      label="Therapist follow - up"
+                      labelClassName="text-black!"
+                      className="rounded-lg! font-bold placeholder:font-normal"
+                      placeholder="Enter"
+                      name="therapistFollowUp"
+                      value={data?.therapistFollowUp}
+                      // onChange={handleChange}
+                    />
+
+                    {state.illnessType !== "Mental Disorder" && (
+                      <>
+                        <Select
+                          disable
+                          label="Urge"
+                          options={[
+                            { label: "Select", value: "" },
+                            { label: "Yes", value: "Yes" },
+                            { label: "No", value: "No" }
+                          ]}
+                          value={historyData?.urge || { label: "Select", value: "" }}
+                          name="urge"
+                          // onChange={(name, data) => {
+                          //   handleSelect(name, data);
+                          // }}
+                        />
+
+                        {historyData.urge && historyData.urge?.value == "Other" && (
+                          <Input
+                            disabled
+                            label="Urge Other Detail"
+                            labelClassName="text-black!"
+                            className="rounded-lg! font-bold placeholder:font-normal"
+                            placeholder="Enter"
+                            name="urgeOther"
+                            value={historyData?.urgeOther}
+                          />
+                        )}
+
+                        <Select
+                          disable
+                          label="Medication Adherence"
+                          options={[
+                            { label: "Select", value: "" },
+                            { label: "Deteriorating", value: "Deteriorating" },
+                            { label: "Static", value: "Static" },
+                            { label: "Improving", value: "Improving" }
+                          ]}
+                          value={data?.progress || { label: "Select", value: "" }}
+                          name="progress"
+                          // onChange={(name, data) => {
+                          //   handleSelect(name, data);
+                          // }}
+                        />
+
+                        <Select
+                          disable
+                          label="Doing Prayer"
+                          options={[
+                            { label: "Select", value: "" },
+                            { label: "Yes", value: "Yes" },
+                            { label: "No", value: "No" }
+                          ]}
+                          value={data?.progress || { label: "Select", value: "" }}
+                          name="progress"
+                          // onChange={(name, data) => {
+                          //   handleSelect(name, data);
+                          // }}
+                        />
+
+                        <Select
+                          disable
+                          label="Reading AA literature"
+                          options={[
+                            { label: "Select", value: "" },
+                            { label: "Yes", value: "Yes" },
+                            { label: "No", value: "No" }
+                          ]}
+                          value={data?.progress || { label: "Select", value: "" }}
+                          name="progress"
+                          // onChange={(name, data) => {
+                          //   handleSelect(name, data);
+                          // }}
+                        />
+
+                        <Select
+                          disable
+                          label="Attending Meeting"
+                          options={[
+                            { label: "Select", value: "" },
+                            { label: "At Ganaa", value: "Yes" },
+                            { label: "Outside", value: "No" }
+                          ]}
+                          value={data?.progress || { label: "Select", value: "" }}
+                          name="progress"
+                          // onChange={(name, data) => {
+                          //   handleSelect(name, data);
+                          // }}
+                        />
+
+                        <Select
+                          disable
+                          label="Attending Daycare at Ganaa"
+                          options={[
+                            { label: "Select", value: "" },
+                            { label: "Yes", value: "Yes" },
+                            { label: "No", value: "No" }
+                          ]}
+                          value={data?.progress || { label: "Select", value: "" }}
+                          name="progress"
+                          // onChange={(name, data) => {
+                          //   handleSelect(name, data);
+                          // }}
+                        />
+
+                        <Select
+                          disable
+                          label="Making a sponsor "
+                          options={[
+                            { label: "Select", value: "" },
+                            { label: "Yes", value: "Yes" },
+                            { label: "No", value: "No" }
+                          ]}
+                          value={data?.progress || { label: "Select", value: "" }}
+                          name="progress"
+                          // onChange={(name, data) => {
+                          //   handleSelect(name, data);
+                          // }}
+                        />
+
+                        <Select
+                          disable
+                          label="Doing 12-step program"
+                          options={[
+                            { label: "Select", value: "" },
+                            { label: "Yes", value: "Yes" },
+                            { label: "No", value: "No" }
+                          ]}
+                          value={data?.progress || { label: "Select", value: "" }}
+                          name="progress"
+                          // onChange={(name, data) => {
+                          //   handleSelect(name, data);
+                          // }}
+                        />
+
+                        <Select
+                          disable
+                          label="Doing review with Ganaa docotor"
+                          options={[
+                            { label: "Select", value: "" },
+                            { label: "Yes", value: "Yes" },
+                            { label: "No", value: "No" }
+                          ]}
+                          value={data?.progress || { label: "Select", value: "" }}
+                          name="progress"
+                          // onChange={(name, data) => {
+                          //   handleSelect(name, data);
+                          // }}
+                        />
+
+                        <Input
+                          disabled={true}
+                          label="Feedback from family"
+                          labelClassName="text-black!"
+                          className="rounded-lg! font-bold placeholder:font-normal"
+                          placeholder="Enter"
+                          name="feedbackFromFamily"
+                          value={historyData.durationThisEpisode}
+                          // onChange={handleChange}
+                        />
+
+                        <Select
+                          disable
+                          label="Current Status"
+                          options={[
+                            { label: "Select", value: "" },
+                            { label: "Yes", value: "Yes" },
+                            { label: "No", value: "No" }
+                          ]}
+                          value={data?.progress || { label: "Select", value: "" }}
+                          name="progress"
+                          // onChange={(name, data) => {
+                          //   handleSelect(name, data);
+                          // }}
+                        />
+                      </>
+                    )}
+                  </div>
+
                   <div className="col-span-1 col-start-1 ">
                     <RichTextEditor
                       name="note"
@@ -1221,184 +1547,36 @@ const PatientFollowup = () => {
                       onChange={handleChangeQuill}
                     />
                   </div>
-                </div>
 
-                <div className="pb-6">
-                  <CheckBox
-                    checked={true}
-                    name=""
-                    handleDeletes={handleDeleteFile}
-                    handleDrop={(files) => {
-                      handleDropFiles(files);
-                    }}
-                    files={data.file instanceof File ? [data.file] : []}
-                    filesString={
-                      data.file && !(data.file instanceof File)
-                        ? [
-                            {
-                              filePath: typeof data.file === "string" ? data.file : "",
-                              fileUrl: typeof data.file === "string" ? data.file : "",
-                              fileName: data.fileName || ""
-                            }
-                          ]
-                        : undefined
-                    }
-                    ContainerClass="col-span-3"
-                    checkHide
-                    label={""}
-                    handleCheck={function (_e: SyntheticEvent): void {
-                      throw new Error("Function not implemented.");
-                    }}
-                  />
-                </div>
-
-                {/* History of Present Illness */}
-               {state.illnessType !== 'Mental Disorder' && <DropDown heading="History of Present Illness" subheading="(HOPI)">
-                  <div className="grid lg:grid-cols-5 grid-cols-2 gap-y-4  gap-x-[52px]">
-                    <Select
-                      disable
-                      label="Onset"
-                      options={[
-                        { label: "Select", value: "" },
-                        { label: "Abrupt", value: "Abrupt" },
-                        { label: "Acute", value: "Acute" },
-                        { label: "Subacute", value: "Subacute" },
-                        { label: "Insidious", value: "Insidious" },
-                        { label: "Unknown", value: "Unknown" }
-                      ]}
-                      // value={historyData?.onset || { label: "Select", value: "" }}
-                      value={{ label: "Select", value: "" }}
-                      name="onset"
-                      // onChange={handleSelect}
-                    />
-                    {historyData?.onset && historyData?.onset?.value == "Other" && (
-                      <Input
-                        disabled
-                        label="Onset Other Detail"
-                        labelClassName="text-black!"
-                        className="rounded-lg! font-bold placeholder:font-normal"
-                        placeholder="Enter"
-                        name="onsetOther"
-                        value={historyData?.onsetOther}
-                      />
-                    )}
-
-                    <Select
-                      disable
-                      label="Course"
-                      options={[
-                        { label: "Select", value: "" },
-                        { label: "Continuous", value: "Continuous" },
-                        { label: "Episodic", value: "Episodic" },
-                        { label: "Fluctuating", value: "Fluctuating" },
-                        { label: "Other", value: "Other" }
-                      ]}
-                      value={historyData?.course || { label: "Select", value: "" }}
-                      name="course"
-                      // onChange={(name, data) => {
-                      //   handleSelect(name, data);
-                      // }}
-                    />
-
-                    {historyData.course && historyData.course?.value == "Other" && (
-                      <Input
-                        disabled
-                        label="Course Dther Detail"
-                        labelClassName="text-black!"
-                        className="rounded-lg! font-bold placeholder:font-normal"
-                        placeholder="Enter"
-                        name="courseOther"
-                        value={historyData?.courseOther}
-                      />
-                    )}
-
-                    <Select
-                      disable
-                      label="Progress"
-                      options={[
-                        { label: "Select", value: "" },
-                        { label: "Deteriorating", value: "Deteriorating" },
-                        { label: "Static", value: "Static" },
-                        { label: "Improving", value: "Improving" }
-                      ]}
-                      value={data?.progress || { label: "Select", value: "" }}
-                      name="progress"
-                      // onChange={(name, data) => {
-                      //   handleSelect(name, data);
-                      // }}
-                    />
-
-                    <Input
-                      disabled={true}
-                      label="Total Duration of Illness"
-                      labelClassName="text-black!"
-                      className="rounded-lg! font-bold placeholder:font-normal"
-                      placeholder="Enter"
-                      name="totalDurationOfIllness"
-                      value={data?.totalDurationOfIllness}
-                      // onChange={handleChange}
-                    />
-
-                    <Input
-                      disabled={true}
-                      label="Duration (This Episode)"
-                      labelClassName="text-black!"
-                      className="rounded-lg! font-bold placeholder:font-normal"
-                      placeholder="Enter"
-                      name="durationThisEpisode"
-                      value={historyData.durationThisEpisode}
-                      // onChange={handleChange}
-                    />
-                    <Input
-                      disabled={true}
-                      label="Perpetuating"
-                      labelClassName="text-black!"
-                      className="rounded-lg! font-bold placeholder:font-normal"
-                      placeholder="Enter"
-                      name="perpetuating"
-                      value={historyData.perpetuating}
-                      // onChange={handleChange}
-                    />
-                    <Input
-                      disabled={true}
-                      label="Predisposing"
-                      labelClassName="text-black!"
-                      className="rounded-lg! font-bold placeholder:font-normal"
-                      placeholder="Enter"
-                      name="predisposing"
-                      value={historyData.predisposing}
-                      // onChange={handleChange}
-                    />
-                    <Input
-                      disabled={true}
-                      label="Precipitating Factors"
-                      labelClassName="text-black!"
-                      className="rounded-lg! font-bold placeholder:font-normal"
-                      placeholder="Enter"
-                      name="precipitatingFactors"
-                      value={historyData.precipitatingFactors}
-                      // onChange={handleChange}
-                    />
-                    <Select
-                      disable
-                      label="Impact of Present Illness"
-                      options={[
-                        { label: "Select", value: "" },
-                        { label: "Interpersonal", value: "Interpersonal" },
-                        { label: "Legal", value: "Legal" },
-                        { label: "Medical", value: "Medical" },
-                        { label: "Professional", value: "Professional" },
-                        { label: "Social", value: "Social" },
-                        { label: "Others", value: "Others" }
-                      ]}
-                      value={data?.impactOfPresentIllness || { label: "Select", value: "" }}
-                      name="impactOfPresentIllness"
-                      // onChange={(name, data) => {
-                      //   handleSelect(name, data);
-                      // }}
+                  <div className="pb-6 mt-5">
+                    <CheckBox
+                      checked={true}
+                      name=""
+                      handleDeletes={handleDeleteFile}
+                      handleDrop={(files) => {
+                        handleDropFiles(files);
+                      }}
+                      files={data.file instanceof File ? [data.file] : []}
+                      filesString={
+                        data.file && !(data.file instanceof File)
+                          ? [
+                              {
+                                filePath: typeof data.file === "string" ? data.file : "",
+                                fileUrl: typeof data.file === "string" ? data.file : "",
+                                fileName: data.fileName || ""
+                              }
+                            ]
+                          : undefined
+                      }
+                      ContainerClass="col-span-3"
+                      checkHide
+                      label={""}
+                      handleCheck={function (_e: SyntheticEvent): void {
+                        throw new Error("Function not implemented.");
+                      }}
                     />
                   </div>
-                </DropDown>}
+                </div>
               </div>
             </div>
           ) : (
@@ -1449,7 +1627,7 @@ const PatientFollowup = () => {
                 </thead>
 
                 <tbody className="bg-white w-full h-full">
-                  {therapistNotes.map((value: ITherapistNote, index: number) => {
+                  {therapistNotes.map((value: IPatientFollowup, index: number) => {
                     return (
                       <tr
                         key={index}

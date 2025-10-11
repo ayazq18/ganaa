@@ -10,7 +10,7 @@ class Collections {
   static doctorNote = new CollectionInfo('DoctorNote');
   static prescription = new CollectionInfo('Prescription');
   static therapistNote = new CollectionInfo('TherapistNote');
-
+  static patientFollowup = new CollectionInfo('PatientFollowup')
   // Dropdown
   // INFO: DD_Table Name, DD is used to distinguish between Dropdown table and other tables
   static allergy = new CollectionInfo('DD_Allergy');

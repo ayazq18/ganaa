@@ -6,6 +6,10 @@ import * as DoctorController from '../controllers/daily-progress/doctor.note.con
 import * as TherapistController from '../controllers/daily-progress/therapist.note.controller';
 import * as PrescriptionController from '../controllers/daily-progress/prescription.controller';
 
+// new call
+
+import * as PatientFollowupController from '../controllers/daily-progress/patient.followup.controller'
+
 const router = express.Router();
 
 // Protected Routes
@@ -38,6 +42,20 @@ router
   .get(TherapistController.getSingleTherapistNote)
   .patch(TherapistController.uploadFile, TherapistController.updateSingleTherapistNote)
   .delete(TherapistController.deleteSingleTherapistNote);
+
+  /**
+ * Patient Followup Routes
+ */
+router
+  .route('/patient-followup')
+  .get(PatientFollowupController.getAllPatientFollowup)
+  .post(PatientFollowupController.uploadFile, PatientFollowupController.createNewPatientFollowup);
+
+router
+  .route('/patient-followup/:id')
+  .get(PatientFollowupController.getSinglePatientFollowup)
+  .patch(PatientFollowupController.uploadFile, PatientFollowupController.updateSinglePatientFollowup)
+  .delete(PatientFollowupController.deleteSinglePatientFollowup);
 
 /**
  * Doctor Notes Routes

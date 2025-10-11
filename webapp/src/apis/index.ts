@@ -85,6 +85,12 @@ export const getAllTherapistNotes = (params?: unknown, headers?: AxiosHeaders) =
 export const updateTherapistNotes = (id: string, data: unknown, params?: unknown, headers?: AxiosHeaders) => http.patch(`/daily-progress/therapist/${id}`, data, { params, headers });
 export const deleteTherapistNotes = (id: string, params?: unknown, headers?: AxiosHeaders) => http.delete(`/daily-progress/therapist/${id}`, { params, headers });
 
+//new added for Patient Followup section
+export const createPatientFollowup = (data: unknown, params?: unknown, headers?: AxiosHeaders) => http.post("/daily-progress/patient-followup", data, { params, headers });
+export const getAllPatientFollowup = (params?: unknown, headers?: AxiosHeaders) => http.get("/daily-progress/patient-followup", { params, headers });
+export const updatePatientFollowup = (id: string, data: unknown, params?: unknown, headers?: AxiosHeaders) => http.patch(`/daily-progress/patient-followup/${id}`, data, { params, headers });
+export const deletePatientFollowup = (id: string, params?: unknown, headers?: AxiosHeaders) => http.delete(`/daily-progress/patient-followup/${id}`, { params, headers });
+
 export const createDoctorNotes = (data: unknown, params?: unknown, headers?: AxiosHeaders) => http.post("/daily-progress/doctor/note", data, { params, headers });
 export const getAllDoctorNotes = (params?: unknown, headers?: AxiosHeaders) => http.get("/daily-progress/doctor/note", { params, headers });
 export const updateDoctorNotes = (id: string, data: unknown, params?: unknown, headers?: AxiosHeaders) => http.patch(`/daily-progress/doctor/note/${id}`, data, { params, headers });
