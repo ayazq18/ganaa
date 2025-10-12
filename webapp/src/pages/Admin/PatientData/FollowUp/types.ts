@@ -31,6 +31,35 @@ export interface IPatientState {
   therapistName: string;
   isTodayNoteExist: boolean;
   illnessType?:string;
+
+   // Add these missing fields:
+  center?: string;
+  patientName: string;
+  age?: string;
+  contact?: string;
+  address?: string;
+  admissionType?: string;
+  involuntaryAdmissionType?: string;
+  doctor?: string;
+  therapist?: string;
+  dischargeDate?: string;
+  dischargeStatus?: string;
+  nominatedRepresentative?: string;
+  currentStatus?: string;
+  stayDuration?: string;
+  dischargePlan?:string;
+  psychologist?:string;
+  followupDate?:string;
+  urge?:string;
+  adherence?:string;
+  prayer?:string;
+  literature?:string;
+  meeting?:string;
+  daycareAtGanaa?:string;
+  sponsor?:string;
+  stepProgram?:string;
+  reviewWithGanaaDoctor?:string;
+  feedbackFromFamily?:string;
 }
 
 export interface IPatientFollowup {

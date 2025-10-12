@@ -54,6 +54,7 @@ export const getAllPatientFollowup = catchAsync(
 
 export const createNewPatientFollowup = catchAsync(
   async (req: UserRequest, res: Response, next: NextFunction) => {
+console.log('✌️req --->', req.body);
     if (!req.body.patientId) return next(new AppError('Patient ID is Mandatory', 400));
     if (!req.body.patientAdmissionHistoryId)
       return next(new AppError('Patient Admission History ID is Mandatory', 400));

@@ -71,6 +71,7 @@ import { RBACGuard } from "@/components/RBACGuard/RBACGuard";
 import { RESOURCES } from "@/constants/resources";
 import { IFamilyData } from "@/components/ProfileContacts/types";
 import { PatientDetails } from "../Discharge/types";
+import { ISelectOption } from "@/components/Select/types";
 
 const PatientFollowup = () => {
   const { id, aId } = useParams();
@@ -116,8 +117,39 @@ const PatientFollowup = () => {
     gender: "",
     therapistName: "",
     isTodayNoteExist: false,
-    illnessType: ""
+    illnessType: "",
+    // Add these missing fields with default values:
+    center: "",
+    patientName: "",
+    age: "",
+    contact: "",
+    address: "",
+    admissionType: "",
+    involuntaryAdmissionType: "",
+    doctor: "",
+    therapist: "",
+    dischargeDate: "",
+    dischargeStatus: "",
+    nominatedRepresentative: "",
+    currentStatus: "",
+    stayDuration: "",
+    dischargePlan: "",
+    psychologist: "",
+    followupDate: "",
+    urge: "",
+    adherence: "",
+    prayer: "",
+    literature: "",
+    meeting: "",
+    daycareAtGanaa: "",
+    sponsor: "",
+    stepProgram: "",
+    reviewWithGanaaDoctor: "",
+    feedbackFromFamily: ""
   });
+
+console.log('✌️state --->', state);
+
 
   const [familyDetails, setFamilyDetails] = useState<IFamilyData[]>([]);
 
@@ -146,7 +178,7 @@ const PatientFollowup = () => {
     currentStatus: ""
   });
 
-  console.log("patientDetails: ", patientDetails);
+  // console.log("patientDetails: ", patientDetails);
   const [dropDownsState, setDropDownsState] = useState<IPatientFollowupDropDownsState>({
     displayAddForm: false,
     displayDropdown: false,
@@ -159,7 +191,7 @@ const PatientFollowup = () => {
   const [allTherapists, setAllTherapists] = useState([]);
 
   const patient = useSelector((store: RootState) => store.patient);
-  console.log("patient: ", patient);
+  // console.log("patient: ", patient);
 
   const fetchLoa = async () => {
     try {
@@ -198,7 +230,7 @@ const PatientFollowup = () => {
   const notes = useSelector((store: RootState) => store.notes);
   const dropdown = useSelector((store: RootState) => store.dropdown);
 
-  const fetchTherapistNotes = async () => {
+  const fetchPatientFollowup = async () => {
     try {
       const page = searchParams.get("page") || "1";
       const sort = searchParams.get("sort") || "-createdAt";
@@ -256,7 +288,27 @@ const PatientFollowup = () => {
             patientAdmissionHistory?.data?.resourceAllocation?.assignedTherapistId?.lastName || ""
           }`.trim(),
           therapistName: `${auth?.user?.firstName} ${auth?.user?.lastName}`,
-          illnessType: patientAdmissionHistory?.data?.illnessType || ""
+          illnessType: patientAdmissionHistory?.data?.illnessType || "",
+
+          // Set the missing fields:
+          age: patientData?.data?.age || "",
+          phoneNumber: `${patientData?.data?.phoneNumberCountryCode || ""} ${
+            patientData?.data?.phoneNumber || ""
+          }`.trim(),
+          address: patientData?.data?.fullAddress || "",
+          admissionType: patientAdmissionHistory?.data?.admissionType || "",
+          involuntaryAdmissionType: patientAdmissionHistory?.data?.involuntaryAdmissionType || "",
+          doctor: patientAdmissionHistory?.data?.resourceAllocation?.assignedDoctorId?.firstName
+            ? `${patientAdmissionHistory?.data?.resourceAllocation?.assignedDoctorId?.firstName} ${patientAdmissionHistory?.data?.resourceAllocation?.assignedDoctorId?.lastName}`
+            : "",
+          therapist: patientAdmissionHistory?.data?.resourceAllocation?.assignedTherapistId
+            ?.firstName
+            ? `${patientAdmissionHistory?.data?.resourceAllocation?.assignedTherapistId?.firstName} ${patientAdmissionHistory?.data?.resourceAllocation?.assignedTherapistId?.lastName}`
+            : "",
+          dischargeDate: patientAdmissionHistory?.data?.dischargeDate || "",
+          dischargeStatus: patientAdmissionHistory?.data?.dischargeStatus || "",
+          nominatedRepresentative: "", // You'll need to set this from family details
+          currentStatus: patientAdmissionHistory?.data?.currentStatus || ""
         }));
         let date = "";
         if (new Date(patientAdmissionHistory?.data?.dateOfAdmission) > new Date()) {
@@ -289,7 +341,7 @@ const PatientFollowup = () => {
   };
 
   useEffect(() => {
-    fetchTherapistNotes();
+    fetchPatientFollowup();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams]);
 
@@ -458,7 +510,7 @@ const PatientFollowup = () => {
       if (data.id) {
         const response = await updateFunctionTherapistNotes(data.id);
         if (response && response.status == 200) {
-          fetchTherapistNotes();
+          fetchPatientFollowup();
         }
         toast.success("Therapist Notes Updated Successfully");
         resetState();
@@ -497,7 +549,7 @@ const PatientFollowup = () => {
         const response = await createPatientFollowup(formData);
         if (response && response?.status === 201) {
           toast.success("Note saved successfully");
-          fetchTherapistNotes();
+          fetchPatientFollowup();
           resetState();
         }
       }
@@ -616,7 +668,7 @@ const PatientFollowup = () => {
     if (response.data?.status == "success") {
       resetState();
       toast.success(response.data?.message);
-      fetchTherapistNotes();
+      fetchPatientFollowup();
       toggleModal();
     }
   };
@@ -717,14 +769,29 @@ const PatientFollowup = () => {
     const { name, value } = e.target as HTMLInputElement;
     if (numberFieldsName.includes(name)) {
       if (isNumeric(value)) {
-        setData((prev) => ({ ...prev, [name]: value }));
+        setState((prev) => ({ ...prev, [name]: value }));
       }
     } else {
-      setData((prev) => ({ ...prev, [name]: value }));
+      setState((prev) => ({ ...prev, [name]: value }));
     }
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const handleSelect = (name: string, selectedOption: ISelectOption) => {
+
+  // Update the state with the selected value
+  setState((prev) => ({ 
+    ...prev, 
+    [name]: selectedOption.value as string 
+  }));
+  
+  // If you need to update data state for some fields, do it here
+  // For example, if some select fields belong to data state:
+  // if (name === "someDataField") {
+  //   setData((prev) => ({ ...prev, [name]: selectedOption }));
+  // }
+};
 
   const handleDeleteFile = () => {
     setData((prev) => ({ ...prev, file: null, fileName: "" }));
@@ -1211,118 +1278,121 @@ const PatientFollowup = () => {
                 >
                   <div className="grid lg:grid-cols-5 grid-cols-2 gap-y-4 p-2 gap-x-[52px]">
                     <Input
-                      disabled={true}
+                      // disabled={true}
                       label="Center"
                       labelClassName="text-black!"
                       className="rounded-lg! font-bold placeholder:font-normal"
                       placeholder="Enter"
                       name="center"
-                      value={data?.totalDurationOfIllness}
-                      // onChange={handleChange}
+                      value={state?.center}
+                      onChange={handleChange}
                     />
 
                     <Input
-                      disabled={true}
+                      // disabled={true}
                       label="Patient Name"
                       labelClassName="text-black!"
                       className="rounded-lg! font-bold placeholder:font-normal"
                       placeholder="Enter"
                       name="patientName"
-                      value={data?.totalDurationOfIllness}
-                      // onChange={handleChange}
+                      value={state?.patientName}
+                      onChange={handleChange}
                     />
 
                     <Input
-                      disabled={true}
+                      // disabled={true}
                       label="UHID"
                       labelClassName="text-black!"
                       className="rounded-lg! font-bold placeholder:font-normal"
                       placeholder="Enter"
                       name="uhid"
-                      value={data?.totalDurationOfIllness}
-                      // onChange={handleChange}
+                      value={state?.UHID}
+                      onChange={handleChange}
                     />
 
                     <Input
-                      disabled={true}
+                      // disabled={true}
                       label="Age"
                       labelClassName="text-black!"
                       className="rounded-lg! font-bold placeholder:font-normal"
                       placeholder="Enter"
                       name="age"
-                      value={data?.totalDurationOfIllness}
-                      // onChange={handleChange}
+                      value={state?.age}
+                      onChange={handleChange}
                     />
 
                     <Input
-                      disabled={true}
+                      // disabled={true}
                       label="Gender"
                       labelClassName="text-black!"
                       className="rounded-lg! font-bold placeholder:font-normal"
                       placeholder="Enter"
                       name="gender"
-                      value={data?.totalDurationOfIllness}
-                      // onChange={handleChange}
+                      value={state?.gender}
+                      onChange={handleChange}
                     />
 
                     <Input
-                      disabled={true}
+                      // disabled={true}
                       label="Contact"
                       labelClassName="text-black!"
                       className="rounded-lg! font-bold placeholder:font-normal"
                       placeholder="Enter"
                       name="contact"
-                      value={data?.totalDurationOfIllness}
-                      // onChange={handleChange}
+                      value={state?.contact}
+                      onChange={handleChange}
                     />
 
                     <Input
-                      disabled={true}
+                      // disabled={true}
+                      type="date"
                       label="Discharge Date"
                       labelClassName="text-black!"
                       className="rounded-lg! font-bold placeholder:font-normal"
                       placeholder="Enter"
                       name="dischargeDate"
-                      value={data?.totalDurationOfIllness}
-                      // onChange={handleChange}
+                      value={state?.dischargeDate}
+                      onChange={handleChange}
                     />
 
                     <Input
-                      disabled={true}
+                      // disabled={true}
                       label="Stay Duration"
                       labelClassName="text-black!"
                       className="rounded-lg! font-bold placeholder:font-normal"
                       placeholder="Enter"
                       name="stayDuration"
-                      value={data?.totalDurationOfIllness}
-                      // onChange={handleChange}
+                      value={state?.stayDuration}
+                      onChange={handleChange}
                     />
 
                     <Input
-                      disabled={true}
+                      // disabled={true}
                       label="Psychologist (Follow Up)"
                       labelClassName="text-black!"
                       className="rounded-lg! font-bold placeholder:font-normal"
                       placeholder="Enter"
                       name="psychologist"
-                      value={data?.totalDurationOfIllness}
-                      // onChange={handleChange}
+                      value={state?.psychologist}
+                      onChange={handleChange}
                     />
 
                     <Select
-                      disable
+                      // disable
                       label="Discharge Plan"
                       options={[
-                        { label: "Select", value: "" },
                         { label: "Yes", value: "Yes" },
                         { label: "No", value: "No" }
                       ]}
-                      // value={historyData?.onset || { label: "Select", value: "" }}
-                      value={{ label: "Select", value: "" }}
-                      name="onset"
-                      // onChange={handleSelect}
+                      value={
+                        state?.dischargePlan
+                          ? { label: state.dischargePlan, value: state.dischargePlan }
+                          : { label: "Select", value: "" }
+                      }
+                      name="dischargePlan"
+                      onChange={handleSelect}
                     />
-                    {historyData?.onset && historyData?.onset?.value == "Other" && (
+                    {/* {state?.dischargePlan && (
                       <Input
                         disabled
                         label="Discharge Plan Shared"
@@ -1330,50 +1400,54 @@ const PatientFollowup = () => {
                         className="rounded-lg! font-bold placeholder:font-normal"
                         placeholder="Enter"
                         name="onsetOther"
-                        value={historyData?.onsetOther}
+                        value={state?.dischargePlan}
                       />
-                    )}
+                    )} */}
 
                     <Input
-                      disabled={true}
+                      // disabled={true}
+                      type="date"
                       label="Followup Date"
                       labelClassName="text-black!"
                       className="rounded-lg! font-bold placeholder:font-normal"
                       placeholder="Enter"
                       name="followupDate"
-                      value={data?.totalDurationOfIllness}
-                      // onChange={handleChange}
+                      value={state?.followupDate}
+                      onChange={handleChange}
                     />
 
                     <Input
-                      disabled={true}
+                      // disabled={true}
                       label="Therapist follow - up"
                       labelClassName="text-black!"
                       className="rounded-lg! font-bold placeholder:font-normal"
                       placeholder="Enter"
                       name="therapistFollowUp"
-                      value={data?.therapistFollowUp}
-                      // onChange={handleChange}
+                      value={state?.therapist}
+                      onChange={handleChange}
                     />
 
                     {state.illnessType !== "Mental Disorder" && (
                       <>
                         <Select
-                          disable
+                          // disable
                           label="Urge"
                           options={[
-                            { label: "Select", value: "" },
                             { label: "Yes", value: "Yes" },
                             { label: "No", value: "No" }
                           ]}
-                          value={historyData?.urge || { label: "Select", value: "" }}
+                          value={
+                            state?.urge
+                              ? { label: state.urge, value: state.urge }
+                              : { label: "Select", value: "" }
+                          }
                           name="urge"
-                          // onChange={(name, data) => {
-                          //   handleSelect(name, data);
-                          // }}
+                          onChange={(name, data) => {
+                            handleSelect(name, data);
+                          }}
                         />
 
-                        {historyData.urge && historyData.urge?.value == "Other" && (
+                        {/* {state.urge && (
                           <Input
                             disabled
                             label="Urge Other Detail"
@@ -1381,155 +1455,192 @@ const PatientFollowup = () => {
                             className="rounded-lg! font-bold placeholder:font-normal"
                             placeholder="Enter"
                             name="urgeOther"
-                            value={historyData?.urgeOther}
+                            value={state?.urge}
                           />
-                        )}
+                        )} */}
 
                         <Select
-                          disable
+                          // disable
                           label="Medication Adherence"
                           options={[
-                            { label: "Select", value: "" },
-                            { label: "Deteriorating", value: "Deteriorating" },
-                            { label: "Static", value: "Static" },
-                            { label: "Improving", value: "Improving" }
+                            { label: "No", value: "No" },
+                            { label: "Yes", value: "Yes" },
+                            { label: "Sometimes", value: "Sometimes" }
                           ]}
-                          value={data?.progress || { label: "Select", value: "" }}
-                          name="progress"
-                          // onChange={(name, data) => {
-                          //   handleSelect(name, data);
-                          // }}
+                          value={
+                            state?.adherence
+                              ? { label: state.adherence, value: state.adherence }
+                              : { label: "Select", value: "" }
+                          }
+                          name="adherence"
+                          onChange={(name, state) => {
+                            handleSelect(name, state);
+                          }}
                         />
 
                         <Select
-                          disable
+                          // disable
                           label="Doing Prayer"
                           options={[
-                            { label: "Select", value: "" },
                             { label: "Yes", value: "Yes" },
                             { label: "No", value: "No" }
                           ]}
-                          value={data?.progress || { label: "Select", value: "" }}
-                          name="progress"
-                          // onChange={(name, data) => {
-                          //   handleSelect(name, data);
-                          // }}
+                          value={
+                            state?.prayer
+                              ? { label: state.prayer, value: state.prayer }
+                              : { label: "Select", value: "" }
+                          }
+                          name="prayer"
+                          onChange={(name, state) => {
+                            handleSelect(name, state);
+                          }}
                         />
 
                         <Select
-                          disable
+                          // disable
                           label="Reading AA literature"
                           options={[
-                            { label: "Select", value: "" },
                             { label: "Yes", value: "Yes" },
                             { label: "No", value: "No" }
                           ]}
-                          value={data?.progress || { label: "Select", value: "" }}
-                          name="progress"
-                          // onChange={(name, data) => {
-                          //   handleSelect(name, data);
-                          // }}
+                          value={
+                            state?.literature
+                              ? { label: state.literature, value: state.literature }
+                              : { label: "Select", value: "" }
+                          }
+                          name="literature"
+                          onChange={(name, state) => {
+                            handleSelect(name, state);
+                          }}
                         />
 
                         <Select
-                          disable
+                          // disable
                           label="Attending Meeting"
                           options={[
                             { label: "Select", value: "" },
-                            { label: "At Ganaa", value: "Yes" },
-                            { label: "Outside", value: "No" }
+                            { label: "No", value: "No" },
+                            { label: "At Ganaa", value: "At Ganaa" },
+                            { label: "Outside Ganaa", value: "Outside Ganaa" },
+                            { label: "At Ganaa & Outside", value: "At Ganaa & Outside" }
                           ]}
-                          value={data?.progress || { label: "Select", value: "" }}
-                          name="progress"
-                          // onChange={(name, data) => {
-                          //   handleSelect(name, data);
-                          // }}
+                          value={
+                            state?.meeting
+                              ? { label: state?.meeting, value: state?.meeting }
+                              : { label: "Select", value: "" }
+                          }
+                          name="meeting"
+                          onChange={(name, state) => {
+                            handleSelect(name, state);
+                          }}
                         />
 
                         <Select
-                          disable
+                          // disable
                           label="Attending Daycare at Ganaa"
                           options={[
-                            { label: "Select", value: "" },
                             { label: "Yes", value: "Yes" },
                             { label: "No", value: "No" }
                           ]}
-                          value={data?.progress || { label: "Select", value: "" }}
-                          name="progress"
-                          // onChange={(name, data) => {
-                          //   handleSelect(name, data);
-                          // }}
+                          value={
+                            state?.daycareAtGanaa
+                              ? { label: state.daycareAtGanaa, value: state.daycareAtGanaa }
+                              : { label: "Select", value: "" }
+                          }
+                          name="daycareAtGanaa"
+                          onChange={(name, state) => {
+                            handleSelect(name, state);
+                          }}
                         />
 
                         <Select
-                          disable
+                          // disable
                           label="Making a sponsor "
                           options={[
-                            { label: "Select", value: "" },
                             { label: "Yes", value: "Yes" },
                             { label: "No", value: "No" }
                           ]}
-                          value={data?.progress || { label: "Select", value: "" }}
-                          name="progress"
-                          // onChange={(name, data) => {
-                          //   handleSelect(name, data);
-                          // }}
+                          value={
+                            state?.sponsor
+                              ? { label: state.sponsor, value: state.sponsor }
+                              : { label: "Select", value: "" }
+                          }
+                          name="sponsor"
+                          onChange={(name, state) => {
+                            handleSelect(name, state);
+                          }}
                         />
 
                         <Select
-                          disable
+                          // disable
                           label="Doing 12-step program"
                           options={[
-                            { label: "Select", value: "" },
                             { label: "Yes", value: "Yes" },
                             { label: "No", value: "No" }
                           ]}
-                          value={data?.progress || { label: "Select", value: "" }}
-                          name="progress"
-                          // onChange={(name, data) => {
-                          //   handleSelect(name, data);
-                          // }}
+                          value={
+                            state?.stepProgram
+                              ? { label: state.stepProgram, value: state.stepProgram }
+                              : { label: "Select", value: "" }
+                          }
+                          name="stepProgram"
+                          onChange={(name, state) => {
+                            handleSelect(name, state);
+                          }}
                         />
 
                         <Select
-                          disable
+                          // disable
                           label="Doing review with Ganaa docotor"
                           options={[
                             { label: "Select", value: "" },
                             { label: "Yes", value: "Yes" },
                             { label: "No", value: "No" }
                           ]}
-                          value={data?.progress || { label: "Select", value: "" }}
-                          name="progress"
-                          // onChange={(name, data) => {
-                          //   handleSelect(name, data);
-                          // }}
+                          value={
+                            state?.reviewWithGanaaDoctor
+                              ? {
+                                  label: state.reviewWithGanaaDoctor,
+                                  value: state.reviewWithGanaaDoctor
+                                }
+                              : { label: "Select", value: "" }
+                          }
+                          name="reviewWithGanaaDoctor"
+                          onChange={(name, state) => {
+                            handleSelect(name, state);
+                          }}
                         />
 
                         <Input
-                          disabled={true}
+                          // disabled={true}
                           label="Feedback from family"
                           labelClassName="text-black!"
                           className="rounded-lg! font-bold placeholder:font-normal"
                           placeholder="Enter"
                           name="feedbackFromFamily"
-                          value={historyData.durationThisEpisode}
-                          // onChange={handleChange}
+                          value={state.feedbackFromFamily}
+                          onChange={handleChange}
                         />
 
                         <Select
-                          disable
+                          // disable
                           label="Current Status"
                           options={[
-                            { label: "Select", value: "" },
-                            { label: "Yes", value: "Yes" },
-                            { label: "No", value: "No" }
+                            // { label: "Select", value: "" },
+                            { label: "Sober", value: "Sober" },
+                            { label: "Relapsed", value: "Relapsed" },
+                            { label: "Struggling", value: "Struggling" },
+                            { label: "Vanished", value: "Vanished" }
                           ]}
-                          value={data?.progress || { label: "Select", value: "" }}
-                          name="progress"
-                          // onChange={(name, data) => {
-                          //   handleSelect(name, data);
-                          // }}
+                          value={
+                            state?.currentStatus
+                              ? { label: state.currentStatus, value: state.currentStatus }
+                              : { label: "Select", value: "" }
+                          }
+                          name="currentStatus"
+                          onChange={(name, state) => {
+                            handleSelect(name, state);
+                          }}
                         />
                       </>
                     )}
