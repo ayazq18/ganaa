@@ -44,7 +44,7 @@ export interface IPatientFollowup {
    // New fields for patient followup
   center?: string;
   patientName?: string;
-  uhid?: string;
+  UHID?: string;
   age?: string;
   gender?: string;
   contact?: string;
@@ -54,17 +54,17 @@ export interface IPatientFollowup {
   dischargePlan?: string;
   dischargePlanShared?: string;
   followupDate?: Date;
-  therapistFollowUp?: string;
+  therapist?: string;
   urge?: string;
   urgeOther?: string;
-  medicationAdherence?: string;
-  doingPrayer?: string;
-  readingAALiterature?: string;
-  attendingMeeting?: string;
-  attendingDaycareAtGanaa?: string;
-  makingASponsor?: string;
-  doing12StepProgram?: string;
-  doingReviewWithGanaaDoctor?: string;
+  adherence?: string;
+  prayer?: string;
+  literature?: string;
+  meeting?: string;
+  daycareAtGanaa?: string;
+  sponsor?: string;
+  stepProgram?: string;
+  reviewWithGanaaDoctor?: string;
   feedbackFromFamily?: string;
   currentStatus?: string;
   totalDurationOfIllness?: string;

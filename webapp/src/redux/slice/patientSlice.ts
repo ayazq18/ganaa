@@ -52,6 +52,35 @@ export interface IPatientDetails {
   hyperTension?: string;
   previousTreatmentRecordLink?: { filePath: string; fileUrl: string; fileName?: string }[];
   injuries?: string[];
+   // Add these missing fields:
+  center?: string;
+  patientName: string;
+  contact?: string;
+  address?: string;
+  admissionType?: string;
+  involuntaryAdmissionType?: string;
+  doctor?: string;
+  therapist?: string;
+  dischargeDate?: string;
+  dischargeStatus?: string;
+  nominatedRepresentative?: string;
+  currentStatus?: string;
+  stayDuration?: string;
+  dischargePlan?:string;
+  psychologist?:string;
+  followupDate?:string;
+  urge?:string;
+  adherence?:string;
+  prayer?:string;
+  literature?:string;
+  meeting?:string;
+  daycareAtGanaa?:string;
+  sponsor?:string;
+  stepProgram?:string;
+  reviewWithGanaaDoctor?:string;
+  feedbackFromFamily?:string;
+  UHID: string;
+    therapistName: string;
 }
 export interface IPatientAdmissionHistory {
   _id?: string;
@@ -169,7 +198,36 @@ const initialPatientDetails: IPatientDetails = {
   heartDiseaseDescription: "",
   levelOfRisk: "",
   levelOfRiskDescription: "",
-  previousTreatmentRecordLink: []
+  previousTreatmentRecordLink: [],
+   // Add these missing fields with default values:
+    center: "",
+    patientName: "",
+    contact: "",
+    address: "",
+    admissionType: "",
+    involuntaryAdmissionType: "",
+    doctor: "",
+    therapist: "",
+    dischargeDate: "",
+    dischargeStatus: "",
+    nominatedRepresentative: "",
+    currentStatus: "",
+    stayDuration: "",
+    dischargePlan: "",
+    psychologist: "",
+    followupDate: "",
+    urge: "",
+    adherence: "",
+    prayer: "",
+    literature: "",
+    meeting: "",
+    daycareAtGanaa: "",
+    sponsor: "",
+    stepProgram: "",
+    reviewWithGanaaDoctor: "",
+    feedbackFromFamily: "",
+    UHID: "",
+    therapistName: "",
 };
 
 const initalPatientAdmission: IPatientAdmissionHistory = {

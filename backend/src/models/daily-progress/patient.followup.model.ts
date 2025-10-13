@@ -55,7 +55,7 @@ const patientFollowupSchema = new mongoose.Schema<IPatientFollowup>({
     type: String,
     trim: true,
   },
-  uhid: {
+  UHID: {
     type: String,
     trim: true,
   },
@@ -94,7 +94,7 @@ const patientFollowupSchema = new mongoose.Schema<IPatientFollowup>({
   followupDate: {
     type: Date,
   },
-  therapistFollowUp: {
+  therapist: {
     type: String,
     trim: true,
   },
@@ -107,42 +107,42 @@ const patientFollowupSchema = new mongoose.Schema<IPatientFollowup>({
     type: String,
     trim: true,
   },
-  medicationAdherence: {
+  adherence: {
     type: String,
     trim: true,
-    enum: ['Deteriorating', 'Static', 'Improving', ''],
+    enum: ['Yes', 'No', 'Sometimes', ''],
   },
-  doingPrayer: {
-    type: String,
-    trim: true,
-    enum: ['Yes', 'No', ''],
-  },
-  readingAALiterature: {
+  prayer: {
     type: String,
     trim: true,
     enum: ['Yes', 'No', ''],
   },
-  attendingMeeting: {
-    type: String,
-    trim: true,
-    enum: ['At Ganaa', 'Outside', ''],
-  },
-  attendingDaycareAtGanaa: {
+  literature: {
     type: String,
     trim: true,
     enum: ['Yes', 'No', ''],
   },
-  makingASponsor: {
+  meeting: {
+    type: String,
+    trim: true,
+    enum: ['At Ganaa', 'Outside Ganaa', 'At Ganaa & Outside', 'No', ''],
+  },
+  daycareAtGanaa: {
     type: String,
     trim: true,
     enum: ['Yes', 'No', ''],
   },
-  doing12StepProgram: {
+  sponsor: {
     type: String,
     trim: true,
     enum: ['Yes', 'No', ''],
   },
-  doingReviewWithGanaaDoctor: {
+  stepProgram: {
+    type: String,
+    trim: true,
+    enum: ['Yes', 'No', ''],
+  },
+  reviewWithGanaaDoctor: {
     type: String,
     trim: true,
     enum: ['Yes', 'No', ''],
@@ -154,7 +154,7 @@ const patientFollowupSchema = new mongoose.Schema<IPatientFollowup>({
   currentStatus: {
     type: String,
     trim: true,
-    enum: ['Yes', 'No', ''],
+    enum: ['Sober', 'Relapsed', 'Struggling', 'Vanished', ''],
   },
   totalDurationOfIllness: {
     type: String,
