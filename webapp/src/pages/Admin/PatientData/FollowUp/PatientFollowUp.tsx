@@ -550,33 +550,67 @@ const PatientFollowup = () => {
     const updatedState = compareObjects(notes.therapistNote, data, true);
     const formData = new FormData();
 
+    // Basic note fields
     if (updatedState.note !== undefined) formData.append("note", updatedState.note);
     if (updatedState.therapistId !== undefined)
       formData.append("therapistId", updatedState.therapistId);
 
+    // Date time handling
     if (updatedState.noteTime !== undefined || updatedState.noteDate !== undefined) {
       const formattedDateTime = new Date(`${data.noteDate} ${data.noteTime}`).toISOString();
       formData.append("noteDateTime", formattedDateTime);
     }
 
+    // File handling
     if (data.file instanceof File) {
       formData.append("file", data.file);
-    } else {
-      if (typeof data.file !== "string") formData.append("file", "");
+    } else if (typeof data.file === "string" && data.file.trim() === "") {
+      formData.append("file", "");
     }
 
-    const keysToInclude = ["sessionType", "subSessionType"];
+    // Session types
+    const keysToInclude = [
+      "sessionType",
+      "subSessionType",
+      // Add all the new form fields here
+      "center",
+      "patientName",
+      "age",
+      "contact",
+      "address",
+      "admissionType",
+      "involuntaryAdmissionType",
+      "doctor",
+      "therapist",
+      "dischargeDate",
+      "dischargeStatus",
+      "nominatedRepresentative",
+      "currentStatus",
+      "stayDuration",
+      "dischargePlan",
+      "psychologist",
+      "followupDate",
+      "urge",
+      "adherence",
+      "prayer",
+      "literature",
+      "meeting",
+      "daycareAtGanaa",
+      "sponsor",
+      "stepProgram",
+      "reviewWithGanaaDoctor",
+      "feedbackFromFamily",
+      "UHID",
+      "therapistName",
+      "gender"
+    ];
 
     Object.entries(updatedState).forEach(([key, value]) => {
       if (!keysToInclude.includes(key)) return;
 
       if (Array.isArray(value)) {
         if (value.length === 0) {
-          if (key == "subSessionType") {
-            formData.append(key, "");
-          } else {
-            formData.append(key, "");
-          }
+          formData.append(key, "");
         } else {
           value.forEach((v) => formData.append(key, v));
         }
@@ -585,26 +619,28 @@ const PatientFollowup = () => {
       }
     });
 
+    // Score handling
     if (
       updatedState.sessionType &&
       Array.isArray(updatedState.sessionType) &&
       updatedState.sessionType.includes("A - Assessment") &&
-      updatedState.score != undefined
+      updatedState.score !== undefined
     ) {
       formData.append("score", updatedState.score);
-    }
-    if (
-      updatedState.sessionType &&
-      Array.isArray(updatedState.sessionType) &&
-      !updatedState.sessionType.includes("A - Assessment") &&
-      updatedState.score != undefined
-    ) {
+    } else if (updatedState.score !== undefined) {
       formData.append("score", updatedState.score);
     }
 
     // Check if FormData has any entries
     if (!Array.from(formData.keys()).length) {
-      return;
+      console.log("No changes detected");
+      return Promise.resolve({ status: 200 }); // Return resolved promise if no changes
+    }
+
+    // Log form data for debugging
+    console.log("FormData entries:");
+    for (let pair of formData.entries()) {
+      console.log(pair[0] + ": ", pair[1]);
     }
 
     return updatePatientFollowup(id, formData);
@@ -620,18 +656,22 @@ const PatientFollowup = () => {
       if (!data.noteDate || !data.noteTime) throw new Error("Both note date and time are required");
 
       if (data.id) {
+        // UPDATE EXISTING NOTE
         const response = await updateFunctionTherapistNotes(data.id);
         if (response && response.status == 200) {
           fetchPatientFollowup();
+          toast.success("Therapist Notes Updated Successfully");
+          resetState();
         }
-        toast.success("Therapist Notes Updated Successfully");
-        resetState();
       } else {
+        // CREATE NEW NOTE (your existing create code)
         const formattedDateTime = new Date(`${data.noteDate} ${data.noteTime}`).toISOString();
         const body: Partial<typeof data> & { noteDateTime: string } = {
           ...data,
           noteDateTime: formattedDateTime
         };
+
+        // Remove score if not assessment session
         if (
           (Array.isArray(body.sessionType) && !body.sessionType.includes("A - Assessment")) ||
           (!Array.isArray(body.sessionType) && body.sessionType !== "A - Assessment") ||
@@ -640,14 +680,10 @@ const PatientFollowup = () => {
           delete body.score;
         }
 
-        if (!body.sessionType) {
-          delete body.sessionType;
-        }
-        if (!body.subSessionType) {
-          delete body.subSessionType;
-        }
-        const formData = new FormData();
+        if (!body.sessionType) delete body.sessionType;
+        if (!body.subSessionType) delete body.subSessionType;
 
+        const formData = new FormData();
         Object.entries(body).forEach(([key, value]) => {
           if (Array.isArray(value)) {
             value.forEach((v) => formData.append(key, v));
@@ -657,8 +693,6 @@ const PatientFollowup = () => {
             formData.append(key, value.toString());
           }
         });
-        console.log('formData: ', formData);
-
 
         const response = await createPatientFollowup(formData);
         if (response && response?.status === 201) {
@@ -1481,7 +1515,9 @@ const PatientFollowup = () => {
                       className="rounded-lg! font-bold placeholder:font-normal"
                       placeholder="Enter"
                       name="dischargeDate"
-                      value={data?.dischargeDate ? moment(data.dischargeDate).format('YYYY-MM-DD') : ''}
+                      value={
+                        data?.dischargeDate ? moment(data.dischargeDate).format("YYYY-MM-DD") : ""
+                      }
                       onChange={handleChange}
                     />
 
@@ -1542,7 +1578,9 @@ const PatientFollowup = () => {
                       className="rounded-lg! font-bold placeholder:font-normal"
                       placeholder="Enter"
                       name="followupDate"
-                      value={data?.followupDate ? moment(data.followupDate).format('YYYY-MM-DD') : ''}
+                      value={
+                        data?.followupDate ? moment(data.followupDate).format("YYYY-MM-DD") : ""
+                      }
                       onChange={handleChange}
                     />
 
