@@ -109,15 +109,15 @@ export interface IPatientFollowupState {
   noteDate: string;
   noteTime: string;
   // Add these missing fields:
-  center?: string;
-  patientName: string;
-  age?: string;
-  contact?: string;
-  address?: string;
-  admissionType?: string;
-  involuntaryAdmissionType?: string;
-  doctor?: string;
-  therapist?: string;
+  // center?: string;
+  // patientName: string;
+  // age?: string;
+  // contact?: string;
+  // address?: string;
+  // admissionType?: string;
+  // involuntaryAdmissionType?: string;
+  // doctor?: string;
+  // therapist?: string;
   dischargeDate?: string;
   dischargeStatus?: string;
   nominatedRepresentative?: string;

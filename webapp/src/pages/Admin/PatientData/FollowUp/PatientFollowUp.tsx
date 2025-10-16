@@ -98,15 +98,15 @@ const PatientFollowup = () => {
     noteDate: moment().format("YYYY-MM-DD"),
     noteTime: moment().format("HH:mm"),
     // Add these missing fields with default values:
-    center: "",
-    patientName: "",
-    age: "",
-    contact: "",
-    address: "",
-    admissionType: "",
-    involuntaryAdmissionType: "",
-    doctor: "",
-    therapist: "",
+    // center: "",
+    // patientName: "",
+    // age: "",
+    // contact: "",
+    // address: "",
+    // admissionType: "",
+    // involuntaryAdmissionType: "",
+    // doctor: "",
+    // therapist: "",
     dischargeDate: "",
     dischargeStatus: "",
     nominatedRepresentative: "",
@@ -176,8 +176,6 @@ const PatientFollowup = () => {
     // reviewWithGanaaDoctor: "",
     // feedbackFromFamily: ""
   });
-
-  console.log("data --->", data);
 
   const [familyDetails, setFamilyDetails] = useState<IFamilyData[]>([]);
 
@@ -1441,7 +1439,7 @@ const PatientFollowup = () => {
                   } pb-5 grid-cols-1 px-5 py-1 items-center`}
                 >
                   <div className="grid lg:grid-cols-5 grid-cols-2 gap-y-4 p-2 gap-x-[52px]">
-                    <Input
+                    {/* <Input
                       disabled={state.isTodayNoteExist}
                       label="Center"
                       labelClassName="text-black!"
@@ -1557,7 +1555,7 @@ const PatientFollowup = () => {
                       }
                       name="dischargePlan"
                       onChange={handleSelect}
-                    />
+                    /> */}
                     {/* {data?.dischargePlan && (
                       <Input
                         disabled
@@ -1584,50 +1582,28 @@ const PatientFollowup = () => {
                       onChange={handleChange}
                     />
 
-                    <Input
-                      disabled={state.isTodayNoteExist}
-                      label="Therapist follow - up"
-                      labelClassName="text-black!"
-                      className="rounded-lg! font-bold placeholder:font-normal"
-                      placeholder="Enter"
-                      name="therapistFollowUp"
-                      value={data?.therapist}
-                      onChange={handleChange}
-                    />
-
-                    {state.illnessType !== "Mental Disorder" && (
-                      <>
-                        <Select
+                    <Select
                           disable={state.isTodayNoteExist}
-                          label="Urge"
+                          label="Current Status"
                           options={[
-                            { label: "Yes", value: "Yes" },
-                            { label: "No", value: "No" }
+                            // { label: "Select", value: "" },
+                            { label: "Sober", value: "Sober" },
+                            { label: "Relapsed", value: "Relapsed" },
+                            { label: "Struggling", value: "Struggling" },
+                            { label: "Vanished", value: "Vanished" }
                           ]}
                           value={
-                            data?.urge
-                              ? { label: data.urge, value: data.urge }
+                            data?.currentStatus
+                              ? { label: data.currentStatus, value: data.currentStatus }
                               : { label: "Select", value: "" }
                           }
-                          name="urge"
+                          name="currentStatus"
                           onChange={(name, data) => {
                             handleSelect(name, data);
                           }}
                         />
 
-                        {/* {data.urge && (
-                          <Input
-                            disabled
-                            label="Urge Other Detail"
-                            labelClassName="text-black!"
-                            className="rounded-lg! font-bold placeholder:font-normal"
-                            placeholder="Enter"
-                            name="urgeOther"
-                            value={data?.urge}
-                          />
-                        )} */}
-
-                        <Select
+                         <Select
                           disable={state.isTodayNoteExist}
                           label="Medication Adherence"
                           options={[
@@ -1646,43 +1622,7 @@ const PatientFollowup = () => {
                           }}
                         />
 
-                        <Select
-                          disable={state.isTodayNoteExist}
-                          label="Doing Prayer"
-                          options={[
-                            { label: "Yes", value: "Yes" },
-                            { label: "No", value: "No" }
-                          ]}
-                          value={
-                            data?.prayer
-                              ? { label: data.prayer, value: data.prayer }
-                              : { label: "Select", value: "" }
-                          }
-                          name="prayer"
-                          onChange={(name, data) => {
-                            handleSelect(name, data);
-                          }}
-                        />
-
-                        <Select
-                          disable={state.isTodayNoteExist}
-                          label="Reading AA literature"
-                          options={[
-                            { label: "Yes", value: "Yes" },
-                            { label: "No", value: "No" }
-                          ]}
-                          value={
-                            data?.literature
-                              ? { label: data.literature, value: data.literature }
-                              : { label: "Select", value: "" }
-                          }
-                          name="literature"
-                          onChange={(name, data) => {
-                            handleSelect(name, data);
-                          }}
-                        />
-
-                        <Select
+                         <Select
                           disable={state.isTodayNoteExist}
                           label="Attending Meeting"
                           options={[
@@ -1703,7 +1643,352 @@ const PatientFollowup = () => {
                           }}
                         />
 
-                        <Select
+                         <Input
+                          disabled={state.isTodayNoteExist}
+                          label="Feedback from family"
+                          labelClassName="text-black!"
+                          className="rounded-lg! font-bold placeholder:font-normal"
+                          placeholder="Enter"
+                          name="feedbackFromFamily"
+                          value={data.feedbackFromFamily}
+                          onChange={handleChange}
+                        />
+
+                    {/* <Input
+                      disabled={state.isTodayNoteExist}
+                      label="Therapist follow - up"
+                      labelClassName="text-black!"
+                      className="rounded-lg! font-bold placeholder:font-normal"
+                      placeholder="Enter"
+                      name="therapistFollowUp"
+                      value={data?.therapist}
+                      onChange={handleChange}
+                    /> */}
+
+                    {state.illnessType !== "Mental Disorder" && (
+                      <>
+                        {/* <Select
+                          disable={state.isTodayNoteExist}
+                          label="Urge"
+                          options={[
+                            { label: "Yes", value: "Yes" },
+                            { label: "No", value: "No" }
+                          ]}
+                          value={
+                            data?.urge
+                              ? { label: data.urge, value: data.urge }
+                              : { label: "Select", value: "" }
+                          }
+                          name="urge"
+                          onChange={(name, data) => {
+                            handleSelect(name, data);
+                          }}
+                        /> */}
+                        <div className="flex gap-[10px] items-start justify-start flex-col">
+                          <label className="font-medium text-xs">Urge</label>
+
+                          <div className="flex gap-5 items-center justify-center mb-3">
+                            {/* Yes option */}
+                            <div className="flex items-center">
+                              <input
+                                type="radio"
+                                id="urge-yes"
+                                name="urge"
+                                value="Yes"
+                                checked={data?.urge === "Yes"}
+                                onChange={(e) =>
+                                  handleSelect("urge", {
+                                    label: e.target.value,
+                                    value: e.target.value
+                                  })
+                                }
+                                disabled={state.isTodayNoteExist}
+                                className="hidden"
+                              />
+                              <label
+                                htmlFor="urge-yes"
+                                className={`w-5 h-5 flex items-center justify-center rounded-full border-2 cursor-pointer ${
+                                  data?.urge === "Yes" ? "border-gray-300" : "border-gray-300"
+                                } ${state.isTodayNoteExist ? "cursor-not-allowed opacity-50" : ""}`}
+                              >
+                                {data?.urge === "Yes" && (
+                                  <div className="w-3 h-3 rounded-full bg-gray-300"></div>
+                                )}
+                              </label>
+                              <label
+                                htmlFor="urge-yes"
+                                className={`ms-2 text-sm font-medium ${
+                                  state.isTodayNoteExist
+                                    ? "cursor-not-allowed opacity-50"
+                                    : "cursor-pointer"
+                                }`}
+                              >
+                                Yes
+                              </label>
+                            </div>
+
+                            {/* No option */}
+                            <div className="flex items-center">
+                              <input
+                                type="radio"
+                                id="urge-no"
+                                name="urge"
+                                value="No"
+                                checked={data?.urge === "No"}
+                                onChange={(e) =>
+                                  handleSelect("urge", {
+                                    label: e.target.value,
+                                    value: e.target.value
+                                  })
+                                }
+                                disabled={state.isTodayNoteExist}
+                                className="hidden"
+                              />
+                              <label
+                                htmlFor="urge-no"
+                                className={`w-5 h-5 flex items-center justify-center rounded-full border-2 cursor-pointer ${
+                                  data?.urge === "No" ? "border-gray-300" : "border-gray-300"
+                                } ${state.isTodayNoteExist ? "cursor-not-allowed opacity-50" : ""}`}
+                              >
+                                {data?.urge === "No" && (
+                                  <div className="w-3 h-3 rounded-full bg-gray-300"></div>
+                                )}
+                              </label>
+                              <label
+                                htmlFor="urge-no"
+                                className={`ms-2 text-sm font-medium ${
+                                  state.isTodayNoteExist
+                                    ? "cursor-not-allowed opacity-50"
+                                    : "cursor-pointer"
+                                }`}
+                              >
+                                No
+                              </label>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* {data.urge && (
+                          <Input
+                            disabled
+                            label="Urge Other Detail"
+                            labelClassName="text-black!"
+                            className="rounded-lg! font-bold placeholder:font-normal"
+                            placeholder="Enter"
+                            name="urgeOther"
+                            value={data?.urge}
+                          />
+                        )} */}
+
+                       
+
+                        {/* <Select
+                          disable={state.isTodayNoteExist}
+                          label="Doing Prayer"
+                          options={[
+                            { label: "Yes", value: "Yes" },
+                            { label: "No", value: "No" }
+                          ]}
+                          value={
+                            data?.prayer
+                              ? { label: data.prayer, value: data.prayer }
+                              : { label: "Select", value: "" }
+                          }
+                          name="prayer"
+                          onChange={(name, data) => {
+                            handleSelect(name, data);
+                          }}
+                        /> */}
+
+                        <div className="flex gap-[10px] items-start justify-start flex-col">
+                          <label className="font-medium text-xs">Doing Prayer</label>
+
+                          <div className="flex gap-5 items-center justify-center mb-3">
+                            {/* Yes option */}
+                            <div className="flex items-center">
+                              <input
+                                type="radio"
+                                id="prayer-yes"
+                                name="prayer"
+                                value="Yes"
+                                checked={data?.prayer === "Yes"}
+                                onChange={(e) =>
+                                  handleSelect("prayer", {
+                                    label: e.target.value,
+                                    value: e.target.value
+                                  })
+                                }
+                                disabled={state.isTodayNoteExist}
+                                className="hidden"
+                              />
+                              <label
+                                htmlFor="prayer-yes"
+                                className={`w-5 h-5 flex items-center justify-center rounded-full border-2 cursor-pointer ${
+                                  data?.prayer === "Yes" ? "border-gray-300" : "border-gray-300"
+                                } ${state.isTodayNoteExist ? "cursor-not-allowed opacity-50" : ""}`}
+                              >
+                                {data?.prayer === "Yes" && (
+                                  <div className="w-3 h-3 rounded-full bg-gray-300"></div>
+                                )}
+                              </label>
+                              <label
+                                htmlFor="prayer-yes"
+                                className={`ms-2 text-sm font-medium ${
+                                  state.isTodayNoteExist
+                                    ? "cursor-not-allowed opacity-50"
+                                    : "cursor-pointer"
+                                }`}
+                              >
+                                Yes
+                              </label>
+                            </div>
+
+                            {/* No option */}
+                            <div className="flex items-center">
+                              <input
+                                type="radio"
+                                id="prayer-no"
+                                name="prayer"
+                                value="No"
+                                checked={data?.prayer === "No"}
+                                onChange={(e) =>
+                                  handleSelect("prayer", {
+                                    label: e.target.value,
+                                    value: e.target.value
+                                  })
+                                }
+                                disabled={state.isTodayNoteExist}
+                                className="hidden"
+                              />
+                              <label
+                                htmlFor="prayer-no"
+                                className={`w-5 h-5 flex items-center justify-center rounded-full border-2 cursor-pointer ${
+                                  data?.prayer === "No" ? "border-gray-300" : "border-gray-300"
+                                } ${state.isTodayNoteExist ? "cursor-not-allowed opacity-50" : ""}`}
+                              >
+                                {data?.prayer === "No" && (
+                                  <div className="w-3 h-3 rounded-full bg-gray-300"></div>
+                                )}
+                              </label>
+                              <label
+                                htmlFor="prayer-no"
+                                className={`ms-2 text-sm font-medium ${
+                                  state.isTodayNoteExist
+                                    ? "cursor-not-allowed opacity-50"
+                                    : "cursor-pointer"
+                                }`}
+                              >
+                                No
+                              </label>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* <Select
+                          disable={state.isTodayNoteExist}
+                          label="Reading AA literature"
+                          options={[
+                            { label: "Yes", value: "Yes" },
+                            { label: "No", value: "No" }
+                          ]}
+                          value={
+                            data?.literature
+                              ? { label: data.literature, value: data.literature }
+                              : { label: "Select", value: "" }
+                          }
+                          name="literature"
+                          onChange={(name, data) => {
+                            handleSelect(name, data);
+                          }}
+                        /> */}
+
+                        <div className="flex gap-[10px] items-start justify-start flex-col">
+                          <label className="font-medium text-xs">Reading AA literature</label>
+
+                          <div className="flex gap-5 items-center justify-center mb-3">
+                            {/* Yes option */}
+                            <div className="flex items-center">
+                              <input
+                                type="radio"
+                                id="literature-yes"
+                                name="literature"
+                                value="Yes"
+                                checked={data?.literature === "Yes"}
+                                onChange={(e) =>
+                                  handleSelect("literature", {
+                                    label: e.target.value,
+                                    value: e.target.value
+                                  })
+                                }
+                                disabled={state.isTodayNoteExist}
+                                className="hidden"
+                              />
+                              <label
+                                htmlFor="literature-yes"
+                                className={`w-5 h-5 flex items-center justify-center rounded-full border-2 cursor-pointer ${
+                                  data?.literature === "Yes" ? "border-gray-300" : "border-gray-300"
+                                } ${state.isTodayNoteExist ? "cursor-not-allowed opacity-50" : ""}`}
+                              >
+                                {data?.literature === "Yes" && (
+                                  <div className="w-3 h-3 rounded-full bg-gray-300"></div>
+                                )}
+                              </label>
+                              <label
+                                htmlFor="literature-yes"
+                                className={`ms-2 text-sm font-medium ${
+                                  state.isTodayNoteExist
+                                    ? "cursor-not-allowed opacity-50"
+                                    : "cursor-pointer"
+                                }`}
+                              >
+                                Yes
+                              </label>
+                            </div>
+
+                            {/* No option */}
+                            <div className="flex items-center">
+                              <input
+                                type="radio"
+                                id="literature-no"
+                                name="literature"
+                                value="No"
+                                checked={data?.literature === "No"}
+                                onChange={(e) =>
+                                  handleSelect("literature", {
+                                    label: e.target.value,
+                                    value: e.target.value
+                                  })
+                                }
+                                disabled={state.isTodayNoteExist}
+                                className="hidden"
+                              />
+                              <label
+                                htmlFor="literature-no"
+                                className={`w-5 h-5 flex items-center justify-center rounded-full border-2 cursor-pointer ${
+                                  data?.literature === "No" ? "border-gray-300" : "border-gray-300"
+                                } ${state.isTodayNoteExist ? "cursor-not-allowed opacity-50" : ""}`}
+                              >
+                                {data?.literature === "No" && (
+                                  <div className="w-3 h-3 rounded-full bg-gray-300"></div>
+                                )}
+                              </label>
+                              <label
+                                htmlFor="literature-no"
+                                className={`ms-2 text-sm font-medium ${
+                                  state.isTodayNoteExist
+                                    ? "cursor-not-allowed opacity-50"
+                                    : "cursor-pointer"
+                                }`}
+                              >
+                                No
+                              </label>
+                            </div>
+                          </div>
+                        </div>
+
+                       
+
+                        {/* <Select
                           disable={state.isTodayNoteExist}
                           label="Attending Daycare at Ganaa"
                           options={[
@@ -1719,11 +2004,95 @@ const PatientFollowup = () => {
                           onChange={(name, data) => {
                             handleSelect(name, data);
                           }}
-                        />
+                        /> */}
 
-                        <Select
+                         <div className="flex gap-[10px] items-start justify-start flex-col">
+                          <label className="font-medium text-xs">Attending Daycare at Ganaa</label>
+
+                          <div className="flex gap-5 items-center justify-center mb-3">
+                            {/* Yes option */}
+                            <div className="flex items-center">
+                              <input
+                                type="radio"
+                                id="daycareAtGanaa-yes"
+                                name="daycareAtGanaa"
+                                value="Yes"
+                                checked={data?.daycareAtGanaa === "Yes"}
+                                onChange={(e) =>
+                                  handleSelect("daycareAtGanaa", {
+                                    label: e.target.value,
+                                    value: e.target.value
+                                  })
+                                }
+                                disabled={state.isTodayNoteExist}
+                                className="hidden"
+                              />
+                              <label
+                                htmlFor="daycareAtGanaa-yes"
+                                className={`w-5 h-5 flex items-center justify-center rounded-full border-2 cursor-pointer ${
+                                  data?.daycareAtGanaa === "Yes" ? "border-gray-300" : "border-gray-300"
+                                } ${state.isTodayNoteExist ? "cursor-not-allowed opacity-50" : ""}`}
+                              >
+                                {data?.daycareAtGanaa === "Yes" && (
+                                  <div className="w-3 h-3 rounded-full bg-gray-300"></div>
+                                )}
+                              </label>
+                              <label
+                                htmlFor="daycareAtGanaa-yes"
+                                className={`ms-2 text-sm font-medium ${
+                                  state.isTodayNoteExist
+                                    ? "cursor-not-allowed opacity-50"
+                                    : "cursor-pointer"
+                                }`}
+                              >
+                                Yes
+                              </label>
+                            </div>
+
+                            {/* No option */}
+                            <div className="flex items-center">
+                              <input
+                                type="radio"
+                                id="daycareAtGanaa-no"
+                                name="daycareAtGanaa"
+                                value="No"
+                                checked={data?.daycareAtGanaa === "No"}
+                                onChange={(e) =>
+                                  handleSelect("daycareAtGanaa", {
+                                    label: e.target.value,
+                                    value: e.target.value
+                                  })
+                                }
+                                disabled={state.isTodayNoteExist}
+                                className="hidden"
+                              />
+                              <label
+                                htmlFor="daycareAtGanaa-no"
+                                className={`w-5 h-5 flex items-center justify-center rounded-full border-2 cursor-pointer ${
+                                  data?.daycareAtGanaa === "No" ? "border-gray-300" : "border-gray-300"
+                                } ${state.isTodayNoteExist ? "cursor-not-allowed opacity-50" : ""}`}
+                              >
+                                {data?.daycareAtGanaa === "No" && (
+                                  <div className="w-3 h-3 rounded-full bg-gray-300"></div>
+                                )}
+                              </label>
+                              <label
+                                htmlFor="daycareAtGanaa-no"
+                                className={`ms-2 text-sm font-medium ${
+                                  state.isTodayNoteExist
+                                    ? "cursor-not-allowed opacity-50"
+                                    : "cursor-pointer"
+                                }`}
+                              >
+                                No
+                              </label>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* <Select
                           disable={state.isTodayNoteExist}
-                          label="Making a sponsor "
+                          label="Making a sponsor"
                           options={[
                             { label: "Yes", value: "Yes" },
                             { label: "No", value: "No" }
@@ -1737,9 +2106,93 @@ const PatientFollowup = () => {
                           onChange={(name, data) => {
                             handleSelect(name, data);
                           }}
-                        />
+                        /> */}
 
-                        <Select
+                         <div className="flex gap-[10px] items-start justify-start flex-col">
+                          <label className="font-medium text-xs">Making a sponsor</label>
+
+                          <div className="flex gap-5 items-center justify-center mb-3">
+                            {/* Yes option */}
+                            <div className="flex items-center">
+                              <input
+                                type="radio"
+                                id="sponsor-yes"
+                                name="sponsor"
+                                value="Yes"
+                                checked={data?.sponsor === "Yes"}
+                                onChange={(e) =>
+                                  handleSelect("sponsor", {
+                                    label: e.target.value,
+                                    value: e.target.value
+                                  })
+                                }
+                                disabled={state.isTodayNoteExist}
+                                className="hidden"
+                              />
+                              <label
+                                htmlFor="sponsor-yes"
+                                className={`w-5 h-5 flex items-center justify-center rounded-full border-2 cursor-pointer ${
+                                  data?.sponsor === "Yes" ? "border-gray-300" : "border-gray-300"
+                                } ${state.isTodayNoteExist ? "cursor-not-allowed opacity-50" : ""}`}
+                              >
+                                {data?.sponsor === "Yes" && (
+                                  <div className="w-3 h-3 rounded-full bg-gray-300"></div>
+                                )}
+                              </label>
+                              <label
+                                htmlFor="sponsor-yes"
+                                className={`ms-2 text-sm font-medium ${
+                                  state.isTodayNoteExist
+                                    ? "cursor-not-allowed opacity-50"
+                                    : "cursor-pointer"
+                                }`}
+                              >
+                                Yes
+                              </label>
+                            </div>
+
+                            {/* No option */}
+                            <div className="flex items-center">
+                              <input
+                                type="radio"
+                                id="sponsor-no"
+                                name="sponsor"
+                                value="No"
+                                checked={data?.sponsor === "No"}
+                                onChange={(e) =>
+                                  handleSelect("sponsor", {
+                                    label: e.target.value,
+                                    value: e.target.value
+                                  })
+                                }
+                                disabled={state.isTodayNoteExist}
+                                className="hidden"
+                              />
+                              <label
+                                htmlFor="sponsor-no"
+                                className={`w-5 h-5 flex items-center justify-center rounded-full border-2 cursor-pointer ${
+                                  data?.sponsor === "No" ? "border-gray-300" : "border-gray-300"
+                                } ${state.isTodayNoteExist ? "cursor-not-allowed opacity-50" : ""}`}
+                              >
+                                {data?.sponsor === "No" && (
+                                  <div className="w-3 h-3 rounded-full bg-gray-300"></div>
+                                )}
+                              </label>
+                              <label
+                                htmlFor="sponsor-no"
+                                className={`ms-2 text-sm font-medium ${
+                                  state.isTodayNoteExist
+                                    ? "cursor-not-allowed opacity-50"
+                                    : "cursor-pointer"
+                                }`}
+                              >
+                                No
+                              </label>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* <Select
                           disable={state.isTodayNoteExist}
                           label="Doing 12-step program"
                           options={[
@@ -1755,9 +2208,93 @@ const PatientFollowup = () => {
                           onChange={(name, data) => {
                             handleSelect(name, data);
                           }}
-                        />
+                        /> */}
 
-                        <Select
+                         <div className="flex gap-[10px] items-start justify-start flex-col">
+                          <label className="font-medium text-xs">Doing 12-step program</label>
+
+                          <div className="flex gap-5 items-center justify-center mb-3">
+                            {/* Yes option */}
+                            <div className="flex items-center">
+                              <input
+                                type="radio"
+                                id="stepProgram-yes"
+                                name="stepProgram"
+                                value="Yes"
+                                checked={data?.stepProgram === "Yes"}
+                                onChange={(e) =>
+                                  handleSelect("stepProgram", {
+                                    label: e.target.value,
+                                    value: e.target.value
+                                  })
+                                }
+                                disabled={state.isTodayNoteExist}
+                                className="hidden"
+                              />
+                              <label
+                                htmlFor="stepProgram-yes"
+                                className={`w-5 h-5 flex items-center justify-center rounded-full border-2 cursor-pointer ${
+                                  data?.stepProgram === "Yes" ? "border-gray-300" : "border-gray-300"
+                                } ${state.isTodayNoteExist ? "cursor-not-allowed opacity-50" : ""}`}
+                              >
+                                {data?.stepProgram === "Yes" && (
+                                  <div className="w-3 h-3 rounded-full bg-gray-300"></div>
+                                )}
+                              </label>
+                              <label
+                                htmlFor="stepProgram-yes"
+                                className={`ms-2 text-sm font-medium ${
+                                  state.isTodayNoteExist
+                                    ? "cursor-not-allowed opacity-50"
+                                    : "cursor-pointer"
+                                }`}
+                              >
+                                Yes
+                              </label>
+                            </div>
+
+                            {/* No option */}
+                            <div className="flex items-center">
+                              <input
+                                type="radio"
+                                id="stepProgram-no"
+                                name="stepProgram"
+                                value="No"
+                                checked={data?.stepProgram === "No"}
+                                onChange={(e) =>
+                                  handleSelect("stepProgram", {
+                                    label: e.target.value,
+                                    value: e.target.value
+                                  })
+                                }
+                                disabled={state.isTodayNoteExist}
+                                className="hidden"
+                              />
+                              <label
+                                htmlFor="stepProgram-no"
+                                className={`w-5 h-5 flex items-center justify-center rounded-full border-2 cursor-pointer ${
+                                  data?.stepProgram === "No" ? "border-gray-300" : "border-gray-300"
+                                } ${state.isTodayNoteExist ? "cursor-not-allowed opacity-50" : ""}`}
+                              >
+                                {data?.stepProgram === "No" && (
+                                  <div className="w-3 h-3 rounded-full bg-gray-300"></div>
+                                )}
+                              </label>
+                              <label
+                                htmlFor="stepProgram-no"
+                                className={`ms-2 text-sm font-medium ${
+                                  state.isTodayNoteExist
+                                    ? "cursor-not-allowed opacity-50"
+                                    : "cursor-pointer"
+                                }`}
+                              >
+                                No
+                              </label>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* <Select
                           disable={state.isTodayNoteExist}
                           label="Doing review with Ganaa docotor"
                           options={[
@@ -1777,39 +2314,95 @@ const PatientFollowup = () => {
                           onChange={(name, data) => {
                             handleSelect(name, data);
                           }}
-                        />
+                        /> */}
 
-                        <Input
-                          disabled={state.isTodayNoteExist}
-                          label="Feedback from family"
-                          labelClassName="text-black!"
-                          className="rounded-lg! font-bold placeholder:font-normal"
-                          placeholder="Enter"
-                          name="feedbackFromFamily"
-                          value={data.feedbackFromFamily}
-                          onChange={handleChange}
-                        />
+                         <div className="flex gap-[10px] items-start justify-start flex-col">
+                          <label className="font-medium text-xs">Doing review with Ganaa docotor</label>
 
-                        <Select
-                          disable={state.isTodayNoteExist}
-                          label="Current Status"
-                          options={[
-                            // { label: "Select", value: "" },
-                            { label: "Sober", value: "Sober" },
-                            { label: "Relapsed", value: "Relapsed" },
-                            { label: "Struggling", value: "Struggling" },
-                            { label: "Vanished", value: "Vanished" }
-                          ]}
-                          value={
-                            data?.currentStatus
-                              ? { label: data.currentStatus, value: data.currentStatus }
-                              : { label: "Select", value: "" }
-                          }
-                          name="currentStatus"
-                          onChange={(name, data) => {
-                            handleSelect(name, data);
-                          }}
-                        />
+                          <div className="flex gap-5 items-center justify-center mb-3">
+                            {/* Yes option */}
+                            <div className="flex items-center">
+                              <input
+                                type="radio"
+                                id="reviewWithGanaaDoctor-yes"
+                                name="reviewWithGanaaDoctor"
+                                value="Yes"
+                                checked={data?.reviewWithGanaaDoctor === "Yes"}
+                                onChange={(e) =>
+                                  handleSelect("reviewWithGanaaDoctor", {
+                                    label: e.target.value,
+                                    value: e.target.value
+                                  })
+                                }
+                                disabled={state.isTodayNoteExist}
+                                className="hidden"
+                              />
+                              <label
+                                htmlFor="reviewWithGanaaDoctor-yes"
+                                className={`w-5 h-5 flex items-center justify-center rounded-full border-2 cursor-pointer ${
+                                  data?.reviewWithGanaaDoctor === "Yes" ? "border-gray-300" : "border-gray-300"
+                                } ${state.isTodayNoteExist ? "cursor-not-allowed opacity-50" : ""}`}
+                              >
+                                {data?.reviewWithGanaaDoctor === "Yes" && (
+                                  <div className="w-3 h-3 rounded-full bg-gray-300"></div>
+                                )}
+                              </label>
+                              <label
+                                htmlFor="reviewWithGanaaDoctor-yes"
+                                className={`ms-2 text-sm font-medium ${
+                                  state.isTodayNoteExist
+                                    ? "cursor-not-allowed opacity-50"
+                                    : "cursor-pointer"
+                                }`}
+                              >
+                                Yes
+                              </label>
+                            </div>
+
+                            {/* No option */}
+                            <div className="flex items-center">
+                              <input
+                                type="radio"
+                                id="reviewWithGanaaDoctor-no"
+                                name="reviewWithGanaaDoctor"
+                                value="No"
+                                checked={data?.reviewWithGanaaDoctor === "No"}
+                                onChange={(e) =>
+                                  handleSelect("reviewWithGanaaDoctor", {
+                                    label: e.target.value,
+                                    value: e.target.value
+                                  })
+                                }
+                                disabled={state.isTodayNoteExist}
+                                className="hidden"
+                              />
+                              <label
+                                htmlFor="reviewWithGanaaDoctor-no"
+                                className={`w-5 h-5 flex items-center justify-center rounded-full border-2 cursor-pointer ${
+                                  data?.reviewWithGanaaDoctor === "No" ? "border-gray-300" : "border-gray-300"
+                                } ${state.isTodayNoteExist ? "cursor-not-allowed opacity-50" : ""}`}
+                              >
+                                {data?.reviewWithGanaaDoctor === "No" && (
+                                  <div className="w-3 h-3 rounded-full bg-gray-300"></div>
+                                )}
+                              </label>
+                              <label
+                                htmlFor="reviewWithGanaaDoctor-no"
+                                className={`ms-2 text-sm font-medium ${
+                                  state.isTodayNoteExist
+                                    ? "cursor-not-allowed opacity-50"
+                                    : "cursor-pointer"
+                                }`}
+                              >
+                                No
+                              </label>
+                            </div>
+                          </div>
+                        </div>
+
+                       
+
+                        
                       </>
                     )}
                   </div>

@@ -42,19 +42,19 @@ export interface IPatientFollowup {
   createdAt: Date;
 
    // New fields for patient followup
-  center?: string;
-  patientName?: string;
-  UHID?: string;
-  age?: string;
-  gender?: string;
-  contact?: string;
-  dischargeDate?: Date;
-  stayDuration?: string;
-  psychologist?: string;
-  dischargePlan?: string;
-  dischargePlanShared?: string;
+  // center?: string;
+  // patientName?: string;
+  // UHID?: string;
+  // age?: string;
+  // gender?: string;
+  // contact?: string;
+  // dischargeDate?: Date;
+  // stayDuration?: string;
+  // psychologist?: string;
+  // dischargePlan?: string;
+  // dischargePlanShared?: string;
   followupDate?: Date;
-  therapist?: string;
+  // therapist?: string;
   urge?: string;
   urgeOther?: string;
   adherence?: string;
