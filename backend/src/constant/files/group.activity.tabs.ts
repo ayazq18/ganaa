@@ -1,0 +1,26 @@
+import { IActivityName } from '../../interfaces/model/group-activity/i.group.activity';
+
+export default [
+  'Yoga',
+  'JFT',
+  'AA Group Session1',
+  'AA Group Session2',
+  'AA Group Session3',
+  'Art Therapy',
+  'Dance/Movement Therapy',
+  'Music Therapy',
+  'Story Telling',
+  'Group Therapy1',
+  'Group Therapy2',
+  'Group Therapy3',
+  'Sound Healing',
+  'Movie',
+  'Fun Activity 1',
+  'Fun Activity 2',
+  'Drama Therapy',
+  'Workout with Gym Trainer',
+  'Hypnotherapy',
+  'Massage/Acupuncture',
+  'Newspaper Reading',
+  'JPMR',
+] as IActivityName[];
