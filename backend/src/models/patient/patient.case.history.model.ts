@@ -1,6 +1,5 @@
 import mongoose from 'mongoose';
 import Collections from '../../constant/collections';
-import { getSignedUrlByKey } from '../../utils/s3Helper';
 import { IPatientCaseHistory } from '../../interfaces/model/patient/i.patient.case.history';
 
 const patientCaseHistorySchema = new mongoose.Schema<IPatientCaseHistory>({
@@ -76,8 +75,11 @@ const patientCaseHistorySchema = new mongoose.Schema<IPatientCaseHistory>({
     predisposing: String,
     perpetuating: String,
     precipitatingFactors: String,
-    impactOfPresentIllness: String,
-    historyOfPresentIllness: String,
+    impactOfPresentIllness: {
+      type: String,
+      enum: ['Medical', 'Social', 'Professional', 'Legal', 'Interpersonal', 'Others', ''],
+    },
+
     negativeHistory: String,
     pastPsychiatricHistory: String,
     pastPsychiatricTreatmentHistory: String,
@@ -243,10 +245,6 @@ const patientCaseHistorySchema = new mongoose.Schema<IPatientCaseHistory>({
     psychologicalAssessments: String,
     investigations: String,
   },
-  genogram: {
-    fileName: String,
-    filePath: String,
-  },
 
   createdBy: {
     type: mongoose.Schema.ObjectId,
@@ -263,23 +261,6 @@ const patientCaseHistorySchema = new mongoose.Schema<IPatientCaseHistory>({
     default: Date.now,
   },
 });
-
-const generateSignedUrl = async (doc: any) => {
-  let file = doc.genogram;
-  if (!file) return;
-  if (!file?.filePath) return;
-
-  const signedUrl = await getSignedUrlByKey(file?.filePath);
-  delete doc.genogram.filePath;
-
-  if (doc.hasOwnProperty('_doc')) {
-    delete doc._doc.genogram.filePath;
-    doc._doc.genogram.filePath = signedUrl;
-  } else {
-    delete doc.genogram.filePath;
-    doc.genogram.filePath = signedUrl;
-  }
-};
 
 patientCaseHistorySchema.pre('findOne', async function (next) {
   this.populate('informantsDetails.relationshipWithPatient');
@@ -303,30 +284,6 @@ patientCaseHistorySchema.pre('findOneAndUpdate', async function (next) {
   this.populate('createdBy', '_id roles firstName lastName');
   this.populate('updatedBy', '_id roles firstName lastName');
   next();
-});
-
-// Post Middleware
-patientCaseHistorySchema.post('findOne', function (doc) {
-  const shouldSkip = this.getOptions().skipUrlGeneration ?? false;
-
-  if (shouldSkip) return;
-  if (doc) generateSignedUrl(doc);
-});
-
-patientCaseHistorySchema.post('find', function (docs) {
-  const shouldSkip = this.getOptions().skipUrlGeneration ?? false;
-
-  if (shouldSkip) return;
-  if (docs?.length > 0) {
-    docs.forEach((doc: any) => generateSignedUrl(doc));
-  }
-});
-
-patientCaseHistorySchema.post('findOneAndUpdate', function (doc) {
-  const shouldSkip = this.getOptions().skipUrlGeneration ?? false;
-
-  if (shouldSkip) return;
-  if (doc) generateSignedUrl(doc);
 });
 
 const PatientCaseHistory = mongoose.model<IPatientCaseHistory>(

@@ -185,6 +185,8 @@ const Discharge = () => {
   });
 
   const toggleModalDelete = (id?: number) => {
+    if (patientDetails.currentStatus == "Discharged") return;
+
     setDeleteModal((prev) => ({
       isModal: !prev.isModal,
       id: id
@@ -395,6 +397,7 @@ const Discharge = () => {
 
   const handleSave = async (_e?: SyntheticEvent, type?: string) => {
     dispatch(setDiscardModal({ isFormChanged: false, isDiscardModalOpen: false }));
+    if (patientDetails.currentStatus == "Discharged") return;
 
     setState((prev) => ({ ...prev, loading: true }));
     try {
@@ -426,6 +429,7 @@ const Discharge = () => {
 
   const handleSubmit = async (_e?: SyntheticEvent, type?: string) => {
     dispatch(setDiscardModal({ isFormChanged: false, isDiscardModalOpen: false }));
+    if (patientDetails.currentStatus == "Discharged") return;
     setState((prev) => ({ ...prev, loading: true }));
 
     try {
@@ -460,6 +464,8 @@ const Discharge = () => {
   };
 
   const handleDelete = async () => {
+    if (patientDetails.currentStatus == "Discharged") return;
+
     setState((prev) => ({ ...prev, loading: true }));
     try {
       if (id && aId) {
@@ -479,35 +485,46 @@ const Discharge = () => {
   };
 
   const handleChange = useCallback((event: React.SyntheticEvent) => {
+    if (patientDetails.currentStatus == "Discharged") return;
+
     const { name, value } = event.target as HTMLInputElement;
     setData((prev) => ({
       ...prev,
       [name]: value
     }));
-    if (!stepperData.discardModal.isFormChanged) dispatch(setDiscardModal({ isFormChanged: true }));
+    if (!stepperData.discardModal.isFormChanged && patientDetails.currentStatus !== "Discharged")
+      dispatch(setDiscardModal({ isFormChanged: true }));
   }, []);
 
   const handleChangeQuill = useCallback((name: string, value: string) => {
+    if (patientDetails.currentStatus == "Discharged") return;
+
     setData((prev) => ({ ...prev, [name]: value }));
-    if (!stepperData.discardModal.isFormChanged) dispatch(setDiscardModal({ isFormChanged: true }));
+    if (!stepperData.discardModal.isFormChanged && patientDetails.currentStatus !== "Discharged")
+      dispatch(setDiscardModal({ isFormChanged: true }));
   }, []);
 
   const toggleModal = () => {
+    if (patientDetails.currentStatus === "Discharged") return;
+
     setState((prev) => ({ ...prev, modal: !state.modal }));
   };
 
   const handleDeletePrescriptionToBeSaved = () => {
+    if (patientDetails.currentStatus == "Discharged") return;
     if (deleteModal?.id === undefined) return;
     setPrescriptionArray((prev) => prev.filter((_, index) => index !== deleteModal.id));
     setDeleteModal({ isModal: false });
-    if (!stepperData.discardModal.isFormChanged) dispatch(setDiscardModal({ isFormChanged: true }));
+    if (!stepperData.discardModal.isFormChanged && patientDetails.currentStatus !== "Discharged")
+      dispatch(setDiscardModal({ isFormChanged: true }));
   };
 
   const handleUpdate = (value: IprescriptionState, index: number) => {
     setUpdateValue(value);
     setUpdateIndex(index);
     setState((prev) => ({ ...prev, modal: !state.modal }));
-    if (!stepperData.discardModal.isFormChanged) dispatch(setDiscardModal({ isFormChanged: true }));
+    if (!stepperData.discardModal.isFormChanged && patientDetails.currentStatus !== "Discharged")
+      dispatch(setDiscardModal({ isFormChanged: true }));
   };
 
   const handlePopup = (index: number) => {
@@ -527,7 +544,7 @@ const Discharge = () => {
 
   useEffect(() => {
     const checkStateBeforeUnload = (e: BeforeUnloadEvent) => {
-      if (stepperData.discardModal.isFormChanged) {
+      if (stepperData.discardModal.isFormChanged && patientDetails.currentStatus !== "Discharged") {
         e.preventDefault();
       }
     };
@@ -540,7 +557,7 @@ const Discharge = () => {
   }, [dispatch, stepperData.discardModal.isFormChanged]);
 
   useBlocker(({ nextLocation }) => {
-    if (stepperData.discardModal.isFormChanged) {
+    if (stepperData.discardModal.isFormChanged && patientDetails.currentStatus !== "Discharged") {
       dispatch(
         setDiscardModal({ isDiscardModalOpen: true, discartLocation: nextLocation.pathname })
       );
@@ -732,7 +749,7 @@ const Discharge = () => {
                   <p>
                     {patientDetails?.admissionType
                       ? `${patientDetails?.admissionType}${
-                          patientDetails?.involuntaryAdmissionType
+                          patientDetails?.admissionType !== "Voluntary"
                             ? ` - ${patientDetails?.involuntaryAdmissionType}`
                             : ""
                         }`
@@ -767,24 +784,28 @@ const Discharge = () => {
           </div>
           <div className="w-full px-5 pb-10 flex flex-col gap-8">
             <RichTextEditor
+              disable={patientDetails.currentStatus == "Discharged"}
               value={data.chiefComplaints}
               onChange={handleChangeQuill}
               name="chiefComplaints"
               label="Chief complaints"
             />
             <RichTextEditor
+              disable={patientDetails.currentStatus == "Discharged"}
               name="historyOfPresentIllness"
               value={data.historyOfPresentIllness}
               onChange={handleChangeQuill}
               label="History of presenting illness"
             />
             <RichTextEditor
+              disable={patientDetails.currentStatus == "Discharged"}
               name="physicalExaminationAtAdmission"
               value={data.physicalExaminationAtAdmission}
               onChange={handleChangeQuill}
               label="Physical Examination at admission"
             />
             <RichTextEditor
+              disable={patientDetails.currentStatus == "Discharged"}
               name="mentalStatusExamination"
               value={data.mentalStatusExamination}
               onChange={handleChangeQuill}
@@ -818,6 +839,7 @@ const Discharge = () => {
               </div>
               <div className="mt-6 w-1/2 flex-1 md:mt-0  ">
                 <RichTextEditor
+                  disable={patientDetails.currentStatus === "Discharged"}
                   className="bg-white!"
                   height="h-44"
                   name="hospitalisationSummary"
@@ -831,6 +853,7 @@ const Discharge = () => {
             <div className="grid gap-[88px]">
               <RichTextEditor
                 // height="24"
+                disable={patientDetails.currentStatus === "Discharged"}
                 // showToolBar={false}
                 value={data.investigation}
                 name="investigation"
@@ -904,7 +927,7 @@ const Discharge = () => {
                           {/* Duration Column */}
                           <td className=" border align-center text-black  px-5 text-xs text-nowrap">
                             <p>
-                              {data?.customDuration && data?.durationFrequency.value === "Custom Date"
+                              {data?.customDuration
                                 ? data?.customDuration
                                     ?.split("|")
                                     .map((d) => moment(d).format("D MMMM"))
@@ -975,6 +998,7 @@ const Discharge = () => {
             {/* table */}
             <div className="grid grid-cols-2 gap-[88px]">
               <Input
+                disabled={patientDetails.currentStatus === "Discharged"}
                 // disabled={}
                 label="Referred back to"
                 labelClassName="text-black!"
@@ -985,6 +1009,7 @@ const Discharge = () => {
                 name="referBackTo"
               />
               <Select
+                disable={patientDetails.currentStatus === "Discharged"}
                 label="Condition at the time of discharge"
                 containerClass="w-full! "
                 value={data.conditionAtTheTimeOfDischarge}
@@ -1005,6 +1030,7 @@ const Discharge = () => {
             <RichTextEditor
               name="adviseAndPlan"
               value={data.adviseAndPlan}
+              disable={patientDetails.currentStatus === "Discharged"}
               onChange={handleChangeQuill}
               label="Advise and Plan on Discharge"
             />
@@ -1097,10 +1123,9 @@ const Discharge = () => {
             </div>
           </div>
         </div>
-
-        <RBACGuard resource={RESOURCES.DISCHARGE} action="write">
-          <div className="flex w-full gap-6 justify-center items-center">
-            {patientDetails.currentStatus !== "Discharged" && (
+        {patientDetails.currentStatus !== "Discharged" && (
+          <RBACGuard resource={RESOURCES.DISCHARGE} action="write">
+            <div className="flex w-full gap-6 justify-center items-center">
               <Button
                 type="submit"
                 disabled={state.loading}
@@ -1112,20 +1137,18 @@ const Discharge = () => {
               >
                 Cancel Discharge
               </Button>
-            )}
-            <Button
-              type="submit"
-              disabled={state.loading}
-              className=" text-xs! min-w-[130px]! py-[11px]! rounded-[10px]!"
-              name="next"
-              variant="outlined"
-              size="base"
-              onClick={handleSave}
-            >
-              Save
-              {state.loading && <Loader size="xs" />}
-            </Button>
-            {patientDetails.currentStatus !== "Discharged" && (
+              <Button
+                type="submit"
+                disabled={state.loading}
+                className=" text-xs! min-w-[130px]! py-[11px]! rounded-[10px]!"
+                name="next"
+                variant="outlined"
+                size="base"
+                onClick={handleSave}
+              >
+                Save
+                {state.loading && <Loader size="xs" />}
+              </Button>
               <Button
                 type="submit"
                 disabled={state.loading}
@@ -1138,9 +1161,9 @@ const Discharge = () => {
                 Submit
                 {state.loading && <Loader size="xs" />}
               </Button>
-            )}
-          </div>
-        </RBACGuard>
+            </div>
+          </RBACGuard>
+        )}
       </div>
       <PrescriptionModal
         setPrescriptionDateTime={setPrescriptionDateTime}
@@ -1153,27 +1176,27 @@ const Discharge = () => {
         value={updateValue}
         Updateindex={updateIndex}
       />
-      {
-        <CancelDischarge
-          open={state.open}
-          type="delete"
-          toggleOpen={toggleOpen}
-          handleClickCancelDischarge={handleDelete}
-        />
-      }
+      <CancelDischarge
+        open={state.open}
+        type="delete"
+        toggleOpen={toggleOpen}
+        handleClickCancelDischarge={handleDelete}
+      />
       <CancelDischarge
         open={state.open1}
         type="submit"
         toggleOpen={toggleOpen1}
         handleClickCancelDischarge={handleSubmit}
       />
-
-      <DiscardModal
-        resource={RESOURCES.DISCHARGE}
-        action="write"
-        handleClickSaveAndContinue={(_e: SyntheticEvent) => handleSave(_e, "SAVE_AND_NEXT_DISCARD")}
-      />
-
+      {
+        <DiscardModal
+          resource={RESOURCES.DISCHARGE}
+          action="write"
+          handleClickSaveAndContinue={(_e: SyntheticEvent) =>
+            handleSave(_e, "SAVE_AND_NEXT_DISCARD")
+          }
+        />
+      }
       <DeleteConfirm
         toggleModal={toggleModalDelete}
         isModalOpen={deleteModal.isModal}

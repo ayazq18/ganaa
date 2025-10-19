@@ -141,9 +141,8 @@ export const updateSinglePatientDischarge = catchAsync(
       return next(new AppError('Invalid Patient ID or Admission History ID', 400));
     if (!admissionHistory?.dischargeId)
       return next(new AppError("Discharge hasn't been created yet", 400));
-    
-    // if (admissionHistory?.currentStatus === 'Discharged')
-    //   return next(new AppError('Cannot update, patient is already discharged', 400));
+    if (admissionHistory?.currentStatus === 'Discharged')
+      return next(new AppError('Cannot update, patient is already discharged', 400));
 
     if (req.body.createdBy) delete req.body.createdBy;
     if (req.body.patientId) delete req.body.patientId;

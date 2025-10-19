@@ -21,7 +21,6 @@ export { default as AppDropZone } from "@/components/AppDropZone/AppDropZone";
 export { default as DiscardModal } from "@/components/DiscardModal/DiscardModal";
 export { default as CropperImage } from "@/components/CropperImage/CropperImage";
 export { default as BasicDetails } from "@/components/BasicDetaills/BasicDetails";
-export { default as Multiselected } from "@/components/Multiselected/Multiselected";
 export { default as DeleteConfirm } from "@/components/DeleteConfirm/DeleteConfirm";
 export { default as DownloadAsPDF } from "@/components/DownloadAsPDF/DownloadAsPDF";
 export { default as CustomCalendar } from "@/components/CustomCalendar/CustomCalendar";

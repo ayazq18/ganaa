@@ -10,7 +10,6 @@ import { getSignedUrlByKey } from '../utils/s3Helper';
 import { IRole } from '../interfaces/model/i.role.model';
 import { createHash, verifyHash } from '../utils/jwtHelper';
 import { IPatient } from '../interfaces/model/patient/i.patient';
-import Env from '../constant/env';
 
 export interface IUser extends mongoose.Document {
   roleId: ObjectId | IRole;
@@ -245,7 +244,7 @@ userSchema.methods.correctPassword = async function (hash: string, userPass: str
 };
 
 userSchema.methods.resetPassword = function () {
-  const newPassword = Env.DEFAULT_USER_PASSWORD;
+  const newPassword = random.randomAlphaNumeric(10);
 
   this.password = newPassword;
   this.isSystemGeneratedPassword = true;

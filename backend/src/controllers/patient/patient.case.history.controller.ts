@@ -1,12 +1,7 @@
-import multer from 'multer';
 import { Response, NextFunction } from 'express';
-import * as S3 from '../../utils/s3Helper';
-import { random } from '../../utils/random';
 import AppError from '../../utils/appError';
 import catchAsync from '../../utils/catchAsync';
-import { S3Path } from '../../constant/s3.path';
 import { IResult } from '../../interfaces/generics';
-import { MFileFilter } from '../../utils/multer.config';
 import Patient from '../../models/patient/patient.model';
 import { UserRequest } from '../../interfaces/extra/i_extended_class';
 import PatientCaseHistory from '../../models/patient/patient.case.history.model';
@@ -14,16 +9,6 @@ import PatientAdmissionHistory from '../../models/patient/patient.admission.hist
 import { IPatientCaseHistory } from '../../interfaces/model/patient/i.patient.case.history';
 import PatientCaseHistoryRevision from '../../models/patient/patient.case.history.revision.model';
 import { IPatientCaseHistoryRevision } from '../../interfaces/model/patient/i.patient.case.history.revision.modal';
-
-/**
- * Multer Config
- */
-const upload = multer({
-  storage: multer.memoryStorage(),
-  limits: { fileSize: 5 * 1024 * 1024 },
-  fileFilter: MFileFilter.imageAndPdfFilter,
-});
-export const uploadFile = upload.single('genogram');
 
 /**
  * Controllers
@@ -79,20 +64,6 @@ export const createNewPatientCaseHistory = catchAsync(
     req.body.patientAdmissionHistoryId = patientAdmissionHistory._id.toString();
 
     const data = await PatientCaseHistory.create(req.body);
-
-    if (req.file) {
-      const fileName = `${Date.now()}-${random.randomAlphaNumeric(6)}-${req.file?.originalname}`;
-      const filePath = S3Path.caseHistoryFile(req.body.patientId ?? '', fileName);
-
-      await S3.uploadFile(filePath, req.file?.buffer, req.file?.mimetype);
-      await PatientCaseHistory.findByIdAndUpdate(data._id, {
-        genogram: {
-          fileName: req.file?.originalname,
-          filePath: filePath,
-        },
-      });
-    }
-
     const populatedData = await PatientCaseHistory.findById(data._id).lean();
 
     await PatientAdmissionHistory.findByIdAndUpdate(patientAdmissionHistory._id, {
@@ -146,23 +117,9 @@ export const updateSinglePatientCaseHistory = catchAsync(
     if (!caseHistoryDoc.isSuccess)
       return next(new AppError(caseHistoryDoc.message ?? 'Something went wrong', 400));
 
-    if (req.file) {
-      const fileName = `${Date.now()}-${random.randomAlphaNumeric(6)}-${req.file?.originalname}`;
-      const filePath = S3Path.caseHistoryFile(req.body.patientId ?? '', fileName);
-
-      await S3.uploadFile(filePath, req.file?.buffer, req.file?.mimetype);
-      await PatientCaseHistory.findByIdAndUpdate(req.params.id, {
-        genogram: {
-          fileName: req.file?.originalname,
-          filePath: filePath,
-        },
-      });
-    }
-
     const data = await PatientCaseHistory.findByIdAndUpdate(req.params.id, req.body, {
       new: true,
     });
-
     if (!data) return next(new AppError('Please Send Valid Patient Case History ID', 400));
 
     // TODO: Add Check, If No Data is Changed Then Don't Create Revision History

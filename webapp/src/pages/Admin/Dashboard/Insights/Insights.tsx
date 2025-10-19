@@ -144,13 +144,16 @@ const Insights = () => {
                         Object.keys(data).length > 0 &&
                         Object.keys(data).map((monthKey: string) => (
                           <td className="w-[300px] border-r border-[#c7bfa7]">
-                            <div className="flex w-full">
-                              {data[monthKey].map((center) => (
-                                <div className="flex-1 border-r border-[#c7bfa7] px-3 py-2 text-center text-[12px] leading-[15px] font-semibold text-black">
-                                  {center.centerName}
-                                </div>
-                              ))}
-                              <div className="flex-1 border-r border-[#c7bfa7] px-3 py-2 text-center text-[12px] leading-[15px] font-semibold text-black">
+                            <div
+                              className={`grid text-nowrap grid-cols-${data[monthKey].length + 1}`}
+                            >
+                              {data &&
+                                data[monthKey].map((center) => (
+                                  <div className="border-r border-[#c7bfa7] px-3 py-2 text-center align-top text-[12px] leading-[15px] font-semibold text-black">
+                                    {center.centerName}
+                                  </div>
+                                ))}
+                              <div className="border-r border-[#c7bfa7] px-3 py-2 text-center align-top text-[12px] leading-[15px] font-semibold text-black">
                                 Total
                               </div>
                             </div>
@@ -159,10 +162,11 @@ const Insights = () => {
                     </tr>
 
                     <tr className="border-b border-[#d9d4c9] bg-[#EEE2D2]">
-                      <td className="py-3 w-[120px] pl-3 font-semibold text-nowrap">Admission</td>
+                      <td className=" py-3 w-[120px]  pl-3 font-semibold text-nowrap">Admission</td>
                       {data &&
                         Object.keys(data).length > 0 &&
                         Object.keys(data).map((monthKey: string) => {
+                          // Calculate the total sum of totalAdmission for this month
                           const total = data[monthKey].reduce(
                             (acc, value) => acc + value.metric.totalAdmission,
                             0
@@ -171,20 +175,20 @@ const Insights = () => {
                           return (
                             <td key={monthKey} className="w-[300px] border-r border-[#c7bfa7]">
                               <div
-                                className="grid text-nowrap w-full"
-                                style={{
-                                  gridTemplateColumns: `repeat(${data[monthKey].length + 1}, 1fr)`
-                                }}
+                                className={`grid text-nowrap grid-cols-${
+                                  data[monthKey].length + 1
+                                }`}
                               >
                                 {data[monthKey].map((value) => (
                                   <div
                                     key={value.id}
-                                    className="px-3 py-2 text-center text-[12px] leading-[15px] font-semibold text-black border-r border-[#c7bfa7]"
+                                    className="px-3 py-2 text-center align-top text-[12px] leading-[15px] font-semibold text-black"
                                   >
                                     {value.metric.totalAdmission}
                                   </div>
                                 ))}
-                                <div className="px-3 py-2 text-center text-[12px] leading-[15px] font-semibold text-black">
+                                {/* Display the sum of totalAdmission */}
+                                <div className="px-3 py-2 text-center align-top text-[12px] leading-[15px] font-semibold text-black">
                                   {total}
                                 </div>
                               </div>
@@ -193,11 +197,12 @@ const Insights = () => {
                         })}
                     </tr>
 
-                    <tr className="border-b border-[#d9d4c9]">
-                      <td className="py-3 w-[120px] pl-3 font-semibold text-nowrap">Female</td>
+                    <tr className="border-b border-[#d9d4c9] ">
+                      <td className=" py-3 w-[120px]  pl-3 font-semibold text-nowrap">Female</td>
                       {data &&
                         Object.keys(data).length > 0 &&
                         Object.keys(data).map((monthKey: string) => {
+                          // Calculate the total sum of totalAdmission for this month
                           const total = data[monthKey].reduce(
                             (acc, value) => acc + value.metric.gender.female,
                             0
@@ -206,20 +211,20 @@ const Insights = () => {
                           return (
                             <td key={monthKey} className="w-[300px] border-r border-[#c7bfa7]">
                               <div
-                                className="grid w-full text-nowrap"
-                                style={{
-                                  gridTemplateColumns: `repeat(${data[monthKey].length + 1}, 1fr)`
-                                }}
+                                className={`grid text-nowrap grid-cols-${
+                                  data[monthKey].length + 1
+                                }`}
                               >
                                 {data[monthKey].map((value) => (
                                   <div
                                     key={value.id}
-                                    className="px-3 py-2 text-center text-[12px] leading-[15px] font-semibold text-black border-r border-[#c7bfa7]"
+                                    className="px-3 py-2 text-center align-top text-[12px] leading-[15px] font-semibold text-black"
                                   >
                                     {value.metric.gender.female}
                                   </div>
                                 ))}
-                                <div className="px-3 py-2 text-center text-[12px] leading-[15px] font-semibold text-black">
+                                {/* Display the sum of totalAdmission */}
+                                <div className="px-3 py-2 text-center align-top text-[12px] leading-[15px] font-semibold text-black">
                                   {total}
                                 </div>
                               </div>
@@ -228,11 +233,12 @@ const Insights = () => {
                         })}
                     </tr>
 
-                    <tr className="border-b border-[#d9d4c9]">
-                      <td className="py-3 w-[120px] pl-3 font-semibold text-nowrap">Male</td>
+                    <tr className="border-b border-[#d9d4c9] ">
+                      <td className=" py-3 w-[120px]  pl-3 font-semibold text-nowrap">Male</td>
                       {data &&
                         Object.keys(data).length > 0 &&
                         Object.keys(data).map((monthKey: string) => {
+                          // Calculate the total sum of totalAdmission for this month
                           const total = data[monthKey].reduce(
                             (acc, value) => acc + value.metric.gender.male,
                             0
@@ -241,20 +247,20 @@ const Insights = () => {
                           return (
                             <td key={monthKey} className="w-[300px] border-r border-[#c7bfa7]">
                               <div
-                                className="grid w-full text-nowrap"
-                                style={{
-                                  gridTemplateColumns: `repeat(${data[monthKey].length + 1}, 1fr)`
-                                }}
+                                className={`grid text-nowrap grid-cols-${
+                                  data[monthKey].length + 1
+                                }`}
                               >
                                 {data[monthKey].map((value) => (
                                   <div
                                     key={value.id}
-                                    className="px-3 py-2 text-center text-[12px] leading-[15px] font-semibold text-black border-r border-[#c7bfa7]"
+                                    className="px-3 py-2 text-center align-top text-[12px] leading-[15px] font-semibold text-black"
                                   >
                                     {value.metric.gender.male}
                                   </div>
                                 ))}
-                                <div className="px-3 py-2 text-center text-[12px] leading-[15px] font-semibold text-black">
+                                {/* Display the sum of totalAdmission */}
+                                <div className="px-3 py-2 text-center align-top text-[12px] leading-[15px] font-semibold text-black">
                                   {total}
                                 </div>
                               </div>
@@ -264,12 +270,14 @@ const Insights = () => {
                     </tr>
 
                     {/* TODO: Avg age and Repeated Rate Pending */}
-                    <tr className="border-b border-[#d9d4c9]">
-                      <td className="py-3 w-[120px] pl-3 font-semibold text-nowrap">Average Age</td>
+                    <tr className="border-b border-[#d9d4c9] ">
+                      <td className=" py-3 w-[120px]  pl-3 font-semibold text-nowrap">
+                        Average Age
+                      </td>
                       {data &&
                         Object.keys(data).length > 0 &&
                         Object.keys(data).map((monthKey: string) => {
-                          // Calculate total sum and count to get average
+                          // Calculate the total sum of totalAdmission for this month
                           const { totalSum, totalCount } = data[monthKey].reduce(
                             (acc, value) => {
                               const ageArray = value.metric.age;
@@ -287,15 +295,14 @@ const Insights = () => {
                           return (
                             <td key={monthKey} className="w-[300px] border-r border-[#c7bfa7]">
                               <div
-                                className="grid w-full text-nowrap"
-                                style={{
-                                  gridTemplateColumns: `repeat(${data[monthKey].length + 1}, 1fr)`
-                                }}
+                                className={`grid text-nowrap grid-cols-${
+                                  data[monthKey].length + 1
+                                }`}
                               >
                                 {data[monthKey].map((value) => (
                                   <div
                                     key={value.id}
-                                    className="px-3 py-2 text-center text-[12px] leading-[15px] font-semibold text-black border-r border-[#c7bfa7]"
+                                    className="px-3 py-2 text-center align-top text-[12px] leading-[15px] font-semibold text-black"
                                   >
                                     {value.metric.age.length > 0
                                       ? Math.round(
@@ -305,8 +312,8 @@ const Insights = () => {
                                       : 0}
                                   </div>
                                 ))}
-                                {/* Display the average */}
-                                <div className="px-3 py-2 text-center text-[12px] leading-[15px] font-semibold text-black">
+                                {/* Display the sum of totalAdmission */}
+                                <div className="px-3 py-2 text-center align-top text-[12px] leading-[15px] font-semibold text-black">
                                   {Math.round(average)}
                                 </div>
                               </div>
@@ -315,21 +322,21 @@ const Insights = () => {
                         })}
                     </tr>
 
-                    <tr className="border-b border-[#d9d4c9]">
-                      <td className="py-3 w-[120px] pl-3 font-semibold text-nowrap">
+                    <tr className="border-b border-[#d9d4c9] ">
+                      <td className=" py-3 w-[120px]  pl-3 font-semibold text-nowrap">
                         Repeat Rate (%)
                       </td>
                       {data &&
                         Object.keys(data).length > 0 &&
                         Object.keys(data).map((monthKey: string) => {
-                          // Calculate total sum and count for average
+                          // Calculate the total sum of totalAdmission for this month
                           const { totalSum, totalCount } = data[monthKey].reduce(
                             (acc, value) => {
-                              const arr = value.metric.repeatRate;
-                              const sum = arr.reduce((a: number, b: number) => a + b, 0);
+                              const ageArray = value.metric.repeatRate;
+                              const sum = ageArray.reduce((a: number, b: number) => a + b, 0);
                               return {
                                 totalSum: acc.totalSum + sum,
-                                totalCount: acc.totalCount + arr.length
+                                totalCount: acc.totalCount + ageArray.length
                               };
                             },
                             { totalSum: 0, totalCount: 0 }
@@ -340,15 +347,14 @@ const Insights = () => {
                           return (
                             <td key={monthKey} className="w-[300px] border-r border-[#c7bfa7]">
                               <div
-                                className="grid w-full text-nowrap"
-                                style={{
-                                  gridTemplateColumns: `repeat(${data[monthKey].length + 1}, 1fr)`
-                                }}
+                                className={`grid text-nowrap grid-cols-${
+                                  data[monthKey].length + 1
+                                }`}
                               >
                                 {data[monthKey].map((value) => (
                                   <div
                                     key={value.id}
-                                    className="px-3 py-2 text-center text-[12px] leading-[15px] font-semibold text-black border-r border-[#c7bfa7]"
+                                    className="px-3 py-2 text-center align-top text-[12px] leading-[15px] font-semibold text-black"
                                   >
                                     {value.metric.repeatRate.length > 0
                                       ? Math.round(
@@ -358,8 +364,8 @@ const Insights = () => {
                                       : 0}
                                   </div>
                                 ))}
-                                {/* Display average */}
-                                <div className="px-3 py-2 text-center text-[12px] leading-[15px] font-semibold text-black">
+                                {/* Display the sum of totalAdmission */}
+                                <div className="px-3 py-2 text-center align-top text-[12px] leading-[15px] font-semibold text-black">
                                   {Math.round(average)}
                                 </div>
                               </div>
@@ -367,14 +373,16 @@ const Insights = () => {
                           );
                         })}
                     </tr>
-
                     {/*  */}
 
-                    <tr className="border-b border-[#d9d4c9]">
-                      <td className="py-3 w-[120px] pl-3 font-semibold text-nowrap">Involuntary</td>
+                    <tr className="border-b border-[#d9d4c9] ">
+                      <td className=" py-3 w-[120px]  pl-3 font-semibold text-nowrap">
+                        Involuntary
+                      </td>
                       {data &&
                         Object.keys(data).length > 0 &&
                         Object.keys(data).map((monthKey: string) => {
+                          // Calculate the total sum of totalAdmission for this month
                           const totalInvoluntary = data[monthKey].reduce(
                             (acc, value) => acc + value.metric.involuntary,
                             0
@@ -383,21 +391,20 @@ const Insights = () => {
                           return (
                             <td key={monthKey} className="w-[300px] border-r border-[#c7bfa7]">
                               <div
-                                className="grid w-full text-nowrap"
-                                style={{
-                                  gridTemplateColumns: `repeat(${data[monthKey].length + 1}, 1fr)`
-                                }}
+                                className={`grid text-nowrap grid-cols-${
+                                  data[monthKey].length + 1
+                                }`}
                               >
                                 {data[monthKey].map((value) => (
                                   <div
                                     key={value.id}
-                                    className="px-3 py-2 text-center text-[12px] leading-[15px] font-semibold text-black border-r border-[#c7bfa7]"
+                                    className="px-3 py-2 text-center align-top text-[12px] leading-[15px] font-semibold text-black"
                                   >
                                     {value.metric.involuntary}
                                   </div>
                                 ))}
-                                {/* Display total */}
-                                <div className="px-3 py-2 text-center text-[12px] leading-[15px] font-semibold text-black">
+                                {/* Display the sum of totalAdmission */}
+                                <div className="px-3 py-2 text-center align-top text-[12px] leading-[15px] font-semibold text-black">
                                   {totalInvoluntary}
                                 </div>
                               </div>
@@ -406,11 +413,12 @@ const Insights = () => {
                         })}
                     </tr>
 
-                    <tr className="border-b border-[#d9d4c9]">
-                      <td className="py-3 w-[120px] pl-3 font-semibold text-nowrap">Addiction</td>
+                    <tr className="border-b border-[#d9d4c9] ">
+                      <td className=" py-3 w-[120px]  pl-3 font-semibold text-nowrap">Addiction</td>
                       {data &&
                         Object.keys(data).length > 0 &&
                         Object.keys(data).map((monthKey: string) => {
+                          // Calculate the total sum of totalAdmission for this month
                           const totalAddiction = data[monthKey].reduce(
                             (acc, value) => acc + value.metric.addiction,
                             0
@@ -419,21 +427,20 @@ const Insights = () => {
                           return (
                             <td key={monthKey} className="w-[300px] border-r border-[#c7bfa7]">
                               <div
-                                className="grid w-full text-nowrap"
-                                style={{
-                                  gridTemplateColumns: `repeat(${data[monthKey].length + 1}, 1fr)`
-                                }}
+                                className={`grid text-nowrap grid-cols-${
+                                  data[monthKey].length + 1
+                                }`}
                               >
                                 {data[monthKey].map((value) => (
                                   <div
                                     key={value.id}
-                                    className="px-3 py-2 text-center text-[12px] leading-[15px] font-semibold text-black border-r border-[#c7bfa7]"
+                                    className="px-3 py-2 text-center align-top text-[12px] leading-[15px] font-semibold text-black"
                                   >
                                     {value.metric.addiction}
                                   </div>
                                 ))}
-                                {/* Display total */}
-                                <div className="px-3 py-2 text-center text-[12px] leading-[15px] font-semibold text-black">
+                                {/* Display the sum of totalAdmission */}
+                                <div className="px-3 py-2 text-center align-top text-[12px] leading-[15px] font-semibold text-black">
                                   {totalAddiction}
                                 </div>
                               </div>
@@ -443,13 +450,14 @@ const Insights = () => {
                     </tr>
 
                     <tr className="border-b border-[#d9d4c9]">
-                      <td className="py-3 w-[120px] pl-3 font-semibold text-nowrap">
+                      <td className=" py-3 w-[120px]  pl-3 font-semibold text-nowrap">
                         Addiction & Mental Disorder
                       </td>
                       {data &&
                         Object.keys(data).length > 0 &&
                         Object.keys(data).map((monthKey: string) => {
-                          const total = data[monthKey].reduce(
+                          // Calculate the total sum of totalAdmission for this month
+                          const totaladdictionAndMentalDisorder = data[monthKey].reduce(
                             (acc, value) => acc + value.metric.addictionAndMentalDisorder,
                             0
                           );
@@ -457,22 +465,21 @@ const Insights = () => {
                           return (
                             <td key={monthKey} className="w-[300px] border-r border-[#c7bfa7]">
                               <div
-                                className="grid w-full text-nowrap"
-                                style={{
-                                  gridTemplateColumns: `repeat(${data[monthKey].length + 1}, 1fr)`
-                                }}
+                                className={`grid text-nowrap grid-cols-${
+                                  data[monthKey].length + 1
+                                }`}
                               >
                                 {data[monthKey].map((value) => (
                                   <div
                                     key={value.id}
-                                    className="px-3 py-2 text-center text-[12px] leading-[15px] font-semibold text-black border-r border-[#c7bfa7]"
+                                    className="px-3 py-2 text-center align-top text-[12px] leading-[15px] font-semibold text-black"
                                   >
                                     {value.metric.addictionAndMentalDisorder}
                                   </div>
                                 ))}
-                                {/* Display total */}
-                                <div className="px-3 py-2 text-center text-[12px] leading-[15px] font-semibold text-black">
-                                  {total}
+
+                                <div className="px-3 py-2 text-center align-top text-[12px] leading-[15px] font-semibold text-black">
+                                  {totaladdictionAndMentalDisorder}
                                 </div>
                               </div>
                             </td>
@@ -481,13 +488,14 @@ const Insights = () => {
                     </tr>
 
                     <tr className="border-b border-[#d9d4c9]">
-                      <td className="py-3 w-[120px] pl-3 font-semibold text-nowrap">
+                      <td className=" py-3 w-[120px]  pl-3 font-semibold text-nowrap">
                         Mental Disorder
                       </td>
                       {data &&
                         Object.keys(data).length > 0 &&
                         Object.keys(data).map((monthKey: string) => {
-                          const total = data[monthKey].reduce(
+                          // Calculate the total sum of totalAdmission for this month
+                          const totalmentalDisorder = data[monthKey].reduce(
                             (acc, value) => acc + value.metric.mentalDisorder,
                             0
                           );
@@ -495,22 +503,21 @@ const Insights = () => {
                           return (
                             <td key={monthKey} className="w-[300px] border-r border-[#c7bfa7]">
                               <div
-                                className="grid w-full text-nowrap"
-                                style={{
-                                  gridTemplateColumns: `repeat(${data[monthKey].length + 1}, 1fr)`
-                                }}
+                                className={`grid text-nowrap grid-cols-${
+                                  data[monthKey].length + 1
+                                }`}
                               >
                                 {data[monthKey].map((value) => (
                                   <div
                                     key={value.id}
-                                    className="px-3 py-2 text-center text-[12px] leading-[15px] font-semibold text-black border-r border-[#c7bfa7]"
+                                    className="px-3 py-2 text-center align-top text-[12px] leading-[15px] font-semibold text-black"
                                   >
                                     {value.metric.mentalDisorder}
                                   </div>
                                 ))}
-                                {/* Display total */}
-                                <div className="px-3 py-2 text-center text-[12px] leading-[15px] font-semibold text-black">
-                                  {total}
+
+                                <div className="px-3 py-2 text-center align-top text-[12px] leading-[15px] font-semibold text-black">
+                                  {totalmentalDisorder}
                                 </div>
                               </div>
                             </td>
@@ -519,13 +526,14 @@ const Insights = () => {
                     </tr>
 
                     <tr className="border-b border-[#d9d4c9]">
-                      <td className="py-3 w-[120px] pl-3 font-semibold text-nowrap">
+                      <td className=" py-3 w-[120px]  pl-3 font-semibold text-nowrap">
                         Online Referral Source Rate (%)
                       </td>
                       {data &&
                         Object.keys(data).length > 0 &&
                         Object.keys(data).map((monthKey: string) => {
-                          const total = data[monthKey].reduce(
+                          // Calculate the total sum of totalAdmission for this month
+                          const totalonlineReferralSource = data[monthKey].reduce(
                             (acc, value) => acc + value.metric.onlineReferralSource,
                             0
                           );
@@ -533,22 +541,21 @@ const Insights = () => {
                           return (
                             <td key={monthKey} className="w-[300px] border-r border-[#c7bfa7]">
                               <div
-                                className="grid w-full text-nowrap"
-                                style={{
-                                  gridTemplateColumns: `repeat(${data[monthKey].length + 1}, 1fr)`
-                                }}
+                                className={`grid text-nowrap grid-cols-${
+                                  data[monthKey].length + 1
+                                }`}
                               >
                                 {data[monthKey].map((value) => (
                                   <div
                                     key={value.id}
-                                    className="px-3 py-2 text-center text-[12px] leading-[15px] font-semibold text-black border-r border-[#c7bfa7]"
+                                    className="px-3 py-2 text-center align-top text-[12px] leading-[15px] font-semibold text-black"
                                   >
                                     {value.metric.onlineReferralSource}
                                   </div>
                                 ))}
-                                {/* Display total */}
-                                <div className="px-3 py-2 text-center text-[12px] leading-[15px] font-semibold text-black">
-                                  {total}
+
+                                <div className="px-3 py-2 text-center align-top text-[12px] leading-[15px] font-semibold text-black">
+                                  {totalonlineReferralSource}
                                 </div>
                               </div>
                             </td>
@@ -557,10 +564,11 @@ const Insights = () => {
                     </tr>
 
                     <tr className="border-b border-[#d9d4c9] bg-[#EEE2D2]">
-                      <td className="py-3 w-[120px] pl-3 font-semibold text-nowrap">Discharge</td>
+                      <td className=" py-3 w-[120px]  pl-3 font-semibold text-nowrap">Discharge</td>
                       {data &&
                         Object.keys(data).length > 0 &&
                         Object.keys(data).map((monthKey: string) => {
+                          // Calculate the total sum of totalAdmission for this month
                           const total = data[monthKey].reduce(
                             (acc, value) => acc + value.metric.dischargeTotal,
                             0
@@ -569,21 +577,20 @@ const Insights = () => {
                           return (
                             <td key={monthKey} className="w-[300px] border-r border-[#c7bfa7]">
                               <div
-                                className="grid w-full text-nowrap"
-                                style={{
-                                  gridTemplateColumns: `repeat(${data[monthKey].length + 1}, 1fr)`
-                                }}
+                                className={`grid text-nowrap grid-cols-${
+                                  data[monthKey].length + 1
+                                }`}
                               >
                                 {data[monthKey].map((value) => (
                                   <div
                                     key={value.id}
-                                    className="px-3 py-2 text-center text-[12px] leading-[15px] font-semibold text-black border-r border-[#c7bfa7]"
+                                    className="px-3 py-2 text-center align-top text-[12px] leading-[15px] font-semibold text-black"
                                   >
                                     {value.metric.dischargeTotal}
                                   </div>
                                 ))}
-                                {/* Display total */}
-                                <div className="px-3 py-2 text-center text-[12px] leading-[15px] font-semibold text-black">
+
+                                <div className="px-3 py-2 text-center align-top text-[12px] leading-[15px] font-semibold text-black">
                                   {total}
                                 </div>
                               </div>
@@ -592,11 +599,12 @@ const Insights = () => {
                         })}
                     </tr>
 
-                    <tr className="border-b border-[#c7d4c9]">
-                      <td className="py-3 w-[120px] pl-3 font-semibold text-nowrap">Lama</td>
+                    <tr className="border-b border-[#d9d4c9] ">
+                      <td className=" py-3 w-[120px]  pl-3 font-semibold text-nowrap">Lama</td>
                       {data &&
                         Object.keys(data).length > 0 &&
                         Object.keys(data).map((monthKey: string) => {
+                          // Calculate the total sum of totalAdmission for this month
                           const total = data[monthKey].reduce(
                             (acc, value) => acc + value.metric.lama,
                             0
@@ -605,21 +613,20 @@ const Insights = () => {
                           return (
                             <td key={monthKey} className="w-[300px] border-r border-[#c7bfa7]">
                               <div
-                                className="grid w-full text-nowrap"
-                                style={{
-                                  gridTemplateColumns: `repeat(${data[monthKey].length + 1}, 1fr)`
-                                }}
+                                className={`grid text-nowrap grid-cols-${
+                                  data[monthKey].length + 1
+                                }`}
                               >
                                 {data[monthKey].map((value) => (
                                   <div
                                     key={value.id}
-                                    className="px-3 py-2 text-center text-[12px] leading-[15px] font-semibold text-black border-r border-[#c7bfa7]"
+                                    className="px-3 py-2 text-center align-top text-[12px] leading-[15px] font-semibold text-black"
                                   >
                                     {value.metric.lama}
                                   </div>
                                 ))}
-                                {/* Display total */}
-                                <div className="px-3 py-2 text-center text-[12px] leading-[15px] font-semibold text-black">
+
+                                <div className="px-3 py-2 text-center align-top text-[12px] leading-[15px] font-semibold text-black">
                                   {total}
                                 </div>
                               </div>
@@ -629,10 +636,13 @@ const Insights = () => {
                     </tr>
 
                     <tr className="border-b border-[#d9d4c9]">
-                      <td className="py-3 w-[120px] pl-3 font-semibold text-nowrap">Absconding</td>
+                      <td className=" py-3 w-[120px]  pl-3 font-semibold text-nowrap">
+                        Absconding
+                      </td>
                       {data &&
                         Object.keys(data).length > 0 &&
                         Object.keys(data).map((monthKey: string) => {
+                          // Calculate the total sum of totalAdmission for this month
                           const total = data[monthKey].reduce(
                             (acc, value) => acc + value.metric.absconding,
                             0
@@ -641,21 +651,20 @@ const Insights = () => {
                           return (
                             <td key={monthKey} className="w-[300px] border-r border-[#c7bfa7]">
                               <div
-                                className="grid w-full text-nowrap"
-                                style={{
-                                  gridTemplateColumns: `repeat(${data[monthKey].length + 1}, 1fr)`
-                                }}
+                                className={`grid text-nowrap grid-cols-${
+                                  data[monthKey].length + 1
+                                }`}
                               >
                                 {data[monthKey].map((value) => (
                                   <div
                                     key={value.id}
-                                    className="px-3 py-2 text-center text-[12px] leading-[15px] font-semibold text-black border-r border-[#c7bfa7]"
+                                    className="px-3 py-2 text-center align-top text-[12px] leading-[15px] font-semibold text-black"
                                   >
                                     {value.metric.absconding}
                                   </div>
                                 ))}
-                                {/* Display total */}
-                                <div className="px-3 py-2 text-center text-[12px] leading-[15px] font-semibold text-black">
+
+                                <div className="px-3 py-2 text-center align-top text-[12px] leading-[15px] font-semibold text-black">
                                   {total}
                                 </div>
                               </div>
@@ -665,12 +674,13 @@ const Insights = () => {
                     </tr>
 
                     <tr className="border-b border-[#d9d4c9]">
-                      <td className="py-3 w-[120px] pl-3 font-semibold text-nowrap">
+                      <td className=" py-3 w-[120px]  pl-3 font-semibold text-nowrap">
                         On Request Discharge
                       </td>
                       {data &&
                         Object.keys(data).length > 0 &&
                         Object.keys(data).map((monthKey: string) => {
+                          // Calculate the total sum of totalAdmission for this month
                           const total = data[monthKey].reduce(
                             (acc, value) => acc + value.metric.onRequestDischarge,
                             0
@@ -679,21 +689,20 @@ const Insights = () => {
                           return (
                             <td key={monthKey} className="w-[300px] border-r border-[#c7bfa7]">
                               <div
-                                className="grid w-full text-nowrap"
-                                style={{
-                                  gridTemplateColumns: `repeat(${data[monthKey].length + 1}, 1fr)`
-                                }}
+                                className={`grid text-nowrap grid-cols-${
+                                  data[monthKey].length + 1
+                                }`}
                               >
                                 {data[monthKey].map((value) => (
                                   <div
                                     key={value.id}
-                                    className="px-3 py-2 text-center text-[12px] leading-[15px] font-semibold text-black border-r border-[#c7bfa7]"
+                                    className="px-3 py-2 text-center align-top text-[12px] leading-[15px] font-semibold text-black"
                                   >
                                     {value.metric.onRequestDischarge}
                                   </div>
                                 ))}
-                                {/* Display total */}
-                                <div className="px-3 py-2 text-center text-[12px] leading-[15px] font-semibold text-black">
+
+                                <div className="px-3 py-2 text-center align-top text-[12px] leading-[15px] font-semibold text-black">
                                   {total}
                                 </div>
                               </div>
@@ -703,12 +712,13 @@ const Insights = () => {
                     </tr>
 
                     <tr className="border-b border-[#d9d4c9]">
-                      <td className="py-3 w-[120px] pl-3 font-semibold text-nowrap">
+                      <td className=" py-3 w-[120px]  pl-3 font-semibold text-nowrap">
                         Partial Improved
                       </td>
                       {data &&
                         Object.keys(data).length > 0 &&
                         Object.keys(data).map((monthKey: string) => {
+                          // Calculate the total sum of totalAdmission for this month
                           const total = data[monthKey].reduce(
                             (acc, value) => acc + value.metric.partialImprovement,
                             0
@@ -717,21 +727,20 @@ const Insights = () => {
                           return (
                             <td key={monthKey} className="w-[300px] border-r border-[#c7bfa7]">
                               <div
-                                className="grid w-full text-nowrap"
-                                style={{
-                                  gridTemplateColumns: `repeat(${data[monthKey].length + 1}, 1fr)`
-                                }}
+                                className={`grid text-nowrap grid-cols-${
+                                  data[monthKey].length + 1
+                                }`}
                               >
                                 {data[monthKey].map((value) => (
                                   <div
                                     key={value.id}
-                                    className="px-3 py-2 text-center text-[12px] leading-[15px] font-semibold text-black border-r border-[#c7bfa7]"
+                                    className="px-3 py-2 text-center align-top text-[12px] leading-[15px] font-semibold text-black"
                                   >
                                     {value.metric.partialImprovement}
                                   </div>
                                 ))}
-                                {/* Display total */}
-                                <div className="px-3 py-2 text-center text-[12px] leading-[15px] font-semibold text-black">
+
+                                <div className="px-3 py-2 text-center align-top text-[12px] leading-[15px] font-semibold text-black">
                                   {total}
                                 </div>
                               </div>
@@ -741,10 +750,11 @@ const Insights = () => {
                     </tr>
 
                     <tr className="border-b border-[#d9d4c9]">
-                      <td className="py-3 w-[120px] pl-3 font-semibold text-nowrap">Improved</td>
+                      <td className=" py-3 w-[120px]  pl-3 font-semibold text-nowrap">Improved</td>
                       {data &&
                         Object.keys(data).length > 0 &&
                         Object.keys(data).map((monthKey: string) => {
+                          // Calculate the total sum of totalAdmission for this month
                           const total = data[monthKey].reduce(
                             (acc, value) => acc + value.metric.improvement,
                             0
@@ -753,21 +763,20 @@ const Insights = () => {
                           return (
                             <td key={monthKey} className="w-[300px] border-r border-[#c7bfa7]">
                               <div
-                                className="grid w-full text-nowrap"
-                                style={{
-                                  gridTemplateColumns: `repeat(${data[monthKey].length + 1}, 1fr)`
-                                }}
+                                className={`grid text-nowrap grid-cols-${
+                                  data[monthKey].length + 1
+                                }`}
                               >
                                 {data[monthKey].map((value) => (
                                   <div
                                     key={value.id}
-                                    className="px-3 py-2 text-center text-[12px] leading-[15px] font-semibold text-black border-r border-[#c7bfa7]"
+                                    className="px-3 py-2 text-center align-top text-[12px] leading-[15px] font-semibold text-black"
                                   >
                                     {value.metric.improvement}
                                   </div>
                                 ))}
-                                {/* Display total */}
-                                <div className="px-3 py-2 text-center text-[12px] leading-[15px] font-semibold text-black">
+
+                                <div className="px-3 py-2 text-center align-top text-[12px] leading-[15px] font-semibold text-black">
                                   {total}
                                 </div>
                               </div>
@@ -775,12 +784,14 @@ const Insights = () => {
                           );
                         })}
                     </tr>
-
                     <tr className="border-b border-[#d9d4c9]">
-                      <td className="py-3 w-[120px] pl-3 font-semibold text-nowrap">Status Quo</td>
+                      <td className=" py-3 w-[120px]  pl-3 font-semibold text-nowrap">
+                        Status Quo
+                      </td>
                       {data &&
                         Object.keys(data).length > 0 &&
                         Object.keys(data).map((monthKey: string) => {
+                          // Calculate the total sum of totalAdmission for this month
                           const total = data[monthKey].reduce(
                             (acc, value) => acc + value.metric.statusQuo,
                             0
@@ -789,21 +800,20 @@ const Insights = () => {
                           return (
                             <td key={monthKey} className="w-[300px] border-r border-[#c7bfa7]">
                               <div
-                                className="grid w-full text-nowrap"
-                                style={{
-                                  gridTemplateColumns: `repeat(${data[monthKey].length + 1}, 1fr)`
-                                }}
+                                className={`grid text-nowrap grid-cols-${
+                                  data[monthKey].length + 1
+                                }`}
                               >
                                 {data[monthKey].map((value) => (
                                   <div
                                     key={value.id}
-                                    className="px-3 py-2 text-center text-[12px] leading-[15px] font-semibold text-black border-r border-[#c7bfa7]"
+                                    className="px-3 py-2 text-center align-top text-[12px] leading-[15px] font-semibold text-black"
                                   >
                                     {value.metric.statusQuo}
                                   </div>
                                 ))}
-                                {/* Display total */}
-                                <div className="px-3 py-2 text-center text-[12px] leading-[15px] font-semibold text-black">
+
+                                <div className="px-3 py-2 text-center align-top text-[12px] leading-[15px] font-semibold text-black">
                                   {total}
                                 </div>
                               </div>
@@ -812,11 +822,12 @@ const Insights = () => {
                         })}
                     </tr>
 
-                    <tr className="border-b border-[#c7bfa7]">
-                      <td className="py-3 w-[120px] pl-3 font-semibold text-nowrap">Referred</td>
+                    <tr className="border-b border-[#d9d4c9]">
+                      <td className=" py-3 w-[120px]  pl-3 font-semibold text-nowrap">Reffered</td>
                       {data &&
                         Object.keys(data).length > 0 &&
                         Object.keys(data).map((monthKey: string) => {
+                          // Calculate the total sum of totalAdmission for this month
                           const total = data[monthKey].reduce(
                             (acc, value) => acc + value.metric.reffered,
                             0
@@ -825,21 +836,20 @@ const Insights = () => {
                           return (
                             <td key={monthKey} className="w-[300px] border-r border-[#c7bfa7]">
                               <div
-                                className="grid w-full text-nowrap"
-                                style={{
-                                  gridTemplateColumns: `repeat(${data[monthKey].length + 1}, 1fr)`
-                                }}
+                                className={`grid text-nowrap grid-cols-${
+                                  data[monthKey].length + 1
+                                }`}
                               >
                                 {data[monthKey].map((value) => (
                                   <div
                                     key={value.id}
-                                    className="px-3 py-2 text-center text-[12px] leading-[15px] font-semibold text-black border-r border-[#c7bfa7]"
+                                    className="px-3 py-2 text-center align-top text-[12px] leading-[15px] font-semibold text-black"
                                   >
                                     {value.metric.reffered}
                                   </div>
                                 ))}
-                                {/* Display total */}
-                                <div className="px-3 py-2 text-center text-[12px] leading-[15px] font-semibold text-black">
+
+                                <div className="px-3 py-2 text-center align-top text-[12px] leading-[15px] font-semibold text-black">
                                   {total}
                                 </div>
                               </div>
@@ -849,12 +859,13 @@ const Insights = () => {
                     </tr>
 
                     <tr className="border-b border-[#d9d4c9]">
-                      <td className="py-3 w-[120px] pl-3 font-semibold text-nowrap">
+                      <td className=" py-3 w-[120px]  pl-3 font-semibold text-nowrap">
                         Routine Discharge
                       </td>
                       {data &&
                         Object.keys(data).length > 0 &&
                         Object.keys(data).map((monthKey: string) => {
+                          // Calculate the total sum of totalAdmission for this month
                           const total = data[monthKey].reduce(
                             (acc, value) => acc + value.metric.routineDischarge,
                             0
@@ -863,21 +874,20 @@ const Insights = () => {
                           return (
                             <td key={monthKey} className="w-[300px] border-r border-[#c7bfa7]">
                               <div
-                                className="grid w-full text-nowrap"
-                                style={{
-                                  gridTemplateColumns: `repeat(${data[monthKey].length + 1}, 1fr)`
-                                }}
+                                className={`grid text-nowrap grid-cols-${
+                                  data[monthKey].length + 1
+                                }`}
                               >
                                 {data[monthKey].map((value) => (
                                   <div
                                     key={value.id}
-                                    className="px-3 py-2 text-center text-[12px] leading-[15px] font-semibold text-black border-r border-[#c7bfa7]"
+                                    className="px-3 py-2 text-center align-top text-[12px] leading-[15px] font-semibold text-black"
                                   >
                                     {value.metric.routineDischarge}
                                   </div>
                                 ))}
-                                {/* Display total */}
-                                <div className="px-3 py-2 text-center text-[12px] leading-[15px] font-semibold text-black">
+
+                                <div className="px-3 py-2 text-center align-top text-[12px] leading-[15px] font-semibold text-black">
                                   {total}
                                 </div>
                               </div>
@@ -887,12 +897,13 @@ const Insights = () => {
                     </tr>
 
                     <tr className="border-b border-[#d9d4c9]">
-                      <td className="py-3 w-[120px] pl-3 font-semibold text-nowrap">
+                      <td className=" py-3 w-[120px]  pl-3 font-semibold text-nowrap">
                         Shifted to another Center
                       </td>
                       {data &&
                         Object.keys(data).length > 0 &&
                         Object.keys(data).map((monthKey: string) => {
+                          // Calculate the total sum of totalAdmission for this month
                           const total = data[monthKey].reduce(
                             (acc, value) => acc + value.metric.shiftedToAnotherCenter,
                             0
@@ -901,21 +912,20 @@ const Insights = () => {
                           return (
                             <td key={monthKey} className="w-[300px] border-r border-[#c7bfa7]">
                               <div
-                                className="grid w-full text-nowrap"
-                                style={{
-                                  gridTemplateColumns: `repeat(${data[monthKey].length + 1}, 1fr)`
-                                }}
+                                className={`grid text-nowrap grid-cols-${
+                                  data[monthKey].length + 1
+                                }`}
                               >
                                 {data[monthKey].map((value) => (
                                   <div
                                     key={value.id}
-                                    className="px-3 py-2 text-center text-[12px] leading-[15px] font-semibold text-black border-r border-[#c7bfa7]"
+                                    className="px-3 py-2 text-center align-top text-[12px] leading-[15px] font-semibold text-black"
                                   >
                                     {value.metric.shiftedToAnotherCenter}
                                   </div>
                                 ))}
-                                {/* Display total */}
-                                <div className="px-3 py-2 text-center text-[12px] leading-[15px] font-semibold text-black">
+
+                                <div className="px-3 py-2 text-center align-top text-[12px] leading-[15px] font-semibold text-black">
                                   {total}
                                 </div>
                               </div>
@@ -923,9 +933,46 @@ const Insights = () => {
                           );
                         })}
                     </tr>
-
+                    {/*  TODO: Avg Array  */}
                     <tr className="border-b border-[#d9d4c9]">
-                      <td className="py-3 w-[120px] pl-3 font-semibold text-nowrap">
+                      <td className=" py-3 w-[120px]  pl-3 font-semibold text-nowrap">
+                        Average Stay Duration
+                      </td>
+                      {data &&
+                        Object.keys(data).length > 0 &&
+                        Object.keys(data).map((monthKey: string) => {
+                          // Calculate the total sum of totalAdmission for this month
+                          const total = data[monthKey].reduce(
+                            (acc, value) => acc + value.metric.shiftedToAnotherCenter,
+                            0
+                          );
+
+                          return (
+                            <td key={monthKey} className="w-[300px] border-r border-[#c7bfa7]">
+                              <div
+                                className={`grid text-nowrap grid-cols-${
+                                  data[monthKey].length + 1
+                                }`}
+                              >
+                                {data[monthKey].map((value) => (
+                                  <div
+                                    key={value.id}
+                                    className="px-3 py-2 text-center align-top text-[12px] leading-[15px] font-semibold text-black"
+                                  >
+                                    {value.metric.shiftedToAnotherCenter}
+                                  </div>
+                                ))}
+
+                                <div className="px-3 py-2 text-center align-top text-[12px] leading-[15px] font-semibold text-black">
+                                  {total}
+                                </div>
+                              </div>
+                            </td>
+                          );
+                        })}
+                    </tr>
+                      <tr className="border-b border-[#d9d4c9] ">
+                      <td className=" py-3 w-[120px]  pl-3 font-semibold text-nowrap">
                         Average Stay Duration
                       </td>
                       {data &&
@@ -949,15 +996,14 @@ const Insights = () => {
                           return (
                             <td key={monthKey} className="w-[300px] border-r border-[#c7bfa7]">
                               <div
-                                className="grid w-full text-nowrap"
-                                style={{
-                                  gridTemplateColumns: `repeat(${data[monthKey].length + 1}, 1fr)`
-                                }}
+                                className={`grid text-nowrap grid-cols-${
+                                  data[monthKey].length + 1
+                                }`}
                               >
                                 {data[monthKey].map((value) => (
                                   <div
                                     key={value.id}
-                                    className="px-3 py-2 text-center text-[12px] leading-[15px] font-semibold text-black border-r border-[#c7bfa7]"
+                                    className="px-3 py-2 text-center align-top text-[12px] leading-[15px] font-semibold text-black"
                                   >
                                     {value.metric.averageStayDuration.length > 0
                                       ? Math.round(
@@ -967,8 +1013,8 @@ const Insights = () => {
                                       : 0}
                                   </div>
                                 ))}
-                                {/* Display total */}
-                                <div className="px-3 py-2 text-center text-[12px] leading-[15px] font-semibold text-black">
+                                {/* Display the sum of totalAdmission */}
+                                <div className="px-3 py-2 text-center align-top text-[12px] leading-[15px] font-semibold text-black">
                                   {Math.round(average)}
                                 </div>
                               </div>
@@ -1010,13 +1056,15 @@ const Insights = () => {
                         </div>
                       </td>
                     </tr>
+
                     <tr className="border-b border-[#d9d4c9]">
-                      <td className="py-3 w-[120px] pl-3 font-semibold text-nowrap">
-                        Occupied Bed Days
+                      <td className=" py-3 w-[120px]  pl-3 font-semibold text-nowrap">
+                        Occupied Bed days
                       </td>
                       {data &&
                         Object.keys(data).length > 0 &&
                         Object.keys(data).map((monthKey: string) => {
+                          // Calculate the total sum of totalAdmission for this month
                           const total = data[monthKey].reduce(
                             (acc, value) => acc + value.metric.occupiedBedDays,
                             0
@@ -1025,21 +1073,20 @@ const Insights = () => {
                           return (
                             <td key={monthKey} className="w-[300px] border-r border-[#c7bfa7]">
                               <div
-                                className="grid w-full text-nowrap"
-                                style={{
-                                  gridTemplateColumns: `repeat(${data[monthKey].length + 1}, 1fr)`
-                                }}
+                                className={`grid text-nowrap grid-cols-${
+                                  data[monthKey].length + 1
+                                }`}
                               >
                                 {data[monthKey].map((value) => (
                                   <div
                                     key={value.id}
-                                    className="px-3 py-2 text-center text-[12px] leading-[15px] font-semibold text-black border-r border-[#c7bfa7]"
+                                    className="px-3 py-2 text-center align-top text-[12px] leading-[15px] font-semibold text-black"
                                   >
                                     {value.metric.occupiedBedDays}
                                   </div>
                                 ))}
-                                {/* Display total */}
-                                <div className="px-3 py-2 text-center text-[12px] leading-[15px] font-semibold text-black">
+
+                                <div className="px-3 py-2 text-center align-top text-[12px] leading-[15px] font-semibold text-black">
                                   {total}
                                 </div>
                               </div>
@@ -1049,12 +1096,13 @@ const Insights = () => {
                     </tr>
 
                     <tr className="border-b border-[#d9d4c9]">
-                      <td className="py-3 w-[120px] pl-3 font-semibold text-nowrap">
-                        Total Available Bed Days
+                      <td className=" py-3 w-[120px]  pl-3 font-semibold text-nowrap">
+                        Total Available bed Days
                       </td>
                       {data &&
                         Object.keys(data).length > 0 &&
                         Object.keys(data).map((monthKey: string) => {
+                          // Calculate the total sum of totalAdmission for this month
                           const total = data[monthKey].reduce(
                             (acc, value) => acc + value.metric.totalAvailableBedDays,
                             0
@@ -1063,21 +1111,20 @@ const Insights = () => {
                           return (
                             <td key={monthKey} className="w-[300px] border-r border-[#c7bfa7]">
                               <div
-                                className="grid w-full text-nowrap"
-                                style={{
-                                  gridTemplateColumns: `repeat(${data[monthKey].length + 1}, 1fr)`
-                                }}
+                                className={`grid text-nowrap grid-cols-${
+                                  data[monthKey].length + 1
+                                }`}
                               >
                                 {data[monthKey].map((value) => (
                                   <div
                                     key={value.id}
-                                    className="px-3 py-2 text-center text-[12px] leading-[15px] font-semibold text-black border-r border-[#c7bfa7]"
+                                    className="px-3 py-2 text-center align-top text-[12px] leading-[15px] font-semibold text-black"
                                   >
                                     {value.metric.totalAvailableBedDays}
                                   </div>
                                 ))}
-                                {/* Display total */}
-                                <div className="px-3 py-2 text-center text-[12px] leading-[15px] font-semibold text-black">
+
+                                <div className="px-3 py-2 text-center align-top text-[12px] leading-[15px] font-semibold text-black">
                                   {total}
                                 </div>
                               </div>
@@ -1103,32 +1150,35 @@ const Insights = () => {
                           );
 
                           const total = occupiedTotal + availableTotal;
-                          const totalRate = total > 0 ? (occupiedTotal / total) * 100 : 0;
+                          const totalrates = occupiedTotal / total;
+                          const totalRate = total > 0 ? totalrates * 100 : 0;
 
                           return (
                             <td key={monthKey} className="w-[300px] border-r border-[#c7bfa7]">
                               <div
-                                className="grid w-full text-nowrap"
-                                style={{
-                                  gridTemplateColumns: `repeat(${data[monthKey].length + 1}, 1fr)`
-                                }}
+                                className={`grid text-nowrap grid-cols-${
+                                  data[monthKey].length + 1
+                                }`}
                               >
                                 {data[monthKey].map((value) => {
                                   const occupied = value.metric.occupiedBedDays;
                                   const available = value.metric.totalAvailableBedDays;
+
                                   const total = occupied + available;
-                                  const rate = total > 0 ? (occupied / total) * 100 : 0;
+                                  const totalrate = occupied / total;
+                                  const rate = total > 0 ? totalrate * 100 : 0;
 
                                   return (
                                     <div
                                       key={value.id}
-                                      className="px-3 py-2 text-center text-[12px] leading-[15px] font-semibold text-black border-r border-[#c7bfa7]"
+                                      className="px-3 py-2 text-center align-top text-[12px] leading-[15px] font-semibold text-black"
                                     >
                                       {rate.toFixed(2)}%
                                     </div>
                                   );
                                 })}
-                                <div className="px-3 py-2 text-center text-[12px] leading-[15px] font-semibold text-black">
+
+                                <div className="px-3 py-2 text-center align-top text-[12px] leading-[15px] font-semibold text-black">
                                   {totalRate.toFixed(2)}%
                                 </div>
                               </div>
@@ -1137,13 +1187,52 @@ const Insights = () => {
                         })}
                     </tr>
 
+                    {/* <tr className="border-b border-[#d9d4c9]">
+                      <td className=" py-3 w-[120px]  pl-3 font-semibold text-nowrap">
+                        Occupancy Rate
+                      </td>
+                      {data &&
+                        Object.keys(data).length > 0 &&
+                        Object.keys(data).map((monthKey: string) => {
+                          // Calculate the total sum of totalAdmission for this month
+                          const total = data[monthKey].reduce(
+                            (acc, value) => acc + value.metric.totalAvailableBedDays,
+                            0
+                          );
+
+                          return (
+                            <td key={monthKey} className="w-[300px] border-r border-[#c7bfa7]">
+                              <div
+                                className={`grid text-nowrap grid-cols-${
+                                  data[monthKey].length + 1
+                                }`}
+                              >
+                                {data[monthKey].map((value) => (
+                                  <div
+                                    key={value.id}
+                                    className="px-3 py-2 text-center align-top text-[12px] leading-[15px] font-semibold text-black"
+                                  >
+                                    {value.metric.totalAvailableBedDays}
+                                  </div>
+                                ))}
+
+                                <div className="px-3 py-2 text-center align-top text-[12px] leading-[15px] font-semibold text-black">
+                                  {total}
+                                </div>
+                              </div>
+                            </td>
+                          );
+                        })}
+                    </tr> */}
+
                     <tr className="border-b border-[#d9d4c9]">
-                      <td className="py-3 w-[120px] pl-3 font-semibold text-nowrap">
+                      <td className=" py-3 w-[120px]  pl-3 font-semibold text-nowrap">
                         Single Total Occupied Bed Days & Rate
                       </td>
                       {data &&
                         Object.keys(data).length > 0 &&
                         Object.keys(data).map((monthKey: string) => {
+                          // Calculate the total sum of totalAdmission for this month
                           const total = data[monthKey].reduce(
                             (acc, value) => acc + value.metric.singleTotalOccupiedBedDays,
                             0
@@ -1152,26 +1241,23 @@ const Insights = () => {
                           return (
                             <td key={monthKey} className="w-[300px] border-r border-[#c7bfa7]">
                               <div
-                                className="grid w-full items-center text-nowrap"
-                                style={{
-                                  gridTemplateColumns: `repeat(${data[monthKey].length + 1}, 1fr)`
-                                }}
+                                className={`grid items-center text-nowrap grid-cols-${
+                                  data[monthKey].length + 1
+                                }`}
                               >
                                 {data[monthKey].map((value) => (
                                   <div
                                     key={value.id}
-                                    className="px-2 py-2 text-center text-[12px] leading-[15px] font-semibold text-black border-r border-[#c7bfa7]"
+                                    className="px-2 text-center   align-top text- [12px] leading-[15px] font-semibold text-black"
                                   >
                                     {value.metric.singleTotalOccupiedBedDays}
-                                    <span className="text-[10px]">
-                                      {` (${Math.round(
-                                        value.metric.singleTotalOccupiedBedDaysRate
-                                      )}%)`}
-                                    </span>
+                                    <span className="text-[10px]">{` (${Math.round(
+                                      value.metric.singleTotalOccupiedBedDaysRate
+                                    )}%)`}</span>
                                   </div>
                                 ))}
 
-                                <div className="px-3 py-2 text-center text-[12px] leading-[15px] font-semibold text-black">
+                                <div className="px-3 py-2 text-center align-top text-[12px] leading-[15px] font-semibold text-black">
                                   {total}
                                 </div>
                               </div>
@@ -1179,14 +1265,14 @@ const Insights = () => {
                           );
                         })}
                     </tr>
-
                     <tr className="border-b border-[#d9d4c9]">
-                      <td className="py-3 w-[120px] pl-3 font-semibold text-nowrap">
+                      <td className=" py-3 w-[120px]  pl-3 font-semibold text-nowrap">
                         Single Total Available Bed Days
                       </td>
                       {data &&
                         Object.keys(data).length > 0 &&
                         Object.keys(data).map((monthKey: string) => {
+                          // Calculate the total sum of totalAdmission for this month
                           const total = data[monthKey].reduce(
                             (acc, value) => acc + value.metric.singleTotalAvailableBedDays,
                             0
@@ -1195,21 +1281,20 @@ const Insights = () => {
                           return (
                             <td key={monthKey} className="w-[300px] border-r border-[#c7bfa7]">
                               <div
-                                className="grid w-full text-nowrap"
-                                style={{
-                                  gridTemplateColumns: `repeat(${data[monthKey].length + 1}, 1fr)`
-                                }}
+                                className={`grid text-nowrap grid-cols-${
+                                  data[monthKey].length + 1
+                                }`}
                               >
                                 {data[monthKey].map((value) => (
                                   <div
                                     key={value.id}
-                                    className="px-3 py-2 text-center text-[12px] leading-[15px] font-semibold text-black border-r border-[#c7bfa7]"
+                                    className="px-3 py-2 text-center align-top text-[12px] leading-[15px] font-semibold text-black"
                                   >
                                     {value.metric.singleTotalAvailableBedDays}
                                   </div>
                                 ))}
 
-                                <div className="px-3 py-2 text-center text-[12px] leading-[15px] font-semibold text-black">
+                                <div className="px-3 py-2 text-center align-top text-[12px] leading-[15px] font-semibold text-black">
                                   {total}
                                 </div>
                               </div>
@@ -1219,12 +1304,13 @@ const Insights = () => {
                     </tr>
 
                     <tr className="border-b border-[#d9d4c9]">
-                      <td className="py-3 w-[120px] pl-3 font-semibold text-nowrap">
+                      <td className=" py-3 w-[120px]  pl-3 font-semibold text-nowrap">
                         Double Total Occupied Bed Days & Rate
                       </td>
                       {data &&
                         Object.keys(data).length > 0 &&
                         Object.keys(data).map((monthKey: string) => {
+                          // Calculate the total sum of totalAdmission for this month
                           const total = data[monthKey].reduce(
                             (acc, value) => acc + value.metric.doubleTotalOccupiedBedDays,
                             0
@@ -1233,15 +1319,14 @@ const Insights = () => {
                           return (
                             <td key={monthKey} className="w-[300px] border-r border-[#c7bfa7]">
                               <div
-                                className="grid items-center w-full text-nowrap"
-                                style={{
-                                  gridTemplateColumns: `repeat(${data[monthKey].length + 1}, 1fr)`
-                                }}
+                                className={`grid items-center text-nowrap grid-cols-${
+                                  data[monthKey].length + 1
+                                }`}
                               >
                                 {data[monthKey].map((value) => (
                                   <div
                                     key={value.id}
-                                    className="px-2 py-2 text-center text-[12px] leading-[15px] font-semibold text-black border-r border-[#c7bfa7]"
+                                    className="px-2 text-center - [12px] leading-[15px] font-semibold text-black"
                                   >
                                     {value.metric.doubleTotalOccupiedBedDays}
                                     <span className="text-[10px]">{` (${Math.round(
@@ -1250,7 +1335,7 @@ const Insights = () => {
                                   </div>
                                 ))}
 
-                                <div className="px-3 py-2 text-center text-[12px] leading-[15px] font-semibold text-black">
+                                <div className="px-3 py-2 text-center align-top text-[12px] leading-[15px] font-semibold text-black">
                                   {total}
                                 </div>
                               </div>
@@ -1258,14 +1343,14 @@ const Insights = () => {
                           );
                         })}
                     </tr>
-
                     <tr className="border-b border-[#d9d4c9]">
-                      <td className="py-3 w-[120px] pl-3 font-semibold text-nowrap">
+                      <td className=" py-3 w-[120px]  pl-3 font-semibold text-nowrap">
                         Double Total Available Bed Days
                       </td>
                       {data &&
                         Object.keys(data).length > 0 &&
                         Object.keys(data).map((monthKey: string) => {
+                          // Calculate the total sum of totalAdmission for this month
                           const total = data[monthKey].reduce(
                             (acc, value) => acc + value.metric.doubleTotalAvailableBedDays,
                             0
@@ -1274,21 +1359,20 @@ const Insights = () => {
                           return (
                             <td key={monthKey} className="w-[300px] border-r border-[#c7bfa7]">
                               <div
-                                className="grid w-full text-nowrap"
-                                style={{
-                                  gridTemplateColumns: `repeat(${data[monthKey].length + 1}, 1fr)`
-                                }}
+                                className={`grid text-nowrap grid-cols-${
+                                  data[monthKey].length + 1
+                                }`}
                               >
                                 {data[monthKey].map((value) => (
                                   <div
                                     key={value.id}
-                                    className="px-3 py-2 text-center text-[12px] leading-[15px] font-semibold text-black border-r border-[#c7bfa7]"
+                                    className="px-3 py-2 text-center align-top text-[12px] leading-[15px] font-semibold text-black"
                                   >
                                     {value.metric.doubleTotalAvailableBedDays}
                                   </div>
                                 ))}
 
-                                <div className="px-3 py-2 text-center text-[12px] leading-[15px] font-semibold text-black">
+                                <div className="px-3 py-2 text-center align-top text-[12px] leading-[15px] font-semibold text-black">
                                   {total}
                                 </div>
                               </div>
@@ -1298,12 +1382,13 @@ const Insights = () => {
                     </tr>
 
                     <tr className="border-b border-[#d9d4c9]">
-                      <td className="py-3 w-[120px] pl-3 font-semibold text-nowrap">
+                      <td className=" py-3 w-[120px]  pl-3 font-semibold text-nowrap">
                         Triple Total Occupied Bed Days & Rate
                       </td>
                       {data &&
                         Object.keys(data).length > 0 &&
                         Object.keys(data).map((monthKey: string) => {
+                          // Calculate the total sum of totalAdmission for this month
                           const total = data[monthKey].reduce(
                             (acc, value) => acc + value.metric.tripleTotalOccupiedBedDays,
                             0
@@ -1312,15 +1397,14 @@ const Insights = () => {
                           return (
                             <td key={monthKey} className="w-[300px] border-r border-[#c7bfa7]">
                               <div
-                                className="grid w-full text-nowrap"
-                                style={{
-                                  gridTemplateColumns: `repeat(${data[monthKey].length + 1}, 1fr)`
-                                }}
+                                className={`grid items-center text-nowrap grid-cols-${
+                                  data[monthKey].length + 1
+                                }`}
                               >
                                 {data[monthKey].map((value) => (
                                   <div
                                     key={value.id}
-                                    className="px-3 py-2 text-center text-[12px] leading-[15px] font-semibold text-black border-r border-[#c7bfa7]"
+                                    className="pxy-2 text-center  ext-[12px] leading-[15px] font-semibold text-black"
                                   >
                                     {value.metric.tripleTotalOccupiedBedDays}
                                     <span className="text-[10px]">{` (${Math.round(
@@ -1329,7 +1413,7 @@ const Insights = () => {
                                   </div>
                                 ))}
 
-                                <div className="px-3 py-2 text-center text-[12px] leading-[15px] font-semibold text-black">
+                                <div className="px-3 py-2 text-center align-top text-[12px] leading-[15px] font-semibold text-black">
                                   {total}
                                 </div>
                               </div>
@@ -1337,14 +1421,14 @@ const Insights = () => {
                           );
                         })}
                     </tr>
-
                     <tr className="border-b border-[#d9d4c9]">
-                      <td className="py-3 w-[120px] pl-3 font-semibold text-nowrap">
+                      <td className=" py-3 w-[120px]  pl-3 font-semibold text-nowrap">
                         Triple Total Available Bed Days
                       </td>
                       {data &&
                         Object.keys(data).length > 0 &&
                         Object.keys(data).map((monthKey: string) => {
+                          // Calculate the total sum of totalAdmission for this month
                           const total = data[monthKey].reduce(
                             (acc, value) => acc + value.metric.tripleTotalAvailableBedDays,
                             0
@@ -1353,21 +1437,20 @@ const Insights = () => {
                           return (
                             <td key={monthKey} className="w-[300px] border-r border-[#c7bfa7]">
                               <div
-                                className="grid w-full text-nowrap"
-                                style={{
-                                  gridTemplateColumns: `repeat(${data[monthKey].length + 1}, 1fr)`
-                                }}
+                                className={`grid items-center text-nowrap grid-cols-${
+                                  data[monthKey].length + 1
+                                }`}
                               >
                                 {data[monthKey].map((value) => (
                                   <div
                                     key={value.id}
-                                    className="px-3 py-2 text-center text-[12px] leading-[15px] font-semibold text-black border-r border-[#c7bfa7]"
+                                    className="px-3 py-2 text-center align-top text-[12px] leading-[15px] font-semibold text-black"
                                   >
                                     {value.metric.tripleTotalAvailableBedDays}
                                   </div>
                                 ))}
 
-                                <div className="px-3 py-2 text-center text-[12px] leading-[15px] font-semibold text-black">
+                                <div className="px-3 py-2 text-center align-top text-[12px] leading-[15px] font-semibold text-black">
                                   {total}
                                 </div>
                               </div>
@@ -1377,12 +1460,13 @@ const Insights = () => {
                     </tr>
 
                     <tr className="border-b border-[#d9d4c9]">
-                      <td className="py-3 w-[120px] pl-3 font-semibold text-nowrap">
+                      <td className=" py-3 w-[120px]  pl-3 font-semibold text-nowrap">
                         Quad Total Occupied Bed Days & Rate
                       </td>
                       {data &&
                         Object.keys(data).length > 0 &&
                         Object.keys(data).map((monthKey: string) => {
+                          // Calculate the total sum of totalAdmission for this month
                           const total = data[monthKey].reduce(
                             (acc, value) => acc + value.metric.quadTotalOccupiedBedDays,
                             0
@@ -1391,15 +1475,14 @@ const Insights = () => {
                           return (
                             <td key={monthKey} className="w-[300px] border-r border-[#c7bfa7]">
                               <div
-                                className="grid w-full text-nowrap"
-                                style={{
-                                  gridTemplateColumns: `repeat(${data[monthKey].length + 1}, 1fr)`
-                                }}
+                                className={`grid text-nowrap grid-cols-${
+                                  data[monthKey].length + 1
+                                }`}
                               >
                                 {data[monthKey].map((value) => (
                                   <div
                                     key={value.id}
-                                    className="px-3 py-2 text-center text-[12px] leading-[15px] font-semibold text-black border-r border-[#c7bfa7]"
+                                    className=" py-2 text-center align-[12px] leading-[15px] font-semibold text-black"
                                   >
                                     {value.metric.quadTotalOccupiedBedDays}
                                     <span className="text-[10px]">{` (${Math.round(
@@ -1408,7 +1491,7 @@ const Insights = () => {
                                   </div>
                                 ))}
 
-                                <div className="px-3 py-2 text-center text-[12px] leading-[15px] font-semibold text-black">
+                                <div className="px-3 py-2 text-center align-top text-[12px] leading-[15px] font-semibold text-black">
                                   {total}
                                 </div>
                               </div>
@@ -1416,14 +1499,14 @@ const Insights = () => {
                           );
                         })}
                     </tr>
-
                     <tr className="border-b border-[#d9d4c9]">
-                      <td className="py-3 w-[120px] pl-3 font-semibold text-nowrap">
+                      <td className=" py-3 w-[120px]  pl-3 font-semibold text-nowrap">
                         Quad Total Available Bed Days
                       </td>
                       {data &&
                         Object.keys(data).length > 0 &&
                         Object.keys(data).map((monthKey: string) => {
+                          // Calculate the total sum of totalAdmission for this month
                           const total = data[monthKey].reduce(
                             (acc, value) => acc + value.metric.quadTotalAvailableBedDays,
                             0
@@ -1432,21 +1515,20 @@ const Insights = () => {
                           return (
                             <td key={monthKey} className="w-[300px] border-r border-[#c7bfa7]">
                               <div
-                                className="grid w-full text-nowrap"
-                                style={{
-                                  gridTemplateColumns: `repeat(${data[monthKey].length + 1}, 1fr)`
-                                }}
+                                className={`grid text-nowrap grid-cols-${
+                                  data[monthKey].length + 1
+                                }`}
                               >
                                 {data[monthKey].map((value) => (
                                   <div
                                     key={value.id}
-                                    className="px-3 py-2 text-center text-[12px] leading-[15px] font-semibold text-black border-r border-[#c7bfa7]"
+                                    className="px-3 py-2 text-center align-top text-[12px] leading-[15px] font-semibold text-black"
                                   >
                                     {value.metric.quadTotalAvailableBedDays}
                                   </div>
                                 ))}
 
-                                <div className="px-3 py-2 text-center text-[12px] leading-[15px] font-semibold text-black">
+                                <div className="px-3 py-2 text-center align-top text-[12px] leading-[15px] font-semibold text-black">
                                   {total}
                                 </div>
                               </div>
@@ -1456,12 +1538,13 @@ const Insights = () => {
                     </tr>
 
                     <tr className="border-b border-[#d9d4c9]">
-                      <td className="py-3 w-[120px] pl-3 font-semibold text-nowrap">
+                      <td className=" py-3 w-[120px]  pl-3 font-semibold text-nowrap">
                         Acute Total Occupied Bed Days & Rate
                       </td>
                       {data &&
                         Object.keys(data).length > 0 &&
                         Object.keys(data).map((monthKey: string) => {
+                          // Calculate the total sum of totalAdmission for this month
                           const total = data[monthKey].reduce(
                             (acc, value) => acc + value.metric.acuteTotalOccupiedBedDays,
                             0
@@ -1470,15 +1553,14 @@ const Insights = () => {
                           return (
                             <td key={monthKey} className="w-[300px] border-r border-[#c7bfa7]">
                               <div
-                                className="grid w-full text-nowrap"
-                                style={{
-                                  gridTemplateColumns: `repeat(${data[monthKey].length + 1}, 1fr)`
-                                }}
+                                className={`grid text-nowrap grid-cols-${
+                                  data[monthKey].length + 1
+                                }`}
                               >
                                 {data[monthKey].map((value) => (
                                   <div
                                     key={value.id}
-                                    className="px-3 py-2 text-center text-[12px] leading-[15px] font-semibold text-black border-r border-[#c7bfa7]"
+                                    className=" py-2 text-center align-[12px] leading-[15px] font-semibold text-black"
                                   >
                                     {value.metric.acuteTotalOccupiedBedDays}
                                     <span className="text-[10px]">{` (${Math.round(
@@ -1487,7 +1569,7 @@ const Insights = () => {
                                   </div>
                                 ))}
 
-                                <div className="px-3 py-2 text-center text-[12px] leading-[15px] font-semibold text-black">
+                                <div className="px-3 py-2 text-center align-top text-[12px] leading-[15px] font-semibold text-black">
                                   {total}
                                 </div>
                               </div>
@@ -1495,14 +1577,14 @@ const Insights = () => {
                           );
                         })}
                     </tr>
-
                     <tr className="border-b border-[#d9d4c9]">
-                      <td className="py-3 w-[120px] pl-3 font-semibold text-nowrap">
+                      <td className=" py-3 w-[120px]  pl-3 font-semibold text-nowrap">
                         Acute Total Available Bed Days
                       </td>
                       {data &&
                         Object.keys(data).length > 0 &&
                         Object.keys(data).map((monthKey: string) => {
+                          // Calculate the total sum of totalAdmission for this month
                           const total = data[monthKey].reduce(
                             (acc, value) => acc + value.metric.acuteTotalAvailableBedDays,
                             0
@@ -1511,21 +1593,20 @@ const Insights = () => {
                           return (
                             <td key={monthKey} className="w-[300px] border-r border-[#c7bfa7]">
                               <div
-                                className="grid w-full text-nowrap"
-                                style={{
-                                  gridTemplateColumns: `repeat(${data[monthKey].length + 1}, 1fr)`
-                                }}
+                                className={`grid text-nowrap grid-cols-${
+                                  data[monthKey].length + 1
+                                }`}
                               >
                                 {data[monthKey].map((value) => (
                                   <div
                                     key={value.id}
-                                    className="px-3 py-2 text-center text-[12px] leading-[15px] font-semibold text-black border-r border-[#c7bfa7]"
+                                    className="px-3 py-2 text-center align-top text-[12px] leading-[15px] font-semibold text-black"
                                   >
                                     {value.metric.acuteTotalAvailableBedDays}
                                   </div>
                                 ))}
 
-                                <div className="px-3 py-2 text-center text-[12px] leading-[15px] font-semibold text-black">
+                                <div className="px-3 py-2 text-center align-top text-[12px] leading-[15px] font-semibold text-black">
                                   {total}
                                 </div>
                               </div>

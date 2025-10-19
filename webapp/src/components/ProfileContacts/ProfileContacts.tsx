@@ -50,6 +50,7 @@ const ProfileContacts = () => {
   });
 
   const [newFamilyDetails, setNewFamilyDetails] = useState<IFamilyData[]>([]);
+  console.log('newFamilyDetails: ', newFamilyDetails);
 
   const [existingFamilyDetails, setExistingFamilyDetails] = useState<IFamilyData[]>([]);
   const [initialFamilyDetails, setInitialFamilyDetails] = useState<IFamilyData[]>([]);
@@ -606,6 +607,8 @@ const ProfileContacts = () => {
   };
 
   const handleDropFiles = useCallback((files: File[], index: number) => {
+    console.log('index: ', index);
+    console.log('files: ', files);
     const maxSize = 5 * 1024 * 1024;
     if (!stepperData.discardModal.isFormChanged) dispatch(setDiscardModal({ isFormChanged: true }));
     try {

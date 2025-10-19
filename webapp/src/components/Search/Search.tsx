@@ -55,9 +55,6 @@ const Search = () => {
                 color="black"
                 size={15}
                 onClick={() => {
-                  searchParams.delete("search");
-                  setSearchParams(searchParams);
-                  setInputValue("");
                   setDisplaySearchBar(false);
                 }}
               />

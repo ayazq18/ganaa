@@ -10,7 +10,7 @@ export const AuthContext = React.createContext<[IAuthContext["auth"], IAuthConte
       centerId:[ {
         _id: "",
         centerName: "",
-        googleMapLink: "",
+        centerUID: "",
         createdAt: ""
       }],
       _id: "",

@@ -25,22 +25,22 @@ const CancelDischarge = ({
             <p className="text-[13px] font-medium text-[#535353]">
               Are you sure you want to discharge this patient? This action cannot be undone
             </p>
-            <p className="text-[15px] font-bold my-1">Check list</p>
+        <p className="text-[15px] font-bold my-1">Check list</p>
 
             <div className="space-y-3 flex flex-col text-sm text-[#535353] font-normal">
               {[
-                "Room charges",
-                "Lab charges",
-                "In-house pharmacy medicine",
-                // "Scan Lab Charges",
-                "Outside medicines",
-                "A la carte charges",
-                "Referral doctor visit charges",
-                "Other speciality doctor visit charges",
-                // "Music Therapy charges",
+                "Room Charges",
+                "Lab Charges",
+                "In-house Pharmacy Medicine",
+                "Scan Lab Charges",
+                "Outside Medicines",
+                "All day dining charges",
+                "Referral Doctor Visit Charges",
+                "Other speciality Doctor visit charges",
+                "Music Therapy charges",
                 "Physiotherapy charges",
                 "Psychological test charges",
-                "Other personal expenses",
+                "Other Personal expenses",
                 "Admission time checklist was complete"
               ].map((item, index) => (
                 <p key={index} className="flex items-start gap-2">

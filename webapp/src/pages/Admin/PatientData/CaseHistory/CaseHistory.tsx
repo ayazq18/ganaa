@@ -1,4 +1,4 @@
-import React, { SyntheticEvent, useCallback, useEffect, useMemo, useState } from "react";
+import React, { SyntheticEvent, useEffect, useMemo, useState } from "react";
 import { useBlocker, useNavigate, useParams } from "react-router-dom";
 import { FaArrowLeft } from "react-icons/fa";
 import toast from "react-hot-toast";
@@ -17,8 +17,7 @@ import {
   Button,
   Loader,
   RichTextEditor,
-  DiscardModal,
-  CheckBox
+  DiscardModal
 } from "@/components";
 
 import {
@@ -43,8 +42,6 @@ import handleError from "@/utils/handleError";
 import { setDiscardModal } from "@/redux/slice/stepperSlice";
 import { RBACGuard } from "@/components/RBACGuard/RBACGuard";
 import { RESOURCES } from "@/constants/resources";
-import DownloadCaseHistory from "./DownloadCaseHistory/DownloadCaseHistory";
-import { BsFiletypePdf } from "react-icons/bs";
 
 const CaseHistory = () => {
   const dispatch = useDispatch();
@@ -65,8 +62,6 @@ const CaseHistory = () => {
   const [data, setData] = useState<ICaseHistoryData>({
     _id: "",
     isAdvanceDirectiveSelected: "",
-    file: null,
-    fileName: "",
     advanceDirective: "",
     fatherName: "",
     motherName: "",
@@ -102,7 +97,6 @@ const CaseHistory = () => {
     predisposing: "",
     precipitatingFactors: "",
     impactOfPresentIllness: { label: "Select", value: "" },
-    historyOfPresentIllness: "",
     negativeHistory: "",
     pastPsychiatricHistory: "",
     pastPsychiatricTreatmentHistory: "",
@@ -206,28 +200,8 @@ const CaseHistory = () => {
     investigations: ""
   });
 
-  const handleDropFiles = useCallback((files: File[]) => {
-    const maxSize = 5 * 1024 * 1024;
-    try {
-      if (files[0].size > maxSize) {
-        throw new Error("File size exceeds 5 MB limit.");
-      }
-    } catch (error) {
-      handleError(error);
-    }
-    if (files[0].size < maxSize) {
-      setData((prev) => ({ ...prev, file: files[0] }));
-    }
-  }, []);
-
-  const handleDeleteFile = () => {
-    setData((prev) => ({ ...prev, file: null, fileName: "" }));
-  };
-
   const [historyData, sethistoryData] = useState<ICaseHistoryData>({
     _id: "",
-    file: null,
-    fileName: "",
     isAdvanceDirectiveSelected: "",
     fatherName: "",
     motherName: "",
@@ -264,7 +238,6 @@ const CaseHistory = () => {
     perpetuating: "",
     precipitatingFactors: "",
     impactOfPresentIllness: { label: "Select", value: "" },
-    historyOfPresentIllness: "",
     negativeHistory: "",
     pastPsychiatricHistory: "",
     pastPsychiatricTreatmentHistory: "",
@@ -702,7 +675,6 @@ const CaseHistory = () => {
             label: resData?.historyOfPresentIllness?.impactOfPresentIllness || "Select",
             value: resData?.historyOfPresentIllness?.impactOfPresentIllness || ""
           },
-          historyOfPresentIllness: resData?.historyOfPresentIllness?.historyOfPresentIllness || "",
           negativeHistory: resData?.historyOfPresentIllness?.negativeHistory || "",
           pastPsychiatricHistory: resData?.historyOfPresentIllness?.pastPsychiatricHistory || "",
           pastPsychiatricTreatmentHistory:
@@ -859,9 +831,7 @@ const CaseHistory = () => {
           investigations: resData?.diagnosticFormulation?.investigations || "",
 
           isAdvanceDirectiveSelected: resData?.isAdvanceDirectiveSelected ?? "",
-          advanceDirective: resData?.advanceDirective,
-          file: resData?.genogram?.filePath || "",
-          fileName: resData?.genogram?.fileName || ""
+          advanceDirective: resData?.advanceDirective
         };
         setData(transformedData);
         fetchPreviousCaseHistories(id, patientAdmissionHistory?.data?._id, resData?._id);
@@ -1082,7 +1052,6 @@ const CaseHistory = () => {
         perpetuating: data?.perpetuating,
         precipitatingFactors: data?.precipitatingFactors,
         impactOfPresentIllness: data?.impactOfPresentIllness?.value ?? "",
-        historyOfPresentIllness: data?.historyOfPresentIllness,
         negativeHistory: data?.negativeHistory,
         pastPsychiatricHistory: data?.pastPsychiatricHistory,
         pastPsychiatricTreatmentHistory: data?.pastPsychiatricTreatmentHistory,
@@ -1234,50 +1203,19 @@ const CaseHistory = () => {
       }
     };
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    function appendFormData(formData: FormData, data: any, parentKey = "") {
-      if (data === null || data === undefined) return;
-
-      if (Array.isArray(data)) {
-        data.forEach((value, index) => {
-          const key = parentKey ? `${parentKey}[${index}]` : `${index}`;
-          appendFormData(formData, value, key);
-        });
-      } else if (typeof data === "object" && !(data instanceof File)) {
-        Object.keys(data).forEach((key) => {
-          const newKey = parentKey ? `${parentKey}[${key}]` : key;
-          appendFormData(formData, data[key], newKey);
-        });
-      } else {
-        // only append if value is not undefined
-        if (parentKey) {
-          formData.append(parentKey, String(data));
-        }
-      }
-    }
-
-    const formData = new FormData();
-    appendFormData(formData, body);
-
-    if (data.file instanceof File) {
-      formData.append("genogram", data.file);
-    } else {
-      if (typeof data.file !== "string") formData.append("genogram", "");
-    }
-
     try {
       if (id) {
         if (patientUpdate.personalIncome !== patientUpdate.personalIncomeOld) {
           await updatePatient({ personalIncome: patientUpdate.personalIncome }, id);
         }
         if (data?._id) {
-          const response = await updateCaseHistory(id, state.admissionId, data?._id, formData);
+          const response = await updateCaseHistory(id, state.admissionId, data?._id, body);
           if ((response?.data?.status as unknown as string) == "success") {
             toast.success("Case History updated");
             fetchPreviousCaseHistories(id, state.admissionId, data?._id);
           }
         } else {
-          const response = await createCaseHistory(id, state.admissionId, formData);
+          const response = await createCaseHistory(id, state.admissionId, body);
           if ((response?.data?.status as unknown as string) == "success") {
             setData((prev) => ({ ...prev, _id: response?.data?.data?._id }));
             toast.success("Case History created");
@@ -1359,7 +1297,6 @@ const CaseHistory = () => {
           label: resData?.historyOfPresentIllness?.impactOfPresentIllness || "Select",
           value: resData?.historyOfPresentIllness?.impactOfPresentIllness || ""
         },
-        historyOfPresentIllness: resData?.historyOfPresentIllness?.historyOfPresentIllness || "",
         negativeHistory: resData?.historyOfPresentIllness?.negativeHistory || "",
         pastPsychiatricHistory: resData?.historyOfPresentIllness?.pastPsychiatricHistory || "",
         pastPsychiatricTreatmentHistory:
@@ -1495,9 +1432,7 @@ const CaseHistory = () => {
         investigations: resData?.diagnosticFormulation?.investigations || "",
 
         isAdvanceDirectiveSelected: resData?.isAdvanceDirectiveSelected ?? "",
-        advanceDirective: resData?.advanceDirective,
-        file: resData?.genogram?.filePath || "",
-        fileName: resData?.genogram?.fileName || ""
+        advanceDirective: resData?.advanceDirective
       };
       sethistoryData(transformedData);
     }
@@ -1613,38 +1548,22 @@ const CaseHistory = () => {
               <div className=" text-[18px] font-semibold">Case History</div>
             </div>
           </div>
-          <div className="flex items-center justify-center gap-2">
-            {state.currentStatus !== "Discharged" && (
-              <RBACGuard resource={RESOURCES.CASE_HISTORY} action="write">
-                <Button
-                  type="submit"
-                  disabled={state.loading}
-                  className="min-w-[93]! text-[13px]! px-[30px]! py-[10px]! rounded-[9px]!"
-                  name="next"
-                  variant="contained"
-                  size="base"
-                  onClick={handleSave}
-                >
-                  Save {state.loading && <Loader size="xs" />}
-                </Button>
-              </RBACGuard>
-            )}
-            <DownloadCaseHistory
-              data={{ ...data, ...state, ...patientUpdate }}
-              familyDetails={familyDetails}
-              button={
-                <Button
-                  type="submit"
-                  variant="outlined"
-                  size="base"
-                  className="flex text-xs! py-2! border-[#D4D4D4]!  border! rounded-lg! text-[#505050] "
-                >
-                  <BsFiletypePdf className="mr-2" size={18} />
-                  Download All
-                </Button>
-              }
-            />
-          </div>
+
+          {state.currentStatus !== "Discharged" && (
+            <RBACGuard resource={RESOURCES.CASE_HISTORY} action="write">
+              <Button
+                type="submit"
+                disabled={state.loading}
+                className="min-w-[93]! text-[13px]! px-[30px]! py-[10px]! rounded-[9px]!"
+                name="next"
+                variant="contained"
+                size="base"
+                onClick={handleSave}
+              >
+                Save {state.loading && <Loader size="xs" />}
+              </Button>
+            </RBACGuard>
+          )}
         </div>
 
         <div>
@@ -1965,9 +1884,9 @@ const CaseHistory = () => {
                   <div className="col-span-1">
                     <p className="text-sm font-semibold">Reference</p>
                     <div className="grid grid-cols-2 gap-10 mt-4">
-                      <InputBox label="Referral Type" value={state.referredTypeId || "--"} />
+                      <InputBox label="Referring Agency" value={state.referredTypeId || "--"} />
                       <InputBox
-                        label="Referral Details"
+                        label="Reason for referral"
                         value={capitalizeFirstLetter(state.referralDetails)}
                       />
                     </div>
@@ -2091,7 +2010,7 @@ const CaseHistory = () => {
               </DropDown>
 
               {/* History of Present Illness */}
-              <DropDown heading="Illness Specifiers">
+              <DropDown heading="History of Present Illness" subheading="(HOPI)">
                 <div className="grid lg:grid-cols-5 grid-cols-2 gap-y-4  gap-x-[52px]">
                   <Select
                     label="Onset"
@@ -2226,6 +2145,7 @@ const CaseHistory = () => {
                       { label: "Interpersonal", value: "Interpersonal" },
                       { label: "Legal", value: "Legal" },
                       { label: "Medical", value: "Medical" },
+                      { label: "Professional", value: "Professional" },
                       { label: "Social", value: "Social" },
                       { label: "Others", value: "Others" }
                     ]}
@@ -2235,37 +2155,8 @@ const CaseHistory = () => {
                       handleSelect(name, data);
                     }}
                   />
-                  {/* <Multiselected
-                    label="Impact of Present Illness"
-                    options={[
-                      // { label: "Select", value: "" },
-                      { label: "Interpersonal", value: "Interpersonal" },
-                      { label: "Legal", value: "Legal" },
-                      { label: "Medical", value: "Medical" },
-                      { label: "Professional", value: "Professional" },
-                      { label: "Social", value: "Social" },
-                      { label: "Others", value: "Others" }
-                    ]}
-                    value={data?.impactOfPresentIllness}
-                    disable={state.currentStatus === "Discharged"}
-                    onChange={(value) =>
-                      setData((prev) => ({ ...prev, impactOfPresentIllness: value }))
-                    }
-                    placeholder="Select"
-                  /> */}
                 </div>
                 <hr className="my-6" />
-                <RichTextEditor
-                  placeholder="Start typing..."
-                  maxLength={5000}
-                  value={data.historyOfPresentIllness || ""}
-                  onChange={handleChangeQuill}
-                  name="historyOfPresentIllness"
-                  disable={state.currentStatus === "Discharged"}
-                  label="History Of Present Illness (HOPI)"
-                />
-                <hr className="my-6" />
-
                 <RichTextEditor
                   placeholder="Start typing..."
                   maxLength={5000}
@@ -2275,7 +2166,6 @@ const CaseHistory = () => {
                   disable={state.currentStatus === "Discharged"}
                   label="Negative History"
                 />
-
                 <hr className="my-6" />
                 <RichTextEditor
                   placeholder="Start typing..."
@@ -2319,37 +2209,6 @@ const CaseHistory = () => {
                   name="historyofPsychiatricIllness"
                   label="History of Psychiatric Illness with Genogram"
                 />
-                <hr className="my-6" />
-                <div className="flex items-start flex-col">
-                  <p className=" mb-2 ml-5 text-sm font-semibold">Upload Genogram</p>
-                  <CheckBox
-                    checked={true}
-                    name=""
-                    handleDeletes={handleDeleteFile}
-                    handleDrop={(files) => {
-                      handleDropFiles(files);
-                    }}
-                    accept=".pdf,image/jpeg,image/png"
-                    files={data.file instanceof File ? [data.file] : []}
-                    filesString={
-                      data.file && !(data.file instanceof File)
-                        ? [
-                            {
-                              filePath: typeof data.file === "string" ? data.file : "",
-                              fileUrl: typeof data.file === "string" ? data.file : "",
-                              fileName: data.fileName || ""
-                            }
-                          ]
-                        : undefined
-                    }
-                    ContainerClass=""
-                    checkHide
-                    label={"Upload Genogram"}
-                    handleCheck={function (_e: SyntheticEvent): void {
-                      throw new Error("Function not implemented.");
-                    }}
-                  />
-                </div>
               </DropDown>
 
               {/* Personal History */}
@@ -3876,11 +3735,11 @@ const CaseHistory = () => {
                             <p className="text-sm font-semibold">Reference</p>
                             <div className="grid grid-cols-2 gap-10 mt-4">
                               <InputBox
-                                label="Referral Type"
+                                label="Referring Agency"
                                 value={state.referredTypeId || "--"}
                               />
                               <InputBox
-                                label="Referral Details"
+                                label="Reason for referral"
                                 value={capitalizeFirstLetter(state.referralDetails)}
                               />
                             </div>
@@ -3969,7 +3828,7 @@ const CaseHistory = () => {
                       </DropDown>
 
                       {/* History of Present Illness */}
-                      <DropDown heading="Illness Specifiers">
+                      <DropDown heading="History of Present Illness" subheading="(HOPI)">
                         <div className="grid lg:grid-cols-5 grid-cols-2 gap-y-4  gap-x-[52px]">
                           <Select
                             disable
@@ -4094,21 +3953,6 @@ const CaseHistory = () => {
                             value={historyData.precipitatingFactors}
                             // onChange={handleChange}
                           />
-                          {/* <Multiselected
-                            label="Impact of Present Illness"
-                            options={[
-                              // { label: "Select", value: "" },
-                              { label: "Interpersonal", value: "Interpersonal" },
-                              { label: "Legal", value: "Legal" },
-                              { label: "Medical", value: "Medical" },
-                              { label: "Professional", value: "Professional" },
-                              { label: "Social", value: "Social" },
-                              { label: "Others", value: "Others" }
-                            ]}
-                            value={data?.impactOfPresentIllness}
-                            disable
-                            placeholder="Select"
-                          /> */}
                           <Select
                             disable
                             label="Impact of Present Illness"
@@ -4117,24 +3961,17 @@ const CaseHistory = () => {
                               { label: "Interpersonal", value: "Interpersonal" },
                               { label: "Legal", value: "Legal" },
                               { label: "Medical", value: "Medical" },
+                              { label: "Professional", value: "Professional" },
                               { label: "Social", value: "Social" },
                               { label: "Others", value: "Others" }
                             ]}
                             value={data?.impactOfPresentIllness || { label: "Select", value: "" }}
                             name="impactOfPresentIllness"
+                            // onChange={(name, data) => {
+                            //   handleSelect(name, data);
+                            // }}
                           />
                         </div>
-
-                        <hr className="my-6" />
-                        <RichTextEditor
-                          disable={true}
-                          placeholder="Start typing..."
-                          maxLength={5000}
-                          // onChange={handleChangeQuill}
-                          value={historyData.historyOfPresentIllness || ""}
-                          name="historyOfPresentIllness"
-                          label="History Of Present Illness (HOPI)"
-                        />
                         <hr className="my-6" />
                         <RichTextEditor
                           disable={true}
@@ -4146,7 +3983,6 @@ const CaseHistory = () => {
                           label="Negative History"
                         />
                         <hr className="my-6" />
-
                         <RichTextEditor
                           disable={true}
                           placeholder="Start typing..."
@@ -4189,45 +4025,6 @@ const CaseHistory = () => {
                           name="historyofPsychiatricIllness"
                           label="History of Psychiatric Illness with Genogram"
                         />
-                        <hr className="my-6" />
-                        <div className="flex items-start flex-col">
-                          <p className=" mb-2 ml-5 text-sm font-semibold">Upload Genogram</p>
-                          <CheckBox
-                            checked={true}
-                            name=""
-                            handleDeletes={() => {}}
-                            handleDrop={(files) => {
-                              return;
-                              handleDropFiles(files);
-                            }}
-                            accept=".pdf,image/jpeg,image/png"
-                            files={[]}
-                            disable
-                            filesString={
-                              historyData.file && !(historyData.file instanceof File)
-                                ? [
-                                    {
-                                      filePath:
-                                        typeof historyData.file === "string"
-                                          ? historyData.file
-                                          : "",
-                                      fileUrl:
-                                        typeof historyData.file === "string"
-                                          ? historyData.file
-                                          : "",
-                                      fileName: historyData.fileName || ""
-                                    }
-                                  ]
-                                : undefined
-                            }
-                            ContainerClass=""
-                            checkHide
-                            label={"Upload Genogram"}
-                            handleCheck={function (_e: SyntheticEvent): void {
-                              throw new Error("Function not implemented.");
-                            }}
-                          />
-                        </div>
                       </DropDown>
 
                       {/* Personal History */}

@@ -59,8 +59,6 @@ import MultiSelectDropdown from "@/components/MultiSelectDropdown/MultiSelectDro
 import { useAuth } from "@/providers/AuthProvider";
 import { RBACGuard } from "@/components/RBACGuard/RBACGuard";
 import { RESOURCES } from "@/constants/resources";
-import { BsFiletypePdf } from "react-icons/bs";
-import DataDownload from "./DataDownload/DataDownload";
 
 const DoctorNotes = () => {
   const { id, aId } = useParams();
@@ -639,12 +637,9 @@ const DoctorNotes = () => {
                           <div className="text-[#292929] w-[70%] truncate font-bold">
                             {state.doctorName}
                           </div>
-                          <IoIosArrowDown
-                            onClick={() => {
-                              toggleDoctorMenu();
-                            }}
-                            className="text-black h-4 w-4 cursor-pointer"
-                          />
+                          <IoIosArrowDown onClick={() => {
+                            toggleDoctorMenu();
+                          }} className="text-black h-4 w-4 cursor-pointer" />
                           {dropDownsState.displayDropdown && (
                             <div className="absolute top-5  left-5   mt-1 z-20 bg-white shadow-lg rounded-md w-[210px]">
                               <ul className="py-2 px-2 flex gap-4 flex-col justify-center">
@@ -866,21 +861,6 @@ const DoctorNotes = () => {
                         : "Date Range"}
                     </Button>
                   </DateRange>
-                  <DataDownload
-                    patientDetails={state}
-                    aid={aId}
-                    button={
-                      <Button
-                        type="submit"
-                        variant="outlined"
-                        size="base"
-                        className="flex text-xs! py-2! border-[#D4D4D4]!  border! rounded-lg! text-[#505050] "
-                      >
-                        <BsFiletypePdf className="mr-2" size={18} />
-                        Download All
-                      </Button>
-                    }
-                  />
 
                   {/* <Button
                     type="submit"
@@ -969,19 +949,6 @@ const DoctorNotes = () => {
                                       <p>Edit</p>
                                     </div>
                                   </div>
-                                  <hr />
-                                  <DataDownload
-                                    patientDetails={state}
-                                    data={[value]}
-                                    button={
-                                      <div className="text-xs font-semibold cursor-pointer p-2 px-3 text-nowrap whitespace-nowrap">
-                                        <div className="flex items-center  cursor-pointer">
-                                          <p>Download</p>
-                                        </div>
-                                      </div>
-                                    }
-                                  />
-
                                   <hr />
                                   <div className="text-xs font-semibold cursor-pointer p-2 px-3 text-nowrap whitespace-nowrap">
                                     <div

@@ -25,7 +25,7 @@ router.use(AuthController.protect);
 router
   .route('/')
   .get(PatientController.getAllPatient)
-  .post(PatientController.uploadPatientPic, PatientController.createNewPatient);
+  .post(PatientController.uploadPatientFiles, PatientController.createNewPatient);
 
 router.route('/search').get(PatientController.searchPatient);
 
@@ -34,7 +34,7 @@ router.route('/exist').get(PatientController.isPatientExist);
 router
   .route('/:id')
   .get(PatientController.getSinglePatient)
-  .patch(PatientController.uploadPatientPic, PatientController.updateSinglePatient)
+  .patch(PatientController.uploadPatientFiles, PatientController.updateSinglePatient)
   .delete(PatientController.deleteSinglePatient);
 
 router.route('/:id/re-admit').post(PatientController.reAdmitPatient);
@@ -113,18 +113,12 @@ router
 router
   .route('/:patientId/case-history/:admissionHistoryId')
   .get(PatientCaseHistoryController.getSinglePatientCaseHistory)
-  .post(
-    PatientCaseHistoryController.uploadFile,
-    PatientCaseHistoryController.createNewPatientCaseHistory
-  );
+  .post(PatientCaseHistoryController.createNewPatientCaseHistory);
 
 // TODO: Make it similar to `Patient Discharge Route`
 router
   .route('/:patientId/case-history/:admissionHistoryId/:id')
-  .patch(
-    PatientCaseHistoryController.uploadFile,
-    PatientCaseHistoryController.updateSinglePatientCaseHistory
-  )
+  .patch(PatientCaseHistoryController.updateSinglePatientCaseHistory)
   .delete(PatientCaseHistoryController.deleteSinglePatientCaseHistory);
 
 router

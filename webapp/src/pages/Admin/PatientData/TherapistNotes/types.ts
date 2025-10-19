@@ -22,7 +22,6 @@ export interface ITherapistState {
   firstName: string;
   lastName: string;
   UHID: string;
-  age: string;
   gender: string;
   patientProfilePic: string;
   assignedTherapist: string;
@@ -31,6 +30,7 @@ export interface ITherapistState {
   patientId: string;
   therapistName: string;
   isTodayNoteExist: boolean;
+  illnessType?:string;
 }
 
 export interface ITherapistNote {

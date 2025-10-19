@@ -420,7 +420,7 @@ const FamilyDetail = () => {
                           Pulse (bpm)
                         </th>
                         <th className="px-4 py-3 w-1/12 text-nowrap whitespace-nowrap">
-                          Temperature (°F)
+                          Temperature (°C)
                         </th>
                         <th className="px-4 py-3 w-1/12 text-nowrap whitespace-nowrap">SPO2 (%)</th>
                         <th className="px-4 py-3 w-1/12 text-nowrap whitespace-nowrap">

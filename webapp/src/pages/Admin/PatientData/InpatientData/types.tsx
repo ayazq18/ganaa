@@ -28,7 +28,8 @@ export interface IPatient {
     dischargeId: string;
     currentStatus: string;
     patientReport: {
-      previousTreatmentRecord: { filePath: string; fileUrl: string }[];
+      url: string;
+      fileName: string;
     };
     dateOfAdmission: string;
     resourceAllocation: {
@@ -82,6 +83,6 @@ export interface IDischargeState {
 export interface IState {
   openMenuId: string | null;
   loading: boolean;
-  loadingSearch?: boolean;
+  loadingSearch?:boolean;
   toggleDischargeModal: boolean;
 }

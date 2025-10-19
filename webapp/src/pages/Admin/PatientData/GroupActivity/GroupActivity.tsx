@@ -1,6 +1,6 @@
 import { BreadCrumb, Button, CustomCalendar, EmptyPage, Input } from "@/components";
 import calender from "@/assets/images/calender.svg";
-import React, { MouseEvent, useEffect, useRef, useState } from "react";
+import React, { MouseEvent, useCallback, useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/redux/store/store";
 import {
@@ -17,7 +17,7 @@ import { capitalizeFirstLetter, formatId } from "@/utils/formater";
 import toast from "react-hot-toast";
 import handleError from "@/utils/handleError";
 import { FaArrowLeft } from "react-icons/fa";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { TableShimmer } from "@/components/Shimmer/Shimmer";
 import messageIcon from "@/assets/images/messageIcon.svg";
 import messageIcondisbale from "@/assets/images/messageIconDisable.svg";
@@ -32,8 +32,9 @@ import Filter from "@/components/Filter/Filter";
 const GroupActivity = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const [selected, setSelected] = useState("All");
+  console.log("✌️selected --->", selected);
   const { auth } = useAuth();
-  const [searchParams] = useSearchParams();
 
   const [loaData, setLoaData] = useState<string[]>([]);
   const [hoveredIndex, setHoveredIndex] = useState<{
@@ -53,12 +54,14 @@ const GroupActivity = () => {
   });
 
   const dropdownData = useSelector((store: RootState) => store.dropdown);
+  console.log("✌️dropdownData --->", dropdownData);
   const [data, setData] = useState<IData[]>([]);
 
   const [tabdata, settabData] = useState<{ _id?: string; tabInfo?: ITabData[] }>({
     tabInfo: [],
     _id: ""
   });
+  console.log("✌️tabdata --->", tabdata);
 
   const [rememeberstring, setRememberstring] = useState("");
   const [rememeberstringTab, setRememberstringTab] = useState("");
@@ -68,40 +71,96 @@ const GroupActivity = () => {
       ...prev,
       loading: true
     }));
-    let centers;
-    const selected = searchParams.get("filter") || "All";
+    let centers: string[] = [];
+    // array of center objects for name lookup when aggregating notes
+    const userCenters = (auth.user?.centerId || []) as {
+      _id: string;
+      name?: string;
+      centerName?: string;
+    }[];
     if (selected === "All" || !selected) {
-      centers = auth.user.centerId.map((data) => data._id);
+      centers = userCenters.map((data: any) => data._id);
+      console.log("✌️centers in All--->", centers);
       if (centers.length <= 0) navigate("/");
     } else {
       centers = [selected];
+      console.log("✌️centers in selected--->", centers);
     }
     try {
       const tabs = dropdownData.groupActivityTabs.data.map((data) => ({
         name: data,
-        note: ""
+        note: "",
+        notes: {}
       }));
 
-      const tabsdatareponse = await getGroupActivitytabs({
-        date: new Date(`${state.activityDateTime} 00:00`).toISOString()
-      });
+      // determine centerId: if a specific center is selected use it, otherwise default to user's first center
+      const currentCenterId =
+        selected && selected !== "All"
+          ? selected
+          : auth.user?.centerId && auth.user.centerId.length
+          ? auth.user.centerId[0]._id
+          : undefined;
 
-      const updateMap = new Map(
-        tabsdatareponse?.data?.data[0]?.tabInfo.map((item: { name: string; note: string }) => [
-          item.name,
-          item.note
-        ])
-      );
+      // Fetch and aggregate tab notes. If 'All' is selected, fetch tabs for every center and combine notes.
+      let updatedtabs: ITabData[] = [];
+      let tabsResponseId = "";
+      if (selected === "All") {
+        const tabsResponses = await Promise.all(
+          centers.map((cId) =>
+            getGroupActivitytabs({
+              date: new Date(`${state.activityDateTime} 00:00`).toISOString(),
+              centerId: cId
+            }).catch(() => null)
+          )
+        );
 
-      const updatedtabs = tabs.map((item) => ({
-        ...item,
-        note:
-          typeof updateMap.get(item.name) === "string"
-            ? (updateMap.get(item.name) as string)
-            : item.note
-      }));
+        // Build a map of tab name -> aggregated notes across centers
+        const aggregated: Record<string, string[]> = {};
+        tabsResponses.forEach((resp, idx) => {
+          const cId = centers[idx];
+          const centerObj =
+            userCenters.find((c) => c._id === cId) ||
+            ({} as { _id?: string; name?: string; centerName?: string });
+          const centerName = centerObj.name || centerObj.centerName || cId;
+          const tabInfo: ITabData[] = resp?.data?.data?.[0]?.tabInfo || [];
+          tabInfo.forEach((t) => {
+            if (!t.note || !t.note.trim()) return;
+            if (!aggregated[t.name]) aggregated[t.name] = [];
+            aggregated[t.name].push(`${centerName}: ${t.note}`);
+          });
+        });
 
-      settabData({ _id: tabsdatareponse?.data?.data[0]?._id || "", tabInfo: [...updatedtabs] });
+        updatedtabs = tabs.map((item) => ({
+          ...item,
+          note: aggregated[item.name] ? aggregated[item.name].join("\n") : item.note
+        }));
+        // keep id empty for aggregated view (multiple centers)
+        tabsResponseId = "";
+      } else {
+        const tabsdatareponse = await getGroupActivitytabs({
+          date: new Date(`${state.activityDateTime} 00:00`).toISOString(),
+          centerId: currentCenterId
+        });
+
+        const updateMap = new Map(
+          tabsdatareponse?.data?.data[0]?.tabInfo.map((item: { name: string; note: string }) => [
+            item.name,
+            item.note
+          ])
+        );
+
+        updatedtabs = tabs.map((item) => ({
+          ...item,
+          note:
+            typeof updateMap.get(item.name) === "string"
+              ? (updateMap.get(item.name) as string)
+              : item.note
+        }));
+        tabsResponseId = tabsdatareponse?.data?.data[0]?._id || "";
+      }
+      console.log("✌️updatedtabs --->", updatedtabs);
+
+      settabData({ _id: tabsResponseId, tabInfo: [...updatedtabs] });
 
       const response = await getAllPatient({
         status: "Inpatient,Discharge Initiated",
@@ -111,6 +170,7 @@ const GroupActivity = () => {
         fields: "_id firstName lastName patientPic gender uhid"
       });
 
+      console.log("response --->", response);
       const data = response?.data?.data?.length
         ? response?.data?.data?.map((data: IData) => ({
             _id: "",
@@ -128,31 +188,81 @@ const GroupActivity = () => {
           }))
         : [];
 
-      const groupData = await getGroupActivity({
-        date: new Date(`${state.activityDateTime} ${"00:00"}`).toISOString()
-      });
-      setLoaData(groupData?.data?.data.loaPatientIds);
-      const updatedArray = data?.map((item: IData) => {
-        const match = groupData?.data?.data?.data?.find(
-          (p: IData) => p.patientId === item.patientId
+      // Fetch group activity. If 'All' is selected aggregate notes across centers per patient
+      const mergedGroupMap = new Map<string, IData>();
+      let loaPatientIds: string[] = [];
+      if (selected === "All") {
+        const groupResponses = await Promise.all(
+          centers.map((cId) =>
+            getGroupActivity({
+              date: new Date(`${state.activityDateTime} ${"00:00"}`).toISOString(),
+              centerId: cId
+            }).catch(() => null)
+          )
         );
+        groupResponses.forEach((resp, idx) => {
+          const cId = centers[idx];
+          const centerObj =
+            userCenters.find((c) => c._id === cId) ||
+            ({} as { _id?: string; name?: string; centerName?: string });
+          const centerName = centerObj.name || centerObj.centerName || cId;
+          const dataList: IData[] = resp?.data?.data?.data || [];
+          // collect loa ids from first response that contains it
+          if (!loaPatientIds.length && resp?.data?.data?.loaPatientIds) {
+            loaPatientIds = resp.data.data.loaPatientIds || [];
+          }
+          dataList.forEach((p) => {
+            const key = p.patientId || "";
+            const existing =
+              (mergedGroupMap.get(key) as IData & { activity: IActivity[] }) ||
+              ({ ...p, activity: [] } as IData & { activity: IActivity[] });
+            p.activity?.forEach((act: IActivity) => {
+              const existingAct = existing.activity.find((a: IActivity) => a.name === act.name);
+              const notePrefix = act.note ? `${centerName}: ${act.note}` : "";
+              if (existingAct) {
+                // append notes if both exist
+                existingAct.note = [existingAct.note, notePrefix].filter(Boolean).join("\n");
+                existingAct.isSelected = existingAct.isSelected || !!act.note;
+              } else {
+                existing.activity.push({ ...act, note: notePrefix, isSelected: !!act.note });
+              }
+            });
+            mergedGroupMap.set(key, existing as IData);
+          });
+        });
+      } else {
+        const groupData = await getGroupActivity({
+          date: new Date(`${state.activityDateTime} ${"00:00"}`).toISOString(),
+          centerId: currentCenterId
+        });
+        loaPatientIds = groupData?.data?.data?.loaPatientIds || [];
+        (groupData?.data?.data?.data || []).forEach((p: IData) =>
+          mergedGroupMap.set(p.patientId || "", p)
+        );
+      }
 
+      setLoaData(loaPatientIds);
+
+      const updatedArray = data?.map((item: IData) => {
+        const key = item.patientId || "";
+        const match = mergedGroupMap.get(key);
         if (!match) return item;
 
-        // Create a map for quick lookup from array2
-        const activityMap = new Map(match.activity.map((act: IActivity) => [act?.name, act]));
+        // Create a map for quick lookup from merged activities
+        const matchActivities: IActivity[] = match.activity || [];
+        const activityMap = new Map(matchActivities.map((act: IActivity) => [act?.name, act]));
 
         // Merge: update existing or keep as-is
         const mergedActivities = item?.activity?.map((act: IActivity) => {
           if (activityMap.has(act?.name)) {
-            return activityMap.get(act?.name); // updated from array2
+            return activityMap.get(act?.name) as IActivity; // updated from merged data
           }
           return act; // keep original
         });
 
-        // Add new activities from array2 that aren't in array1
-        const existingNames = new Set(item?.activity?.map((act: IActivity) => act.name));
-        const newActivities = match.activity.filter(
+        // Add new activities from match that aren't in item.activity
+        const existingNames = new Set((item?.activity || []).map((act: IActivity) => act.name));
+        const newActivities = matchActivities.filter(
           (act: IActivity) => !existingNames.has(act.name)
         );
 
@@ -183,7 +293,7 @@ const GroupActivity = () => {
   useEffect(() => {
     fetchAllPatient();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dropdownData, state.activityDateTime, searchParams.get("filter")]);
+  }, [dropdownData, state.activityDateTime, selected]);
 
   const [horizontalPosition, setHorizontalPosition] = useState<"left" | "right">("right");
   const [position, setPosition] = useState<"top" | "bottom">("bottom");
@@ -245,7 +355,9 @@ const GroupActivity = () => {
     if (pendingSubmit) {
       handleSubmitTab().then(() => setPendingSubmit(false));
     }
-  }, [tabdata]);
+    // only run when pendingSubmit changes
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pendingSubmit]);
 
   const handleDeleteTab = (tabname: string) => {
     settabData((prev) => ({
@@ -379,8 +491,19 @@ const GroupActivity = () => {
   const handleSubmitTab = async () => {
     try {
       const filterData = tabdata?.tabInfo?.filter((value) => value.note.trim());
+      // determine centerId similar to fetch
+      const currentCenterId =
+        selected && selected !== "All"
+          ? selected
+          : auth.user?.centerId && auth.user.centerId.length
+          ? auth.user.centerId[0]._id
+          : undefined;
+
       if (tabdata._id) {
-        const response = await updateNewGroupActivitytabs(tabdata._id, { tabInfo: filterData });
+        const response = await updateNewGroupActivitytabs(tabdata._id, {
+          tabInfo: filterData,
+          centerId: currentCenterId
+        });
         if (response.data.status === "success") {
           toast.success("Tabs note added successfully");
         }
@@ -388,7 +511,8 @@ const GroupActivity = () => {
       } else {
         const response = await createNewGroupActivitytabs({
           activityDateTime: new Date(`${state.activityDateTime} ${"00:00"}`).toISOString(),
-          tabInfo: filterData
+          tabInfo: filterData,
+          centerId: currentCenterId
         });
         settabData((prevData) => ({ ...prevData, _id: response?.data?.data?._id }));
 
@@ -514,31 +638,31 @@ const GroupActivity = () => {
 
   // To Show Cursor Inside Textarea on Open End
 
-  const handleClickOutside = (event: MouseEvent) => {
+  const handleClickOutside = useCallback((event: MouseEvent) => {
     if (inputBoxRef.current && !inputBoxRef.current.contains(event.target as Node)) {
       closePopUpFunction();
     }
-  };
+  }, []);
 
-  const handleClickOutsideTab = (event: MouseEvent) => {
+  const handleClickOutsideTab = useCallback((event: MouseEvent) => {
     if (inputBoxTabRef.current && !inputBoxTabRef.current.contains(event.target as Node)) {
       closePopUpFunctionTab();
     }
-  };
+  }, []);
 
   useEffect(() => {
     document.addEventListener("mousedown", handleClickOutside as unknown as EventListener);
     return () => {
       document.removeEventListener("mousedown", handleClickOutside as unknown as EventListener);
     };
-  }, []);
+  }, [handleClickOutside]);
 
   useEffect(() => {
     document.addEventListener("mousedown", handleClickOutsideTab as unknown as EventListener);
     return () => {
       document.removeEventListener("mousedown", handleClickOutsideTab as unknown as EventListener);
     };
-  }, []);
+  }, [handleClickOutsideTab]);
 
   return (
     <div className="bg-[#F4F2F0] min-h-[calc(100vh-64px)] ">
@@ -587,7 +711,7 @@ const GroupActivity = () => {
                 </CustomCalendar>
               </div>
               {/* <div className="flex ">GDL2</div> */}
-              <Filter />
+              <Filter selected={selected} setSelected={setSelected} />
             </div>
           </div>
           {state.loading && (
@@ -662,9 +786,12 @@ const GroupActivity = () => {
                                               ref={headerTextAreaRefs.current[data.name]}
                                               value={data?.note}
                                               onChange={(e) =>
-                                                handleNoteChange1(data.name, e.target.value)
+                                                selected === "All"
+                                                  ? undefined
+                                                  : handleNoteChange1(data.name, e.target.value)
                                               }
                                               placeholder="Enter note..."
+                                              // disabled={selected === "All"}
                                               className="text-xs border-black bg-white p-2 h-[100px] resize-none border-2 focus:outline-none focus:border-primary-dark rounded-lg w-full"
                                             ></textarea>
                                             <RBACGuard
@@ -678,38 +805,49 @@ const GroupActivity = () => {
                                                 >
                                                   Cancel
                                                 </button>
-                                                {data.note.trim() ? (
-                                                  <Button
-                                                    name="save"
-                                                    onClick={() => handleSubmitTab()}
-                                                    className=" text-xs! bg-[#323E2A]! px-[15px]! py-[4px]! rounded-lg!"
-                                                    variant="contained"
-                                                    size="base"
-                                                  >
-                                                    Save
-                                                  </Button>
-                                                ) : (
-                                                  <Button
-                                                    // name="save"
-                                                    // onClick={() => handleSubmitTab()}
-                                                    className=" text-xs! cursor-not-allowed bg-gray-400! px-[15px]! py-[4px]! rounded-lg!"
-                                                    variant="contained"
-                                                    size="base"
-                                                  >
-                                                    Save
-                                                  </Button>
-                                                )}
+                                                {/* only show save when a specific center is selected */}
+                                                {selected !== "All" &&
+                                                  (data.note.trim() ? (
+                                                    <Button
+                                                      name="save"
+                                                      onClick={() => handleSubmitTab()}
+                                                      className=" text-xs! bg-[#323E2A]! px-[15px]! py-[4px]! rounded-lg!"
+                                                      variant="contained"
+                                                      size="base"
+                                                    >
+                                                      Save
+                                                    </Button>
+                                                  ) : (
+                                                    <Button
+                                                      className=" text-xs! cursor-not-allowed bg-gray-400! px-[15px]! py-[4px]! rounded-lg!"
+                                                      variant="contained"
+                                                      size="base"
+                                                    >
+                                                      Save
+                                                    </Button>
+                                                  ))}
                                               </div>
                                             </RBACGuard>
                                           </div>
                                         ) : (
                                           <div className="bg-[#F2F2F2] rounded-sm ">
-                                            <div className="px-0.5">
-                                              <textarea
-                                                disabled
-                                                className="resize-none text-gray-700 p-3 rounded-sm focus:outline-none focus:border-primary-dark border-2 h-[100px] font-semibold bg-white text-xs leading-5 w-full"
-                                                value={data.note}
-                                              ></textarea>
+                                            {/* Render each center's note with a border */}
+                                            <div className="bg-white p-2 rounded-sm border-2 h-[100px] overflow-y-auto">
+                                              {data.note
+                                                .split("\n")
+                                                .filter(Boolean)
+                                                .map((line, idx, arr) => (
+                                                  <div
+                                                    key={idx}
+                                                    className={`text-xs text-start text-gray-700 font-semibold py-1 px-2 ${
+                                                      idx !== arr.length - 1
+                                                        ? "border-b border-gray-300"
+                                                        : ""
+                                                    }`}
+                                                  >
+                                                    {line}
+                                                  </div>
+                                                ))}
                                             </div>
                                             <RBACGuard
                                               resource={RESOURCES.GROUP_ACTIVITY}

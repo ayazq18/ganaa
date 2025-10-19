@@ -242,20 +242,16 @@ const QualifiedLeads = () => {
     }));
     toggleModalAdmit();
   };
-  const [admitLoading, setAdmitLoading] = useState(false);
+
   const handleadmit = async () => {
-    if (admitLoading) return;
     try {
-      setAdmitLoading(true);
       const response = await admitLead(state.admitId, {});
       if (response.status === 200) {
         toast.success("Lead admitted Successfully");
         fetchAllQualifiedLeads();
       }
-      setAdmitLoading(false);
       toggleModalAdmit();
     } catch (error) {
-      setAdmitLoading(false);
       handleError(error);
     }
   };
@@ -403,14 +399,37 @@ const QualifiedLeads = () => {
                         <div className="flex items-center gap-5">
                           <img
                             src={eye}
-                            className="cursor-pointer"
+                            className={`${
+                              data?.progressStatus !== "Admit"
+                                ? "cursor-pointer"
+                                : "cursor-not-allowed opacity-45"
+                            }`}
                             onClick={() => {
-                              handleOpenMenu(data);
+                              if (data?.progressStatus !== "Admit") handleOpenMenu(data);
                             }}
                           />
-                          <Link to={`/admin/lead/update-lead/${data?._id}`}>
-                            <img src={edit} className="cursor-pointer" />
-                          </Link>
+                          {data?.progressStatus !== "Admit" ? (
+                            <Link to={`/admin/lead/update-lead/${data?._id}`}>
+                              <img
+                                src={edit}
+                                className={`${
+                                  data?.progressStatus !== "Admit"
+                                    ? "cursor-pointer"
+                                    : "cursor-not-allowed "
+                                }`}
+                              />
+                            </Link>
+                          ) : (
+                            <img
+                              src={edit}
+                              className={`${
+                                data?.progressStatus !== "Admit"
+                                  ? "cursor-pointer"
+                                  : "cursor-not-allowed opacity-45"
+                              }`}
+                            />
+                          )}
+
                           <img
                             src={bin}
                             onClick={() => {

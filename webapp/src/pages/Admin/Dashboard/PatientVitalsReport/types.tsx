@@ -12,7 +12,7 @@ export interface IPatient {
 interface ICenter {
   _id: string;
   centerName: string;
-  googleMapLink: string;
+  centerUID: string;
   isDeleted: boolean;
   createdAt: string;
 }

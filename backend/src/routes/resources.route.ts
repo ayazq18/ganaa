@@ -48,11 +48,6 @@ router
   .get(RoomNumberController.getAllRoomNumber)
   .post(RoomNumberController.createNewRoomNumber);
 
-  router
-  .route('/room-number/bulk')
-  .post(RoomNumberController.createBulkNewRoomNumber)
-  .delete(RoomNumberController.deleteBulkRoomNumber);
-
 router
   .route('/room-number/:id')
   .get(RoomNumberController.getSingleRoomNumber)

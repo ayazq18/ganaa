@@ -5,6 +5,7 @@ import classNames from "classnames";
 
 import { FaRegUser } from "react-icons/fa";
 import { TbFileDownload } from "react-icons/tb";
+// import { IoSettingsOutline } from "react-icons/io5";
 import drop from "@/assets/images/dropDown.svg";
 
 import { Button, Modal } from "@/components";
@@ -18,7 +19,6 @@ import { useAuth } from "@/providers/AuthProvider";
 import { RBACGuard } from "../RBACGuard/RBACGuard";
 import { RESOURCES } from "@/constants/resources";
 import { RBACGuardArray } from "../RBACGuard/RBACGuardArray";
-import { IoSettingsOutline } from "react-icons/io5";
 
 const Header = () => {
   const navigate = useNavigate();
@@ -247,13 +247,11 @@ const Header = () => {
 
           <div className="flex items-center gap-3">
             <img src={bell} className="w-5 h-5" />
-            <RBACGuard resource={RESOURCES.DOWNLOAD_SECTION} action="read">
-              <NavLink to="/admin/dashboard/center">
-                <div className="flex cursor-pointer items-center justify-center gap-[3px] ">
-                  <IoSettingsOutline className="w-5 h-5" />
-                </div>
-              </NavLink>
-            </RBACGuard>
+            {/* <NavLink to="/admin/dashboard/user">
+              <div className="flex cursor-pointer items-center justify-center gap-[3px] ">
+                <IoSettingsOutline className="w-5 h-5" />
+              </div>
+            </NavLink> */}
           </div>
           <div className="flex items-center gap-4 mr-5">
             {auth?.user?.profilePic ? (
@@ -272,7 +270,7 @@ const Header = () => {
                   ? capitalizeFirstLetter(auth?.user?.roleId?.name)
                   : auth?.user?.roleId?.name}
               </p>
-              {/* <div className="hidden group-hover:flex absolute left-0  top-10   bg-transparent pt-4">
+              <div className="hidden group-hover:flex absolute left-0  top-10   bg-transparent pt-4">
                 <div className="p-2   flex-col shadow flex justify-center bg-white  rounded-lg w-40">
                   <NavLink
                     className={() =>
@@ -285,7 +283,7 @@ const Header = () => {
                     Reset Password
                   </NavLink>
                 </div>
-              </div> */}
+              </div>
             </div>
           </div>
 

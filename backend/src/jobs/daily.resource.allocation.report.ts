@@ -149,18 +149,18 @@ export const buildDailyResourceAllocation = async () => {
       })
     );
 
-    const todayAtElevenFiftyFivePM = new Date(
+    const yesterdayAtFiveAM = new Date(
       now.getFullYear(),
       now.getMonth(),
-      now.getDate(),
-      23,
-      55,
+      now.getDate() - 1,
+      5,
+      0,
       0,
       0
     );
 
     return {
-      date: todayAtElevenFiftyFivePM,
+      date: yesterdayAtFiveAM,
       reports: allInfo,
     };
   } catch (error) {

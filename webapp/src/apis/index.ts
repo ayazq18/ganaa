@@ -6,6 +6,7 @@ const http = axios.create({
   baseURL: baseUrl,
 });
 
+console.log('baseURL: ', baseUrl);
 http.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("authToken");
@@ -25,10 +26,6 @@ export const login = (data: loginInterface) => http.post("/user/login", data);
 // User
 export const me = (params?: unknown, headers?: AxiosHeaders) => http.get("/user/me", { params, headers });
 export const getAllUser = (params?: unknown, headers?: AxiosHeaders) => http.get("/user/basic", { params, headers });
-export const createUser = (data?: unknown, params?: unknown, headers?: AxiosHeaders) => http.post("/user/manage", data, { params, headers });
-export const updateUser = (id: string, data?: unknown, params?: unknown, headers?: AxiosHeaders) => http.patch(`/user/manage/${id}`, data, { params, headers });
-export const deleteUser = (id: string, params?: unknown, headers?: AxiosHeaders) => http.delete(`/user/manage/${id}`, { params, headers });
-export const resetPassword = (id: string, params?: unknown, headers?: AxiosHeaders) => http.patch(`/user/manage/reset-password/${id}`, { params, headers });
 export const changePassword = (data: unknown, params?: unknown, headers?: AxiosHeaders) => http.patch(`/user/me/change-password`, data, { params, headers });
 
 // Role
@@ -36,23 +33,13 @@ export const getAllRoles = (params?: unknown, headers?: AxiosHeaders) => http.ge
 
 // DropDown
 export const getAllRelationship = (params?: unknown, headers?: AxiosHeaders) => http.get("/dropdown/relationship", { params, headers });
-export const getAllReference = (params?: unknown, headers?: AxiosHeaders) => http.get("/dropdown/reference-platform", { params, headers });
 export const getAllReferredType = (params?: unknown, headers?: AxiosHeaders) => http.get("/dropdown/referred-type", { params, headers });
 export const getAllCountry = (params?: unknown, headers?: AxiosHeaders) => http.get("/constants", { params, headers });
 export const getAllMedicine = (params?: unknown, headers?: AxiosHeaders) => http.get("/dropdown/medicine", { params, headers });
-export const createBulkMedicine = (data?: unknown, params?: unknown, headers?: AxiosHeaders) => http.post("/dropdown/medicine/bulk", data, { params, headers });
-export const updateBulkMedicine = (data?: unknown, params?: unknown, headers?: AxiosHeaders) => http.patch("/dropdown/medicine/bulk", data, { params, headers });
 export const getSingleMedicine = (id: string, params?: unknown, headers?: AxiosHeaders) => http.get(`/dropdown/medicine/${id}`, { params, headers });
-export const deleteMedicine = (id: string, params?: unknown, headers?: AxiosHeaders) => http.delete(`/dropdown/medicine/${id}`, { params, headers });
-export const deleteBulkMedicine = (data?: unknown, params?: unknown, headers?: AxiosHeaders) => http.delete(`/dropdown/medicine/bulk`, { data, params, ...headers });
 
 // Allergy
-
 export const getAllAllergy = (params?: unknown, headers?: AxiosHeaders) => http.get("/dropdown/allergy", { params, headers });
-export const createAllergy = (data: unknown, params?: unknown, headers?: AxiosHeaders) => http.post("/dropdown/allergy", data, { params, headers });
-export const createbulkAllergy = (data: unknown, params?: unknown, headers?: AxiosHeaders) => http.post("/dropdown/allergy/bulk", data, { params, headers });
-export const deleteAllergy = (id: string, params?: unknown, headers?: AxiosHeaders) => http.delete(`/dropdown/allergy/${id}`, { params, headers });
-export const deleteBulkAllergy = (data?: unknown, params?: unknown, headers?: AxiosHeaders) => http.delete(`/dropdown/allergy/bulk`, { data, params, headers });
 
 // patient
 export const getAllPatient = (params?: unknown, headers?: AxiosHeaders, signal?: AbortSignal) => http.get("/patient", { params, headers, signal });
@@ -98,6 +85,12 @@ export const getAllTherapistNotes = (params?: unknown, headers?: AxiosHeaders) =
 export const updateTherapistNotes = (id: string, data: unknown, params?: unknown, headers?: AxiosHeaders) => http.patch(`/daily-progress/therapist/${id}`, data, { params, headers });
 export const deleteTherapistNotes = (id: string, params?: unknown, headers?: AxiosHeaders) => http.delete(`/daily-progress/therapist/${id}`, { params, headers });
 
+//new added for Patient Followup section
+export const createPatientFollowup = (data: unknown, params?: unknown, headers?: AxiosHeaders) => http.post("/daily-progress/patient-followup", data, { params, headers });
+export const getAllPatientFollowup = (params?: unknown, headers?: AxiosHeaders) => http.get("/daily-progress/patient-followup", { params, headers });
+export const updatePatientFollowup = (id: string, data: unknown, params?: unknown, headers?: AxiosHeaders) => http.patch(`/daily-progress/patient-followup/${id}`, data, { params, headers });
+export const deletePatientFollowup = (id: string, params?: unknown, headers?: AxiosHeaders) => http.delete(`/daily-progress/patient-followup/${id}`, { params, headers });
+
 export const createDoctorNotes = (data: unknown, params?: unknown, headers?: AxiosHeaders) => http.post("/daily-progress/doctor/note", data, { params, headers });
 export const getAllDoctorNotes = (params?: unknown, headers?: AxiosHeaders) => http.get("/daily-progress/doctor/note", { params, headers });
 export const updateDoctorNotes = (id: string, data: unknown, params?: unknown, headers?: AxiosHeaders) => http.patch(`/daily-progress/doctor/note/${id}`, data, { params, headers });
@@ -105,7 +98,6 @@ export const deleteDoctorNotes = (id: string, params?: unknown, headers?: AxiosH
 
 export const createDoctorPrescription = (data: unknown, params?: unknown, headers?: AxiosHeaders) => http.post("/daily-progress/doctor/prescription", data, { params, headers });
 export const getAllDoctorPrescription = (params?: unknown, headers?: AxiosHeaders) => http.get("/daily-progress/doctor/prescription", { params, headers });
-export const getAllDoctorPrescriptionRivision = (params?: unknown, headers?: AxiosHeaders) => http.get("/daily-progress/doctor/prescription/revision", { params, headers });
 export const updateDoctorPrescription = (id: string, data: unknown, params?: unknown, headers?: AxiosHeaders) => http.patch(`/daily-progress/doctor/prescription/${id}`, data, { params, headers });
 export const deleteDoctorPrescription = (id: string, params?: unknown, headers?: AxiosHeaders) => http.delete(`/daily-progress/doctor/prescription/${id}`, { params, headers });
 
@@ -132,14 +124,9 @@ export const deleteDischarge = (pid: string, aid: string, params?: unknown, head
 
 // resources
 export const getAllCenter = (params?: unknown, headers?: AxiosHeaders) => http.get("resources/center", { params, headers });
-export const createCenter = (data?: unknown, params?: unknown, headers?: AxiosHeaders) => http.post("resources/center", data, { params, headers });
-export const updateCenter = (id: string, data?: unknown, params?: unknown, headers?: AxiosHeaders) => http.patch(`resources/center/${id}`, data, { params, headers });
-export const deleteCenter = (cid: string, params?: unknown, headers?: AxiosHeaders) => http.delete(`resources/center/${cid}`, { params, headers });
 export const getAllRoomType = (params?: unknown, headers?: AxiosHeaders) => http.get("resources/room-type", { params, headers });
 export const getAllRoomNumber = (params?: unknown, headers?: AxiosHeaders) => http.get("resources/room-number", { params, headers });
 export const getAllLocker = (params?: unknown, headers?: AxiosHeaders) => http.get("resources/locker", { params, headers });
-export const createBulkLocker = (data?: unknown, params?: unknown, headers?: AxiosHeaders) => http.post("resources/locker/bulk", data, { params, headers });
-export const deleteBulkLocker = (data?: unknown, params?: unknown, headers?: AxiosHeaders) => http.delete("resources/locker/bulk", { data, params, headers });
 
 // feedback
 export const getFeedbackQuestionaire = (params?: unknown, headers?: AxiosHeaders) => http.get("feedback-questionnaire", { params, headers });
@@ -186,9 +173,3 @@ export const getAllFamilyGroupAcitvity = (params?: unknown, headers?: AxiosHeade
 export const getAllReports = (params?: unknown, headers?: AxiosHeaders) => http.get("/common-file", { params, headers });
 export const getSingleReports = (id: string, params?: unknown, headers?: AxiosHeaders) => http.get(`/common-file/${id}`, { params, headers });
 export const deleteSingleReports = (id: string, params?: unknown, headers?: AxiosHeaders) => http.delete(`/common-file/${id}`, { params, headers });
-
-export const createRoomType = (data?: unknown, params?: unknown, headers?: AxiosHeaders) => http.post("resources/room-type", data, { params, headers });
-export const updateRoomType = (id: string, data?: unknown, params?: unknown, headers?: AxiosHeaders) => http.patch(`resources/room-type/${id}`, data, { params, headers });
-export const deleteRoomType = (id: string, params?: unknown, headers?: AxiosHeaders) => http.delete(`resources/room-type/${id}`, { params, headers });
-export const createRoomNumberBulk = (data?: unknown, params?: unknown, headers?: AxiosHeaders) => http.post("resources/room-number/bulk", data, { params, headers });
-export const deleteRoomNumberBulk = (data?: unknown, params?: unknown, headers?: AxiosHeaders) => http.delete("resources/room-number/bulk", { data, params, headers });

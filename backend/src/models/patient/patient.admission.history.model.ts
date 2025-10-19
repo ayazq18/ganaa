@@ -63,13 +63,13 @@ const patientAdmissionHistorySchema = new mongoose.Schema<IPatientAdmissionHisto
   // Admission Checklist
   admissionChecklist: {
     applicationForAdmission: [{ fileName: { type: String }, filePath: { type: String } }],
-    form90: [{ fileName: { type: String }, filePath: { type: String } }],
     voluntaryAdmissionForm: [{ fileName: { type: String }, filePath: { type: String } }],
     inVoluntaryAdmissionForm: [{ fileName: { type: String }, filePath: { type: String } }],
     minorAdmissionForm: [{ fileName: { type: String }, filePath: { type: String } }],
     familyDeclaration: [{ fileName: { type: String }, filePath: { type: String } }],
     section94: [{ fileName: { type: String }, filePath: { type: String } }],
     capacityAssessment: [{ fileName: { type: String }, filePath: { type: String } }],
+    admissionAssessment: [{ fileName: { type: String }, filePath: { type: String } }],
     hospitalGuidelineForm: [{ fileName: { type: String }, filePath: { type: String } }],
     finacialCounselling: [{ fileName: { type: String }, filePath: { type: String } }],
     orientationOfFamily: [{ type: String }],
@@ -248,11 +248,11 @@ const generateSignedUrl = async (doc: any) => {
     'applicationForAdmission',
     'voluntaryAdmissionForm',
     'inVoluntaryAdmissionForm',
-    'form90',
     'minorAdmissionForm',
     'familyDeclaration',
     'section94',
     'capacityAssessment',
+    'admissionAssessment', 
     'hospitalGuidelineForm',
     'finacialCounselling',
     'insuredFile',
@@ -277,6 +277,7 @@ const generateSignedUrl = async (doc: any) => {
         }
       }
     }
+    
   }
 
   // Process Medical Report
@@ -353,7 +354,7 @@ patientAdmissionHistorySchema.pre('findOne', async function (next) {
 
   // Feedback Information
   if (!shouldPopulateFeedback) {
-    this.populate('feedbackId', '_id questionAnswer status');
+    this.populate('feedbackId', '_id status');
   }
 
   // Populate User Info
@@ -382,7 +383,7 @@ patientAdmissionHistorySchema.pre('find', async function (next) {
 
   // Feedback Information
   if (!shouldPopulateFeedback) {
-    this.populate('feedbackId', '_id questionAnswer status');
+    this.populate('feedbackId', '_id status');
   }
 
   // Populate User Info
@@ -411,7 +412,7 @@ patientAdmissionHistorySchema.pre('findOneAndUpdate', async function (next) {
 
   // Feedback Information
   if (!shouldPopulateFeedback) {
-    this.populate('feedbackId', '_id questionAnswer status');
+    this.populate('feedbackId', '_id status');
   }
 
   // Populate User Info
@@ -559,20 +560,6 @@ patientAdmissionHistorySchema.statics.getLatestPatientHistory = async (patientId
     {
       $unwind: {
         path: '$dischargeId',
-        preserveNullAndEmptyArrays: true,
-      },
-    },
-    {
-      $lookup: {
-        from: Collections.patientFeedback.d,
-        localField: 'feedbackId',
-        foreignField: '_id',
-        as: 'feedbackId',
-      },
-    },
-    {
-      $unwind: {
-        path: '$feedbackId',
         preserveNullAndEmptyArrays: true,
       },
     },

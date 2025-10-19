@@ -67,8 +67,6 @@ import MultiSelectDropdown from "@/components/MultiSelectDropdown/MultiSelectDro
 import { useAuth } from "@/providers/AuthProvider";
 import { RBACGuard } from "@/components/RBACGuard/RBACGuard";
 import { RESOURCES } from "@/constants/resources";
-import TherapistDataDownload from "./TherapistDataDownload/TherapistDataDownload";
-import { BsFiletypePdf } from "react-icons/bs";
 
 const TherapistNotes = () => {
   const { id, aId } = useParams();
@@ -104,7 +102,6 @@ const TherapistNotes = () => {
     firstName: "",
     lastName: "",
     UHID: "",
-    age: "",
     patientProfilePic: "",
     assignedTherapist: "",
     patientAdmissionHistoryId: "",
@@ -195,7 +192,6 @@ const TherapistNotes = () => {
           firstName: patientData?.data?.firstName || "",
           lastName: patientData?.data?.lastName || "",
           gender: patientData?.data?.gender || "",
-          age: patientData?.data?.age || "",
           UHID: patientData?.data?.uhid || "",
           assignedTherapist: `${
             patientAdmissionHistory?.data?.resourceAllocation?.assignedTherapistId?.firstName || ""
@@ -222,7 +218,7 @@ const TherapistNotes = () => {
             limit: 100,
             page: 1,
             sort: "-createdAt",
-            roles: "therapist,Therapist+AM",
+            roles: "therapist",
             centerId: patientAdmissionHistory?.data?.resourceAllocation?.centerId?._id
           });
 
@@ -434,7 +430,7 @@ const TherapistNotes = () => {
           if (Array.isArray(value)) {
             value.forEach((v) => formData.append(key, v));
           } else if (value instanceof File) {
-            formData.append(key, value);
+            formData.append(key, value); 
           } else if (value !== undefined && value !== null) {
             formData.append(key, value.toString());
           }
@@ -1234,21 +1230,6 @@ const TherapistNotes = () => {
                         : "Date Range"}
                     </Button>
                   </DateRange>
-                  <TherapistDataDownload
-                    patientDetails={state}
-                    aid={aId}
-                    button={
-                      <Button
-                        type="submit"
-                        variant="outlined"
-                        size="base"
-                        className="flex text-xs! py-2! border-[#D4D4D4]!  border! rounded-lg! text-[#505050] "
-                      >
-                        <BsFiletypePdf className="mr-2" size={18} />
-                        Download All
-                      </Button>
-                    }
-                  />
                 </div>
               </div>
             )}
@@ -1368,19 +1349,6 @@ const TherapistNotes = () => {
                                         <p>Edit</p>
                                       </div>
                                     </div>
-                                    <hr />
-                                    <TherapistDataDownload
-                                      patientDetails={state}
-                                      data={[value]}
-                                      button={
-                                        <div className="text-xs font-semibold cursor-pointer p-2 px-3 text-nowrap whitespace-nowrap">
-                                          <div className="flex items-center  cursor-pointer">
-                                            <p>Download</p>
-                                          </div>
-                                        </div>
-                                      }
-                                    />
-
                                     <hr />
                                     <div className="text-xs font-semibold cursor-pointer p-2 px-3 text-nowrap whitespace-nowrap">
                                       <div

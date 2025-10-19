@@ -14,7 +14,6 @@ export default class Env {
   static JWT_SECRET = process.env.JWT_SECRET;
   static JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN;
   static JWT_ISSUER_NAME = process.env.JWT_ISSUER_NAME;
-  static DEFAULT_USER_PASSWORD = process.env.DEFAULT_USER_PASSWORD;
 
   // CORS ORIGN
   static CORS_ORIGIN = process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',') : undefined;
@@ -39,7 +38,6 @@ export default class Env {
     if (!Env.isExist(Env.JWT_SECRET)) return 'JWT Secret is mandatory';
     if (!Env.isExist(Env.JWT_EXPIRES_IN)) return 'JWT Expire Time is mandatory';
     if (!Env.isExist(Env.JWT_ISSUER_NAME)) return 'JWT Issuer Name is mandatory';
-    if (!Env.isExist(Env.DEFAULT_USER_PASSWORD)) return 'Reset Password is mandatory';
 
     // CORS
     if (!Env.isExist(Env.CORS_ORIGIN)) return 'CORS Origin is mandatory';

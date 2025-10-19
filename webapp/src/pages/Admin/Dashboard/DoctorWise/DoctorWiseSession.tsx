@@ -12,7 +12,6 @@ import toast from "react-hot-toast";
 import { TableShimmer } from "@/components/Shimmer/Shimmer";
 import { useAuth } from "@/providers/AuthProvider";
 import Filter from "@/components/Filter/Filter";
-import { getAdmissionStatus } from "../TherapistWise/util";
 interface IState {
   loading: boolean;
   center: ISelectOption;
@@ -24,8 +23,8 @@ interface IState {
 
 const TherapistWiseSession = () => {
   const navigate = useNavigate();
+  const [selected, setSelected] = useState("All");
   const { auth } = useAuth();
-  const [dischargeDate, setDischargeDate] = useState({});
   const [searchParams, setSearchParams] = useSearchParams();
   const [dateArray, setDateArray] = useState<string[]>([]);
   const [dateRange, setDateRange] = useState([
@@ -114,7 +113,7 @@ const TherapistWiseSession = () => {
   const fetchSessionData = async () => {
     setState((prev) => ({ ...prev, loading: true }));
     let centers;
-    const selected = searchParams.get("filter") || "All";
+
     if (selected === "All" || !selected) {
       centers = auth.user.centerId.map((data) => data._id);
       if (centers.length <= 0) navigate("/");
@@ -136,7 +135,6 @@ const TherapistWiseSession = () => {
       });
       if (response.data.status === "success") {
         setData(response.data.data);
-        setDischargeDate(response?.data?.data?.dischargeResult);
         const dates: string[] = [];
         const currentDate = new Date(startDate);
 
@@ -158,12 +156,12 @@ const TherapistWiseSession = () => {
 
   useEffect(() => {
     fetchSessionData();
-  }, [searchParams]);
+  }, [searchParams, selected]);
 
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   return (
-    <div className="bg-[#F4F2F0] pb-5  min-h-[calc(100vh-64px)] ">
+    <div className="bg-[#F4F2F0]  min-h-[calc(100vh-64px)] ">
       <div className="w-[1246px] mx-auto">
         <div className="flex justify-between py-5 items-end">
           <div className="flex flex-col">
@@ -203,7 +201,7 @@ const TherapistWiseSession = () => {
                 <IoIosArrowDown />
               </Button>
             </DateRange> */}
-            <Filter />
+            <Filter selected={selected} setSelected={setSelected} />
           </div>
         </div>
 
@@ -218,8 +216,11 @@ const TherapistWiseSession = () => {
           </div>
         )}
         {!state.loading && (
-          <div className="bg-white p-5  overflow-auto  rounded-2xl">
-            <div className="mx-auto overflow-x-auto rounded-md" ref={scrollContainerRef}>
+          <div className="bg-white p-5 max-h-[600px] overflow-auto  rounded-2xl">
+            <div
+              className="mx-auto overflow-x-auto rounded-md max-h-[70vh] "
+              ref={scrollContainerRef}
+            >
               <table className="w-full border-collapse">
                 <thead className="sticky top-0 z-30">
                   <tr className="bg-[#CCB69E] border-b border-[#c7bfa7]">
@@ -278,174 +279,210 @@ const TherapistWiseSession = () => {
                 </thead>
 
                 <tbody>
-  {data?.patients?.length === 0 && (
-    <tr>
-      <td colSpan={dateArray.length + 3} className="text-center py-10 text-gray-500">
-        No Data exist for the selected date range and center.
-      </td>
-    </tr>
-  )}
+                  {data?.notes.length === 0 && (
+                    <tr>
+                      <td
+                        colSpan={data?.notes?.length + 3}
+                        className="text-center fixed left-2/5  py-10 text-gray-500"
+                      >
+                        No Data exist for the selected date range and center.
+                      </td>
+                    </tr>
+                  )}
 
-  {data?.patients?.slice().sort((a, b) =>
-    state.sort
-      ? a.firstName.localeCompare(b.firstName)
-      : b.firstName.localeCompare(a.firstName)
-  ).map((patient) => {
-    // Group notes by doctor
-    const notesByDoctor = data?.notes
-      ?.filter((note) => note.patientId === patient._id)
-      ?.reduce<Record<string, INote[]>>((acc, note) => {
-        const doctorId = note.doctorId?._id || "unknown";
-        if (!acc[doctorId]) acc[doctorId] = [];
-        acc[doctorId].push(note);
-        return acc;
-      }, {});
+                  {(state.sort
+                    ? data?.patients?.slice().sort((a, b) => a.firstName.localeCompare(b.firstName))
+                    : data?.patients?.slice().sort((a, b) => b.firstName.localeCompare(a.firstName))
+                  )?.map((patient) => {
+                    // Group notes by therapistId for this patient
+                    const notesByDoctor = data?.notes
+                      ?.filter((note) => note.patientId === patient._id)
+                      ?.reduce<Record<string, INote[]>>((acc, note) => {
+                        const therapistId = note.doctorId?._id || "unknown";
+                        if (!acc[therapistId]) acc[therapistId] = [];
+                        acc[therapistId].push(note);
+                        return acc;
+                      }, {});
 
-    // If patient has no notes, render a single row
-    if (!notesByDoctor || Object.keys(notesByDoctor).length === 0) {
-      return (
-        <tr key={patient._id} className="border-b border-[#d9d4c9] font-semibold">
-          <td className="sticky left-0 z-10 bg-white px-3 py-2 text-xs text-black">
-            <div className="flex items-center gap-2">
-              <div className={`flex rounded-full w-10 h-10 bg-[#C1D1A8] border overflow-hidden items-center justify-center ${
-                patient.gender === "Male"
-                  ? "border-[#00685F]"
-                  : patient.gender === "Female"
-                  ? "border-[#F14E9A]"
-                  : "border-gray-500"
-              }`}>
-                {patient.patientPicUrl ? (
-                  <img src={patient.patientPicUrl} alt="profile" className="w-full h-full object-cover" />
-                ) : (
-                  <div className="uppercase text-sm font-medium">
-                    {patient.firstName?.[0]}{patient.lastName?.[0]}
-                  </div>
-                )}
-              </div>
-              <div className="w-[120px] truncate">
-                {patient.firstName} {patient.lastName}<br />
-                {formatId(patient?.uhid)}
-              </div>
-            </div>
-          </td>
+                    return Object.entries(notesByDoctor || {}).map(([therapistId, notes]) => {
+                      // Group notes by date string "yyyy-mm-dd"
+                      const notesByDate = notes.reduce<Record<string, INote[]>>((acc, note) => {
+                        const date = note.noteDateTime.slice(0, 10);
+                        if (!acc[date]) acc[date] = [];
+                        acc[date].push(note);
+                        return acc;
+                      }, {});
 
-          <td className="px-3 sticky left-[200px] pr-10 z-10 bg-white py-4 text-xs text-center text-black">
-            {patient.centerId?.centerName}
-          </td>
+                      return (
+                        <tr
+                          key={`${patient._id}-${therapistId}`}
+                          className="border-b border-[#d9d4c9] font-semibold"
+                        >
+                          {/* Patient info */}
+                          <td className="sticky text-nowrap left-0 z-10 bg-white px-3 py-2 text-xs  text-black">
+                            <div className="flex items-center gap-2">
+                              <div
+                                className={`flex  rounded-full  w-10 h-10 bg-[#C1D1A8] border overflow-hidden items-center justify-center
+                                  ${
+                                    patient?.gender == "Male"
+                                      ? "border-[#00685F]"
+                                      : patient?.gender == "Female"
+                                      ? "border-[#F14E9A]"
+                                      : "border-gray-500"
+                                  }
+                                `}
+                              >
+                                {patient?.patientPicUrl ? (
+                                  <img
+                                    src={patient?.patientPicUrl}
+                                    alt="profile"
+                                    className="w-full h-full object-cover"
+                                  />
+                                ) : (
+                                  <div className="uppercase text-sm font-medium">
+                                    {patient?.firstName?.trim().slice(0, 1)}
+                                    {patient?.lastName?.trim().slice(0, 1)}
+                                  </div>
+                                )}
+                              </div>
+                              <div className="w-[120px]">
+                                {patient.firstName} {patient.lastName}
+                                <br />
+                                {formatId(patient?.uhid)}
+                              </div>
+                            </div>
+                          </td>
 
-          <td className="px-3 sticky left-[340px] z-10 bg-white py-4 text-xs text-left">--</td>
+                          {/* Fixed center info */}
+                          <td className="px-3 sticky left-[200px] pr-10 z-10 bg-white py-4 text-xs text-center text-black text-nowrap">
+                            <div className="w-[50px]">{patient.centerId?.centerName}</div>
+                          </td>
 
-          {dateArray.map((date, idx) => (
-            <td key={date} className={`px-3 py-4 text-xs ${idx % 2 === 0 ? "" : "bg-gray-100"} text-center font-medium text-black`}>
-              {new Date(date).getDay() === 0 ? (
-                <div className="text-xs text-gray-500">Sunday</div>
-              ) : (
-                <div>{getAdmissionStatus(dischargeDate, patient._id, new Date(`${date}T10:00:00Z`))}</div>
-              )}
-            </td>
-          ))}
-        </tr>
-      );
-    }
+                          {/* Therapist Name */}
+                          <td className="px-3 sticky z-10 pr-10 left-[340px] text-nowrap bg-white py-4 text-xs text-left">
+                            {notes[0].doctorId?.firstName} {notes[0].doctorId?.lastName}
+                          </td>
 
-    // Patient has notes → render one row per doctor
-    return Object.entries(notesByDoctor).map(([doctorId, notes]) => {
-      const notesByDate = notes.reduce<Record<string, INote[]>>((acc, note) => {
-        const date = note.noteDateTime.slice(0, 10);
-        if (!acc[date]) acc[date] = [];
-        acc[date].push(note);
-        return acc;
-      }, {});
-
-      return (
-        <tr key={`${patient._id}-${doctorId}`} className="border-b border-[#d9d4c9] font-semibold">
-          <td className="sticky left-0 z-10 bg-white px-3 py-2 text-xs text-black">
-            <div className="flex items-center gap-2">
-              <div className={`flex rounded-full w-10 h-10 bg-[#C1D1A8] border overflow-hidden items-center justify-center ${
-                patient.gender === "Male"
-                  ? "border-[#00685F]"
-                  : patient.gender === "Female"
-                  ? "border-[#F14E9A]"
-                  : "border-gray-500"
-              }`}>
-                {patient.patientPicUrl ? (
-                  <img src={patient.patientPicUrl} alt="profile" className="w-full h-full object-cover" />
-                ) : (
-                  <div className="uppercase  text-sm font-medium">
-                    {patient.firstName?.[0]}{patient.lastName?.[0]}
-                  </div>
-                )}
-              </div>
-              <div className="w-[120px] truncate">
-                {patient.firstName} {patient.lastName} <br />
-                {formatId(patient?.uhid)}
-              </div>
-            </div>
-          </td>
-
-          <td className="px-3 sticky left-[200px] pr-10 z-10 bg-white py-4 text-xs text-center text-black">
-            {patient.centerId?.centerName}
-          </td>
-
-          <td className="px-3 sticky left-[340px] z-10 bg-white py-4 text-xs text-left">
-            {notes[0].doctorId?.firstName} {notes[0].doctorId?.lastName}
-          </td>
-
-          {dateArray.map((date, idx) => {
-            const notesForDate = notesByDate[date] || [];
-            const dayOfWeek = new Date(date).getDay();
-
-            if (
-              data?.loa?.some(
-                (loa) =>
-                  loa.patientId === patient._id &&
-                  formatDate(loa.noteDateTime) === formatDate(date)
-              )
-            ) {
-              return (
-                <td key={date} className={`px-3 py-4 text-xs ${idx % 2 === 0 ? "" : "bg-gray-100"} text-center font-medium text-red-500`} title="The Patient is on LOA Today.">
-                  LOA
-                </td>
-              );
-            }
-
-            return (
-              <td key={date} className={`px-3 py-4 text-xs ${idx % 2 === 0 ? "" : "bg-gray-100"} text-center font-medium text-black`}>
-                {notesForDate.length > 0 ? (
-                  <div className="flex flex-col gap-1 justify-center">
-                    {notesForDate.map((value) => (
-                      <div key={value._id} className="flex mx-auto relative w-4 h-4 items-center justify-center gap-2 ">
-                        <img
-                          onClick={() => {
-                            setModalNote([value]);
-                            setState((prev) => ({
-                              ...prev,
-                              displayModal: true,
-                              patientData: patient,
-                              doctorData: value.doctorId,
-                            }));
-                          }}
-                          src={messageIcon}
-                          className="w-4 h-4  text-[#505050] cursor-pointer"
-                        />
-                        {value.note?.length > 0 && <div className="-top-1 -right-1 p-1 rounded-full bg-red-500 absolute"></div>}
-                      </div>
-                    ))}
-                  </div>
-                ) : dayOfWeek === 0 ? (
-                  <div className="text-xs text-gray-500">Sunday</div>
-                ) : (
-                  <div>{getAdmissionStatus(dischargeDate, patient._id, new Date(`${date}T10:00:00Z`))}</div>
-                )}
-              </td>
-            );
-          })}
-        </tr>
-      );
-    });
-  })}
-</tbody>
-
+                          {/* Iterate over your dates array */}
+                          {dateArray?.map((date, _pindex) => {
+                            const notesForDate = notesByDate[date] || [];
+                            const dayOfWeek = new Date(date).getDay();
+                            if (
+                              data &&
+                              data?.loa?.filter(
+                                (loa) =>
+                                  loa?.patientId === patient._id &&
+                                  formatDate(loa.noteDateTime) === formatDate(date)
+                              ).length > 0
+                            ) {
+                              return (
+                                <td
+                                  key={date}
+                                  className={`px-3 py-4 text-xs ${
+                                    _pindex % 2 === 0 ? "" : "bg-gray-100"
+                                  } text-center font-medium text-red-500`}
+                                >
+                                  <div
+                                    className="mx-auto w-fit "
+                                    title="The Patient is on LOA Today."
+                                  >
+                                    <svg
+                                      id="Component_44_1"
+                                      data-name="Component 44 – 1"
+                                      xmlns="http://www.w3.org/2000/svg"
+                                      width="16.909"
+                                      height="16.859"
+                                      viewBox="0 0 16.909 16.859"
+                                    >
+                                      <path
+                                        id="Union_24"
+                                        data-name="Union 24"
+                                        d="M-3219.633-2233.984a1.243,1.243,0,0,1-.674-.992c-.032-.553-.028-1.1-.018-1.587a5.3,5.3,0,0,1-3.038-1.666,5.3,5.3,0,0,1-1.365-3.43c-.031-1.336-.031-2.649,0-3.9a5.322,5.322,0,0,1,5.234-5.192c.363-.007.748-.01,1.214-.01q.5,0,1,0l.66,0,.334,0h2.967a5.487,5.487,0,0,1,3.906,1.562,5.486,5.486,0,0,1,1.563,3.906v.229c0,1.052.007,2.14,0,3.213a5.391,5.391,0,0,1-1.285,3.527,5.329,5.329,0,0,1-3.3,1.786,7.767,7.767,0,0,1-1.051.067c-.2,0-.393.007-.58.021a6.045,6.045,0,0,0-3.878,1.753c-.04.039-.083.084-.128.133a2.531,2.531,0,0,1-.448.407,1.46,1.46,0,0,1-.753.251A.858.858,0,0,1-3219.633-2233.984Zm.166-15.45a4,4,0,0,0-3.938,3.9c-.031,1.235-.031,2.527,0,3.841a3.945,3.945,0,0,0,3.479,3.851.967.967,0,0,1,.929,1.091c-.01.385-.019.816-.008,1.252.045-.048.092-.1.143-.148a7.333,7.333,0,0,1,4.707-2.124c.222-.016.439-.02.65-.024a6.71,6.71,0,0,0,.876-.051,3.97,3.97,0,0,0,3.459-4.017c.008-1.065,0-2.15,0-3.2v-.229a4.03,4.03,0,0,0-4.15-4.15c-.675,0-1.35,0-2.025,0l-.936,0h0c-.335,0-.669,0-1,0h0l-.991,0C-3218.736-2249.445-3219.113-2249.442-3219.467-2249.434Z"
+                                        transform="translate(3224.75 2250.767)"
+                                        fill="#D1D5DB"
+                                      />
+                                      <path
+                                        id="Path_1086"
+                                        data-name="Path 1086"
+                                        d="M10.635,5.873H4.456a.75.75,0,0,1,0-1.5h6.179a.75.75,0,0,1,0,1.5Z"
+                                        transform="translate(1.475 0.794)"
+                                        fill="#D1D5DB"
+                                      />
+                                      <path
+                                        id="Path_1087"
+                                        data-name="Path 1087"
+                                        d="M8.679,5.873H4.456a.75.75,0,0,1,0-1.5H8.679a.75.75,0,0,1,0,1.5Z"
+                                        transform="translate(0.342 3.968)"
+                                        fill="#D1D5DB"
+                                      />
+                                    </svg>
+                                  </div>
+                                </td>
+                              );
+                            }
+                            return (
+                              <td
+                                key={date}
+                                className={`px-3 py-4 text-xs ${
+                                  _pindex % 2 === 0 ? "" : "bg-gray-100"
+                                }  text-center font-medium text-black`}
+                              >
+                                {notesForDate.length > 0 ? (
+                                  <div className="flex flex-col gap-1 justify-center">
+                                    {notesForDate.map((value) => (
+                                      <div
+                                        key={value._id}
+                                        title={
+                                          value.sessionType?.length
+                                            ? value.sessionType.join(", ")
+                                            : ""
+                                        }
+                                        className="flex items-center justify-center gap-2"
+                                      >
+                                        <div className="relative">
+                                          <img
+                                            onClick={() => {
+                                              setModalNote([value]);
+                                              setState((prev) => ({
+                                                ...prev,
+                                                displayModal: true,
+                                                patientData: patient,
+                                                doctorData: value.doctorId
+                                              }));
+                                            }}
+                                            src={messageIcon}
+                                            className="w-4 h-4 text-[#505050] cursor-pointer"
+                                          />
+                                          {value.note?.length > 0 && (
+                                            <div className="-top-1 -right-1 p-1 rounded-full bg-red-500 absolute"></div>
+                                          )}
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                          <div className="text-base">
+                                            {value.sessionType?.length
+                                              ? value.sessionType
+                                                  .toString()
+                                                  .match(/\b[A-Z]{1,4}\b(?=\s*-\s*)/g)
+                                                  ?.join(", ")
+                                              : null}
+                                          </div>
+                                        </div>
+                                      </div>
+                                    ))}
+                                  </div>
+                                ) : dayOfWeek === 0 ? (
+                                  <div className="text-xs text-gray-500">Sunday</div>
+                                ) : (
+                                  "--"
+                                )}
+                              </td>
+                            );
+                          })}
+                        </tr>
+                      );
+                    });
+                  })}
+                </tbody>
               </table>
             </div>
           </div>

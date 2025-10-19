@@ -14,7 +14,7 @@ const DropDown = ({ children, hr = true, heading, subheading, button, className,
         aria-expanded={isOpen}
         onClick={() => setIsOpen((prev) => !prev)}
       >
-        <p className={`${pClass} text-sm font-semibold`}>
+        <p className={`${pClass}text-sm font-semibold`}>
           {heading}
           {subheading && <span className="ml-1 font-medium opacity-90">{subheading}</span>}
         </p>

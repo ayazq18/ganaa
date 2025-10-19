@@ -7,7 +7,7 @@ import { RootState } from "@/redux/store/store";
 import { setDiscardModal, setStepper } from "@/redux/slice/stepperSlice";
 import { setPatientAdmission } from "@/redux/slice/patientSlice";
 
-import { updateSinglePatinetAdmissionChecklist } from "@/apis";
+import { updateSinglePatinetAdmissionChecklist, getSinglePatientAdmissionHistory } from "@/apis";
 import { Button, DiscardModal, Input, Loader, CheckBox } from "@/components";
 
 import {
@@ -34,18 +34,19 @@ const AdmissionChecklist = () => {
     isInsured: "",
     insuredDetail: ""
   });
+  console.log('✌️state to check --->', state);
 
   const [admissionChecklist, setadmissionChecklist] = useState({
     voluntaryAdmissionForm: [],
     applicationForAdmission: [],
     inVoluntaryAdmissionForm: [],
     minorAdmissionForm: [],
-    form90: [],
     familyDeclaration: [],
     section94: [],
     capacityAssessment: [],
     hospitalGuidelineForm: [],
     finacialCounselling: [],
+    admissionAssessment: [],
     insuredFile: []
   });
 
@@ -55,12 +56,12 @@ const AdmissionChecklist = () => {
       applicationForAdmission: [],
       inVoluntaryAdmissionForm: [],
       minorAdmissionForm: [],
-      form90: [],
       familyDeclaration: [],
       section94: [],
       capacityAssessment: [],
       hospitalGuidelineForm: [],
       finacialCounselling: [],
+      admissionAssessment: [],
       insuredFile: []
     });
 
@@ -69,12 +70,12 @@ const AdmissionChecklist = () => {
     applicationForAdmissionLink: [],
     inVoluntaryAdmissionFormLink: [],
     minorAdmissionFormLink: [],
-    form90Link: [],
     familyDeclarationLink: [],
     section94Link: [],
     capacityAssessmentLink: [],
     hospitalGuidelineFormLink: [],
     finacialCounsellingLink: [],
+    admissionAssessmentLink: [],
     insuredFileLink: []
   });
 
@@ -83,16 +84,84 @@ const AdmissionChecklist = () => {
     isvoluntaryAdmissionForm: false,
     isinVoluntaryAdmissionForm: false,
     isminorAdmissionForm: false,
-    isform90: false,
     isfamilyDeclaration: false,
     issection94: false,
     iscapacityAssessment: false,
+    isadmissionAssessment: false,
     ishospitalGuidelineForm: false,
     isfinacialCounselling: false
   });
 
+  // console.log("admissionChecklist==========>>>>>>>>", admissionChecklistLink[`admissionAssessmentLink` as keyof typeof admissionChecklistLink]);
+  // console.log('=======>', `finacialCounsellingLink` as keyof typeof admissionChecklistLink)
   const patientData = useSelector((store: RootState) => store.patient);
+  // console.log("✌️patientData --->", patientData);
   const stepperData = useSelector((store: RootState) => store.stepper);
+  // ...existing code inside component ...
+  useEffect(() => {
+    const pid = patientData.patientAdmission?.patientId;
+    const aid = patientData.patientAdmission?._id;
+    if (!pid || !aid) return;
+
+    let mounted = true;
+    const fetchAdmissionHistory = async () => {
+      try {
+        setState((s) => ({ ...s, loading: true }));
+        const res = await getSinglePatientAdmissionHistory(pid, aid);
+        if (!mounted) return;
+        console.log("📊 Full API response structure:", JSON.stringify(res?.data, null, 2));
+        // console.log("getSinglePatientAdmissionHistory raw ->", res?.data);
+        const raw = res?.data?.data ?? res?.data;
+        const payload = raw?.admissionChecklist ? raw.admissionChecklist : raw;
+        if (!payload) return;
+
+        // FIX: Properly handle admission assessment files
+        const admissionAssessmentFiles = payload?.admissionAssessmentLink?.length
+          ? payload.admissionAssessmentLink
+          : payload?.admissionAssessment || [];
+
+        // console.log('✌️admissionAssessmentFiles --->', admissionAssessmentFiles);
+
+        const mapped = {
+          ...patientData.patientAdmission,
+          ...payload,
+          admissionAssessmentLink: admissionAssessmentFiles
+        };
+        // console.log('✌️mapped --->', mapped);
+
+        dispatch(setPatientAdmission(mapped));
+
+        // FIX: Set the admissionAssessmentLink state immediately
+        setadmissionChecklistLink((prev) => ({
+          ...prev,
+          admissionAssessmentLink: admissionAssessmentFiles
+        }));
+
+        // FIX: Set the checkbox state based on actual files
+        setIsAdmissionChecklist((prev) => ({
+          ...prev,
+          isadmissionAssessment: admissionAssessmentFiles.length > 0
+        }));
+
+        setState((prev) => ({
+          ...prev,
+          orientationOfFamily: payload?.orientationOfFamily ?? prev.orientationOfFamily,
+          orientationOfPatient: payload?.orientationOfPatient ?? prev.orientationOfPatient,
+          isInsured: payload?.isInsured ?? prev.isInsured,
+          insuredDetail: payload?.insuredDetail ?? prev.insuredDetail
+        }));
+      } catch (err) {
+        console.error("fetchAdmissionHistory error:", err);
+      } finally {
+        setState((s) => ({ ...s, loading: false }));
+      }
+    };
+
+    fetchAdmissionHistory();
+    return () => {
+      mounted = false;
+    };
+  }, [patientData.patientAdmission._id, patientData.patientAdmission.patientId]);
 
   useEffect(() => {
     if (patientData.patientAdmission._id) {
@@ -108,6 +177,13 @@ const AdmissionChecklist = () => {
         insuredFile: patientData.patientAdmission.insuredFile
       }));
 
+      // FIX: Get admission assessment files from the updated patientData
+      const admissionAssessmentFiles = patientData.patientAdmission.admissionAssessmentLink?.length
+        ? patientData.patientAdmission.admissionAssessmentLink
+        : patientData.patientAdmission.admissionAssessment || [];
+
+      console.log("🔄 Setting admissionAssessmentFiles:", admissionAssessmentFiles);
+
       setadmissionChecklistLink((prev) => ({
         ...prev,
         voluntaryAdmissionFormLink: patientData.patientAdmission.voluntaryAdmissionFormLink || [],
@@ -115,15 +191,16 @@ const AdmissionChecklist = () => {
         inVoluntaryAdmissionFormLink:
           patientData.patientAdmission.inVoluntaryAdmissionFormLink || [],
         minorAdmissionFormLink: patientData.patientAdmission.minorAdmissionFormLink || [],
-        form90Link: patientData.patientAdmission.form90Link || [],
         familyDeclarationLink: patientData.patientAdmission.familyDeclarationLink || [],
         section94Link: patientData.patientAdmission.section94Link || [],
         capacityAssessmentLink: patientData.patientAdmission.capacityAssessmentLink || [],
+        // FIX: Use the resolved files
+        admissionAssessmentLink: admissionAssessmentFiles,
         hospitalGuidelineFormLink: patientData.patientAdmission.hospitalGuidelineFormLink || [],
         finacialCounsellingLink: patientData.patientAdmission.finacialCounsellingLink || [],
         insuredFileLink: patientData.patientAdmission.insuredFileLink || []
       }));
-      console.log(patientData.patientAdmission.isform90);
+
       setIsAdmissionChecklist((prevState) => ({
         ...prevState,
         isapplicationForAdmission: patientData.patientAdmission.isapplicationForAdmission || false,
@@ -131,10 +208,11 @@ const AdmissionChecklist = () => {
         isinVoluntaryAdmissionForm:
           patientData.patientAdmission.isinVoluntaryAdmissionForm || false,
         isminorAdmissionForm: patientData.patientAdmission.isminorAdmissionForm || false,
-        isform90: patientData.patientAdmission.isform90 ?? false,
         isfamilyDeclaration: patientData.patientAdmission.isfamilyDeclaration || false,
         issection94: patientData.patientAdmission.issection94 || false,
         iscapacityAssessment: patientData.patientAdmission.iscapacityAssessment || false,
+        // FIX: Set based on actual files
+        isadmissionAssessment: admissionAssessmentFiles.length > 0,
         ishospitalGuidelineForm: patientData.patientAdmission.ishospitalGuidelineForm || false,
         isfinacialCounselling: patientData.patientAdmission.isfinacialCounselling || false
       }));
@@ -143,8 +221,28 @@ const AdmissionChecklist = () => {
     setTimeout(() => {
       setState((prevState) => ({ ...prevState, init: true }));
     }, 1000);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [patientData.patientAdmission]); // FIX: Add dependency
+
+  // Add comprehensive debugging
+  useEffect(() => {
+    console.log("=== ADMISSION ASSESSMENT DEBUG ===");
+    console.log(
+      "patientData.admissionAssessment:",
+      patientData.patientAdmission.admissionAssessment
+    );
+    console.log(
+      "patientData.admissionAssessmentLink:",
+      patientData.patientAdmission.admissionAssessmentLink
+    );
+    console.log("state admissionAssessmentLink:", admissionChecklistLink.admissionAssessmentLink);
+    console.log("isAdmissionAssessment:", isAdmissionChecklist.isadmissionAssessment);
+    console.log("================================");
+  }, [
+    patientData.patientAdmission.admissionAssessment,
+    patientData.patientAdmission.admissionAssessmentLink,
+    admissionChecklistLink.admissionAssessmentLink,
+    isAdmissionChecklist.isadmissionAssessment
+  ]);
 
   useEffect(() => {
     window.scrollTo({ top: 0 });
@@ -171,13 +269,23 @@ const AdmissionChecklist = () => {
   const handleCheckForAdmissionChecklist = (e: SyntheticEvent, name: string) => {
     const { checked } = e.target as HTMLInputElement;
     const names = name.startsWith("is") ? name.slice(2) : name;
+
+    console.log(`🔄 Checkbox ${name} changed to:`, checked);
+    console.log(`🔄 Corresponding files key: ${names}Link`);
+    console.log(
+      `🔄 Current files:`,
+      admissionChecklistLink[`${names}Link` as keyof typeof admissionChecklistLink]
+    );
+
     setIsAdmissionChecklist((prevState) => {
       if (checked) {
         return { ...prevState, [name]: true };
       } else {
+        // Remove files when unchecked
         setadmissionChecklistRemove((prev) => ({
           ...prev,
           [names]: [
+            ...(prev[names as keyof typeof prev] || []),
             ...(
               admissionChecklistLink[`${names}Link` as keyof typeof admissionChecklistLink] || []
             ).map(({ filePath }: { filePath: string }) => filePath)
@@ -198,7 +306,6 @@ const AdmissionChecklist = () => {
       }
     });
 
-    // Ensure state changes trigger form modification tracking
     if (!stepperData.discardModal.isFormChanged) {
       dispatch(setDiscardModal({ isFormChanged: true }));
     }
@@ -248,6 +355,7 @@ const AdmissionChecklist = () => {
       return; // Exit if formData is empty
     }
     formData.append("type", "update");
+    // console.log('✌️formData --->', formData);
 
     return updateSinglePatinetAdmissionChecklist(formData, pid, aid);
   };
@@ -278,6 +386,7 @@ const AdmissionChecklist = () => {
           patientData.patientAdmission?.patientId,
           patientData.patientAdmission._id
         );
+        // console.log("✌️admissionReponse --->", admissionReponse);
         if (admissionReponse && admissionReponse.data.status === "success") {
           setadmissionChecklistLink((prev) => ({
             ...prev,
@@ -289,12 +398,13 @@ const AdmissionChecklist = () => {
               admissionReponse?.data?.data?.admissionChecklist?.inVoluntaryAdmissionForm,
             minorAdmissionFormLink:
               admissionReponse?.data?.data?.admissionChecklist?.minorAdmissionForm,
-            form90Link: admissionReponse?.data?.data?.admissionChecklist?.form90,
             familyDeclarationLink:
               admissionReponse?.data?.data?.admissionChecklist?.familyDeclaration,
             section94Link: admissionReponse?.data?.data?.admissionChecklist?.section94,
             capacityAssessmentLink:
               admissionReponse?.data?.data?.admissionChecklist?.capacityAssessment,
+            admissionAssessmentLink:
+              admissionReponse?.data?.data?.admissionChecklist?.admissionAssessment,
             hospitalGuidelineFormLink:
               admissionReponse?.data?.data?.admissionChecklist?.hospitalGuidelineForm,
             finacialCounsellingLink:
@@ -318,9 +428,6 @@ const AdmissionChecklist = () => {
               ?.minorAdmissionForm?.length
               ? true
               : false,
-            isform90: admissionReponse?.data?.data?.admissionChecklist?.form90?.length
-              ? true
-              : false,
             isfamilyDeclaration: admissionReponse?.data?.data?.admissionChecklist?.familyDeclaration
               ?.length
               ? true
@@ -330,6 +437,10 @@ const AdmissionChecklist = () => {
               : false,
             iscapacityAssessment: admissionReponse?.data?.data?.admissionChecklist
               ?.capacityAssessment?.length
+              ? true
+              : false,
+            isadmissionAssessment: admissionReponse?.data?.data?.admissionChecklist
+              ?.admissionAssessment?.length
               ? true
               : false,
             ishospitalGuidelineForm: admissionReponse?.data?.data?.admissionChecklist
@@ -346,12 +457,12 @@ const AdmissionChecklist = () => {
             applicationForAdmission: [],
             inVoluntaryAdmissionForm: [],
             minorAdmissionForm: [],
-            form90: [],
             familyDeclaration: [],
             section94: [],
             capacityAssessment: [],
             hospitalGuidelineForm: [],
             finacialCounselling: [],
+            admissionAssessment: [],
             insuredFile: []
           });
 
@@ -375,9 +486,6 @@ const AdmissionChecklist = () => {
                 ?.minorAdmissionForm?.length
                 ? true
                 : false,
-              isform90: admissionReponse?.data?.data?.admissionChecklist?.form90?.length
-                ? true
-                : false,
               isfamilyDeclaration: admissionReponse?.data?.data?.admissionChecklist
                 ?.familyDeclaration?.length
                 ? true
@@ -387,6 +495,10 @@ const AdmissionChecklist = () => {
                 : false,
               iscapacityAssessment: admissionReponse?.data?.data?.admissionChecklist
                 ?.capacityAssessment?.length
+                ? true
+                : false,
+              isadmissionAssessment: admissionReponse?.data?.data?.admissionChecklist
+                ?.admissionAssessment?.length
                 ? true
                 : false,
               ishospitalGuidelineForm: admissionReponse?.data?.data?.admissionChecklist
@@ -418,12 +530,13 @@ const AdmissionChecklist = () => {
                 admissionReponse?.data?.data?.admissionChecklist?.inVoluntaryAdmissionForm,
               minorAdmissionFormLink:
                 admissionReponse?.data?.data?.admissionChecklist?.minorAdmissionForm,
-              form90Link: admissionReponse?.data?.data?.admissionChecklist?.form90,
               familyDeclarationLink:
                 admissionReponse?.data?.data?.admissionChecklist?.familyDeclaration,
               section94Link: admissionReponse?.data?.data?.admissionChecklist?.section94,
               capacityAssessmentLink:
                 admissionReponse?.data?.data?.admissionChecklist?.capacityAssessment,
+              admissionAssessmentLink:
+                admissionReponse?.data?.data?.admissionChecklist?.admissionAssessment,
               hospitalGuidelineFormLink:
                 admissionReponse?.data?.data?.admissionChecklist?.hospitalGuidelineForm,
               finacialCounsellingLink:
@@ -445,13 +558,13 @@ const AdmissionChecklist = () => {
             applicationForAdmission: [],
             inVoluntaryAdmissionForm: [],
             minorAdmissionForm: [],
-            form90: [],
             familyDeclaration: [],
             section94: [],
             capacityAssessment: [],
             hospitalGuidelineForm: [],
             finacialCounselling: [],
-            insuredFile: []
+            insuredFile: [],
+            admissionAssessment: []
           });
           setadmissionChecklistLink((prev) => ({
             ...prev,
@@ -462,10 +575,10 @@ const AdmissionChecklist = () => {
             inVoluntaryAdmissionFormLink:
               delteData?.data?.data?.admissionChecklist?.inVoluntaryAdmissionForm,
             minorAdmissionFormLink: delteData?.data?.data?.admissionChecklist?.minorAdmissionForm,
-            form90Link: delteData?.data?.data?.admissionChecklist?.form90,
             familyDeclarationLink: delteData?.data?.data?.admissionChecklist?.familyDeclaration,
             section94Link: delteData?.data?.data?.admissionChecklist?.section94,
             capacityAssessmentLink: delteData?.data?.data?.admissionChecklist?.capacityAssessment,
+            admissionAssessmentLink: delteData?.data?.data?.admissionChecklist?.admissionAssessment,
             hospitalGuidelineFormLink:
               delteData?.data?.data?.admissionChecklist?.hospitalGuidelineForm,
             finacialCounsellingLink: delteData?.data?.data?.admissionChecklist?.finacialCounselling,
@@ -488,7 +601,6 @@ const AdmissionChecklist = () => {
               ?.length
               ? true
               : false,
-            isform90: delteData?.data?.data?.admissionChecklist?.form90?.length ? true : false,
             isfamilyDeclaration: delteData?.data?.data?.admissionChecklist?.familyDeclaration
               ?.length
               ? true
@@ -497,6 +609,10 @@ const AdmissionChecklist = () => {
               ? true
               : false,
             iscapacityAssessment: delteData?.data?.data?.admissionChecklist?.capacityAssessment
+              ?.length
+              ? true
+              : false,
+            isadmissionAssessment: delteData?.data?.data?.admissionChecklist?.admissionAssessment
               ?.length
               ? true
               : false,
@@ -542,7 +658,6 @@ const AdmissionChecklist = () => {
                 ?.length
                 ? true
                 : false,
-              isform90: delteData?.data?.data?.admissionChecklist?.form90?.length ? true : false,
               isfamilyDeclaration: delteData?.data?.data?.admissionChecklist?.familyDeclaration
                 ?.length
                 ? true
@@ -551,6 +666,10 @@ const AdmissionChecklist = () => {
                 ? true
                 : false,
               iscapacityAssessment: delteData?.data?.data?.admissionChecklist?.capacityAssessment
+                ?.length
+                ? true
+                : false,
+              isadmissionAssessment: delteData?.data?.data?.admissionChecklist?.admissionAssessment
                 ?.length
                 ? true
                 : false,
@@ -569,10 +688,11 @@ const AdmissionChecklist = () => {
               inVoluntaryAdmissionFormLink:
                 delteData?.data?.data?.admissionChecklist?.inVoluntaryAdmissionForm,
               minorAdmissionFormLink: delteData?.data?.data?.admissionChecklist?.minorAdmissionForm,
-              form90Link: delteData?.data?.data?.admissionChecklist?.form90,
               familyDeclarationLink: delteData?.data?.data?.admissionChecklist?.familyDeclaration,
               section94Link: delteData?.data?.data?.admissionChecklist?.section94,
               capacityAssessmentLink: delteData?.data?.data?.admissionChecklist?.capacityAssessment,
+              admissionAssessmentLink:
+                delteData?.data?.data?.admissionChecklist?.admissionAssessment,
               hospitalGuidelineFormLink:
                 delteData?.data?.data?.admissionChecklist?.hospitalGuidelineForm,
               finacialCounsellingLink:

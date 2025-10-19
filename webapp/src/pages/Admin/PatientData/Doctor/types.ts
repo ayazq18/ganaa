@@ -78,38 +78,6 @@ export interface IDoctorPrescrition {
   ];
 }
 
-export interface IDoctorPrescritionRivison {
-  createdAt: string;
-  patientId: string;
-  _id: string;
-  patientAdmissionHistoryId: string;
-  noteDateTime: string;
-  doctorId: { firstName: string; _id: string; lastName: string };
-  medicinesInfo: [
-    {
-      customDuration: string;
-      medicine: {
-        createdAt: string;
-        dosage: string[];
-        genericName: string;
-        name: string;
-        _id: string;
-      };
-      durationFrequency: string;
-      prescribedWhen: string;
-      instructions: string;
-      usages: [
-        {
-          frequency: string;
-          quantity: number;
-          when: string;
-          dosage: string;
-        }
-      ];
-    }
-  ];
-}
-
 export interface IFrequency {
   frequency: string;
   quantity: number;

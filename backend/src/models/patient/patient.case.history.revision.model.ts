@@ -65,7 +65,6 @@ const patientCaseHistoryRevisionSchema = new mongoose.Schema<IPatientCaseHistory
     perpetuating: String,
     precipitatingFactors: String,
     impactOfPresentIllness: String,
-    historyOfPresentIllness: String,
     negativeHistory: String,
     pastPsychiatricHistory: String,
     pastPsychiatricTreatmentHistory: String,
@@ -225,10 +224,6 @@ const patientCaseHistoryRevisionSchema = new mongoose.Schema<IPatientCaseHistory
     psychologicalAssessments: String,
     investigations: String,
   },
-  genogram: {
-    fileName: String,
-    filePath: String,
-  },
 
   createdBy: {
     _id: mongoose.Schema.Types.ObjectId,
@@ -239,7 +234,6 @@ const patientCaseHistoryRevisionSchema = new mongoose.Schema<IPatientCaseHistory
     firstName: String,
     lastName: String,
   },
-
   updatedBy: {
     _id: mongoose.Schema.Types.ObjectId,
     roleId: {

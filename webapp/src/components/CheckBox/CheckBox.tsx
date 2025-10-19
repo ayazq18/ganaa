@@ -6,7 +6,6 @@ import classNames from "classnames";
 
 const CheckBox = ({
   checked,
-  disable,
   view,
   ContainerClass,
   boxClass,
@@ -15,7 +14,6 @@ const CheckBox = ({
   value,
   imageDrop = true,
   name,
-  accept = "application/pdf",
   label,
   checkHide = false,
   handleCheck,
@@ -23,13 +21,11 @@ const CheckBox = ({
   handleDeletes
 }: {
   view?: string;
-  disable?: boolean;
   checkHide?: boolean;
   checked: boolean;
   imageDrop?: boolean;
   ContainerClass?: string;
   boxClass?: string;
-  accept?: string;
   value?: string;
   files?: File[];
   filesString?: { filePath: string; fileUrl: string; fileName?: string }[];
@@ -83,12 +79,11 @@ const CheckBox = ({
               <img src={file} alt="file" className="w-full h-full" />
             </div>
             <AppDropZone
-              disabled={!checked||disable}
+              disabled={!checked}
               onDrop={(files) => {
                 handleDrop(files, name);
               }}
-              
-              accept={accept}
+              accept="application/pdf"
             >
               <div>
                 <p className="font-semibold text-[13px]">

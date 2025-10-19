@@ -16,7 +16,6 @@ export interface IDailyProgressState {
   TestReportName: string;
   historyId: string;
   gender: string;
-  age: string;
 }
 
 export interface IUsages {

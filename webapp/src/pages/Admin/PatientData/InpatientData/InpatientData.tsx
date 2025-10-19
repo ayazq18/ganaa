@@ -29,13 +29,10 @@ import { RESOURCES } from "@/constants/resources";
 import { convertDate } from "@/components/BasicDetaills/utils";
 import { RBACGuardArray } from "@/components/RBACGuard/RBACGuardArray";
 import { useAuth } from "@/providers/AuthProvider";
-import toast from "react-hot-toast";
-import { LuFileText } from "react-icons/lu";
-import Filtered from "@/components/Filtered/Filtered";
-import { FaRegUser } from "react-icons/fa";
 // import { ShimmerTable } from "react-shimmer-effects";
 
 const InpatientData = () => {
+  const [selected, setSelected] = useState("All");
   const [searchParams] = useSearchParams();
 
   const dispatch = useDispatch();
@@ -43,12 +40,6 @@ const InpatientData = () => {
   const navigate = useNavigate();
 
   const { auth } = useAuth();
-
-  const [previousTreatMentRecord, setPreviousTreatMentRecord] = useState<
-    { filePath: string; fileUrl: string; fileName?: string }[]
-  >([]);
-
-  const [displayModal, setDisplayModal] = useState<boolean>(false);
 
   const menuRef = useRef<HTMLDivElement | null>(null);
   const controllerRef = useRef<AbortController | null>(null);
@@ -77,8 +68,7 @@ const InpatientData = () => {
 
   const fetchAllPatient = async () => {
     let centers;
-    const selected = searchParams.get("filter") || "All";
-    if (selected === "All" || selected) {
+    if (selected==="All" || selected) {
       centers = auth.user.centerId.map((data: { _id: string }) => data._id);
       if (centers.length <= 0) navigate("/");
     } else {
@@ -99,17 +89,6 @@ const InpatientData = () => {
         page: currentPage,
         status: "Inpatient,Discharge Initiated",
         centers: centers.join(","),
-        ...(searchParams.get("admissionType") && {
-          admissionType: searchParams.get("admissionType")
-        }),
-        ...(searchParams.get("illnessType") && { illnessType: searchParams.get("illnessType") }),
-        ...(searchParams.get("gender") && { gender: searchParams.get("gender") }),
-        ...(searchParams.get("hyperTension") && { hyperTension: searchParams.get("hyperTension") }),
-        ...(searchParams.get("heartDisease") && { heartDisease: searchParams.get("heartDisease") }),
-        ...(searchParams.get("levelOfRisk") && { levelOfRisk: searchParams.get("levelOfRisk") }),
-        ...(searchParams.get("leadType") && {
-          leadType: searchParams.get("leadType")
-        }),
         ...(searchParams.get("search") && { searchField: "firstName,lastName" }),
         ...(searchParams.get("search") && { term: searchParams.get("search")?.trim() })
       });
@@ -132,8 +111,7 @@ const InpatientData = () => {
   };
   const fetchAllPatientFilter = async () => {
     let centers;
-    const selected = searchParams.get("filter") || "All";
-    if (selected === "All" || !selected) {
+    if (selected==="All" || !selected) {
       centers = auth.user.centerId.map((data: { _id: string }) => data._id);
       if (centers.length <= 0) navigate("/");
     } else {
@@ -149,17 +127,6 @@ const InpatientData = () => {
         page: currentPage,
         status: "Inpatient,Discharge Initiated",
         centers: centers.join(","),
-        ...(searchParams.get("admissionType") && {
-          admissionType: searchParams.get("admissionType")
-        }),
-        ...(searchParams.get("illnessType") && { illnessType: searchParams.get("illnessType") }),
-        ...(searchParams.get("gender") && { gender: searchParams.get("gender") }),
-        ...(searchParams.get("hyperTension") && { hyperTension: searchParams.get("hyperTension") }),
-        ...(searchParams.get("heartDisease") && { heartDisease: searchParams.get("heartDisease") }),
-        ...(searchParams.get("levelOfRisk") && { levelOfRisk: searchParams.get("levelOfRisk") }),
-        ...(searchParams.get("leadType") && {
-          leadType: searchParams.get("leadType")
-        }),
         ...(searchParams.get("search") && { searchField: "firstName,lastName" }),
         ...(searchParams.get("search") && { term: searchParams.get("search")?.trim() })
       });
@@ -178,23 +145,11 @@ const InpatientData = () => {
   useEffect(() => {
     fetchAllPatientFilter();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    searchParams.get("page"),
-    searchParams.get("sort"),
-    searchParams.get("filter"),
-    searchParams.get("gender"),
-    searchParams.get("admissionType"),
-    searchParams.get("illnessType"),
-    searchParams.get("hyperTension"),
-    searchParams.get("heartDisease"),
-    searchParams.get("levelOfRisk"),
-    searchParams.get("leadType")
-  ]);
+  }, [searchParams.get("page"), searchParams.get("sort"), selected]);
 
   useEffect(() => {
     let centers;
-    const selected = searchParams.get("filter") || "All";
-    if (selected === "All" || !selected) {
+    if (selected==="All" || !selected) {
       centers = auth.user.centerId.map((data) => data._id);
       if (centers.length <= 0) navigate("/");
     } else {
@@ -224,25 +179,6 @@ const InpatientData = () => {
             page: currentPage,
             status: "Inpatient,Discharge Initiated",
             centers: centers.join(","),
-            ...(searchParams.get("admissionType") && {
-              admissionType: searchParams.get("admissionType")
-            }),
-            ...(searchParams.get("illnessType") && {
-              illnessType: searchParams.get("illnessType")
-            }),
-            ...(searchParams.get("gender") && { gender: searchParams.get("gender") }),
-            ...(searchParams.get("hyperTension") && {
-              hyperTension: searchParams.get("hyperTension")
-            }),
-            ...(searchParams.get("heartDisease") && {
-              heartDisease: searchParams.get("heartDisease")
-            }),
-            ...(searchParams.get("levelOfRisk") && {
-              levelOfRisk: searchParams.get("levelOfRisk")
-            }),
-            ...(searchParams.get("leadType") && {
-              leadType: searchParams.get("leadType")
-            }),
             ...(searchParams.get("search") && { searchField: "firstName,lastName" }),
             ...(searchParams.get("search") && { term: searchParams.get("search")?.trim() })
           },
@@ -389,8 +325,7 @@ const InpatientData = () => {
                   { title: "UHID", value: "uhid" }
                 ]}
               />
-              <Filtered />
-              <Filter />
+              <Filter selected={selected} setSelected={setSelected} />
             </div>
           </div>
 
@@ -570,72 +505,6 @@ const InpatientData = () => {
                                   } overflow-hidden shadow-[0px_0px_20px_#00000017] mt-2 w-fit bg-white border border-gray-300 rounded-xl z-10 flex items-center justify-center`}
                                 >
                                   <div className="p-2  text-nowrap whitespace-nowrap gap-2 flex-col flex justify-center items-start bg-white shadow-lg rounded-lg w-fit">
-                                    {patient?.patientHistory?.patientReport?.previousTreatmentRecord
-                                      ?.length > 0 ? (
-                                      <div
-                                        onClick={() => {
-                                          setPreviousTreatMentRecord(
-                                            patient?.patientHistory?.patientReport
-                                              ?.previousTreatmentRecord
-                                          );
-                                          setDisplayModal(true);
-                                        }}
-                                        className="text-xs font-semibold cursor-pointer p-2 text-nowrap whitespace-nowrap"
-                                      >
-                                        <div className="flex items-center gap-2 cursor-pointer">
-                                          <div className="bg-gray-200 rounded-full p-2 w-7 h-7 flex items-center justify-center ">
-                                            <LuFileText />
-                                          </div>
-                                          <div>
-                                            <p className="">View Test Report</p>
-                                            <p className="text-xs text-[#636363]">
-                                              Check Test Report
-                                            </p>
-                                          </div>
-                                        </div>
-                                      </div>
-                                    ) : (
-                                      <div
-                                        onClick={() => {
-                                          toast.error("No Medical Record Found");
-                                        }}
-                                        className="text-xs font-semibold cursor-pointer p-2 text-nowrap whitespace-nowrap"
-                                      >
-                                        <div className="flex items-center gap-2 cursor-pointer">
-                                          <div className="bg-gray-200 rounded-full p-2 w-7 h-7 flex items-center justify-center ">
-                                            <LuFileText />
-                                          </div>
-                                          <div>
-                                            <p className="">View Test Report</p>
-                                            <p className="text-xs text-[#636363]">
-                                              Check Test Report
-                                            </p>
-                                          </div>
-                                        </div>
-                                      </div>
-                                    )}
-                                    <hr className="w-full" />
-
-                                    {patient?.patientHistory?.currentStatus != "Discharged" && (
-                                      <Link
-                                        to={`/admin/patients/all-patient/${patient?._id}/profile/${patient?.patientHistory?._id}`}
-                                        className="text-xs cursor-pointer font-semibold p-2 "
-                                      >
-                                        <div className="flex items-center gap-2">
-                                          <div className="bg-gray-200 rounded-full p-2 w-7 h-7 flex items-center justify-center ">
-                                            <FaRegUser />
-                                          </div>
-                                          <div>
-                                            <p>View Profile</p>
-                                            <p className="text-xs text-[#636363]">
-                                              Check patient details
-                                            </p>
-                                          </div>
-                                        </div>
-                                      </Link>
-                                    )}
-                                    <hr className="w-full" />
-
                                     <RBACGuard resource={RESOURCES.NEW_REGISTRATION} action="write">
                                       <>
                                         <div className="text-xs font-semibold cursor-pointer p-2 text-nowrap whitespace-nowrap">
@@ -901,52 +770,6 @@ const InpatientData = () => {
                   Next
                 </button>
               </RBACGuard>
-            </div>
-          </div>
-        </div>
-      </Modal>
-      <Modal
-        crossIcon
-        isOpen={displayModal}
-        toggleModal={() => {
-          setDisplayModal(!displayModal);
-        }}
-      >
-        <div className="relative w-md  bg-white  shadow-lg  ">
-          <div className="relative  rounded-lg">
-            <div className="flex items-center justify-between p-4 border-b border-gray-200 rounded-t">
-              <h3 className="text-lg font-semibold text-gray-900">Medical Reports</h3>
-              {/* <button
-                type="button"
-                onClick={() => {
-                  setDisplayModal(!displayModal);
-                }}
-                className="text-black cursor-pointer white-black hover:text-gray-900 rounded-lg text-sm h-8 w-8 inline-flex justify-center items-center"
-              >
-                Close
-              </button> */}
-            </div>
-
-            <div className="p-4 max-h-[400px] overflow-y-auto ">
-              {previousTreatMentRecord.map(
-                (value: { filePath: string; fileUrl: string; fileName?: string }, index) => (
-                  <div key={index} className="mb-6">
-                    {/* <h2 className="text-lg font-bold text-gray-800 mb-3">File {index + 1}</h2> */}
-                    <ul>
-                      <li className="flex items-center justify-between py-2 px-4 bg-gray-100 rounded-lg mb-2">
-                        <div className="text-gray-700 text-sm">
-                          {value?.fileName ? value?.fileName : "File"}
-                        </div>
-                        <a href={value.fileUrl} target="_blank">
-                          <button className="bg-[#575F4A] cursor-pointer text-white py-1 px-3 rounded-lg text-sm">
-                            View
-                          </button>
-                        </a>
-                      </li>
-                    </ul>
-                  </div>
-                )
-              )}
             </div>
           </div>
         </div>

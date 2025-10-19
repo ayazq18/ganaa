@@ -16,7 +16,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         {
           _id: "",
           centerName: "",
-          googleMapLink: "",
+          centerUID: "",
           createdAt: ""
         }
       ],
@@ -86,7 +86,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           {
             _id: "",
             centerName: "",
-            googleMapLink: "",
+            centerUID: "",
             createdAt: ""
           }
         ],

@@ -4,10 +4,6 @@ import {
   Home,
   Lead,
   Admin,
-  User,
-  Dashboard,
-  Center,
-  Allergy,
   Error,
   Login,
   Family,
@@ -48,6 +44,7 @@ import {
 } from "@/pages";
 import { RouteItem } from "@/router/type";
 import { RESOURCES, ROUTES } from "@/constants/resources";
+import PatientFollowUp from "@/pages/Admin/PatientData/FollowUp/PatientFollowUp";
 
 export const routes: RouteItem[] = [
   {
@@ -60,30 +57,6 @@ export const routes: RouteItem[] = [
         element: <Admin />,
         children: [
           { path: ROUTES.HOME, element: <Welcome /> },
-          { path: ROUTES.CHANGE_PASSWORD, element: <ChangePassword /> },
-
-          {
-            path: ROUTES.DASHBOARD,
-            element: <Dashboard />,
-            children: [
-              {
-                path: "center",
-                element: <Center />
-              },
-              {
-                path: "center/:centerId",
-                element: <Center />
-              },
-              {
-                path: "allergy-medicine",
-                element: <Allergy />
-              },
-              {
-                path: "user",
-                element: <User />
-              }
-            ]
-          },
           {
             path: ROUTES.WEEKLY_REPORT,
             element: <WeeklyReport />,
@@ -107,6 +80,7 @@ export const routes: RouteItem[] = [
           { path: ROUTES.DAILY_REPORT, element: <DailyReport />, resource: RESOURCES.DAILY_REPORT },
           { path: ROUTES.REPORTS, element: <Reports /> },
           { path: ROUTES.INSIGHTS, element: <Insights />, resource: RESOURCES.INSIGHTS },
+
           {
             path: ROUTES.PATIENT,
             element: <PatientData />,
@@ -115,6 +89,11 @@ export const routes: RouteItem[] = [
                 path: ROUTES.ALL_PATIENT,
                 element: <AllPatientData />,
                 resource: RESOURCES.ALL_PATIENT
+              },
+              {
+                path: ROUTES.PATIENT_FOLLOWUP,
+                element: <PatientFollowUp />,
+                resource: RESOURCES.DOCOTOR_NOTES
               },
               {
                 path: ROUTES.IN_PATIENT,

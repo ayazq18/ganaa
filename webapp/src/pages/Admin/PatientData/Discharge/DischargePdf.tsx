@@ -140,18 +140,14 @@ const DischargeSummaryPdf = ({
           },
 
           patientDetails.admissionType && [
-            { text: "Admission Type", style: "sectionHeader" },
+            { text: "Diagnosis", style: "sectionHeader" },
             {
               table: {
                 widths: ["100%"],
                 body: [
                   [
                     {
-                      text: `${patientDetails.admissionType} ${
-                        patientDetails.involuntaryAdmissionType
-                          ? `- ${patientDetails.involuntaryAdmissionType}`
-                          : ""
-                      }`,
+                      text: patientDetails.admissionType,
                       margin: [5, 5, 5, 5],
                       fontSize: 11,
                       alignment: "left"
@@ -309,7 +305,7 @@ const DischargeSummaryPdf = ({
                     style: "tableContent"
                   },
                   {
-                    text: data?.customDuration && data?.durationFrequency === "Custom Date"
+                    text: data?.customDuration
                       ? data.customDuration
                           .split("|")
                           .map((d: any) => moment(d).format("D MMMM"))
@@ -317,15 +313,13 @@ const DischargeSummaryPdf = ({
                       : data?.durationFrequency?.label || "-",
                     style: "tableContent"
                   },
-                  { text: data?.instructions || "-", style: "tableContent" }
+                  { text: data?.instruction || "-", style: "tableContent" }
                 ])
               ]
             },
-
             margin: [0, 0, 0, 10],
             layout: {
-              
-              fillColor: (rowIndex: number) => (rowIndex === 0 ? "#e0e0e0" : null)
+              fillColor: (rowIndex: number) => (rowIndex === 0 ? "#ecfab1" : null)
             }
           },
 
@@ -405,10 +399,6 @@ const DischargeSummaryPdf = ({
         styles: {
           header: {
             fontSize: 20,
-            bold: true
-          },
-          tableHeader:{
-             fontSize: 14,
             bold: true
           },
           tableContent: {

@@ -1,8 +1,6 @@
 import multer from 'multer';
 import mongoose, { ObjectId } from 'mongoose';
 import { Response, NextFunction } from 'express';
-import Lead from '../../models/lead.model';
-import Role from '../../models/role.model';
 import * as S3 from '../../utils/s3Helper';
 import User from '../../models/user.model';
 import AppError from '../../utils/appError';
@@ -28,13 +26,37 @@ import { IPatientRevision } from '../../interfaces/model/patient/i.patient.revis
 import { IPatientDischarge } from '../../interfaces/model/patient/i.patient.discharge';
 import PatientAdmissionHistory from '../../models/patient/patient.admission.history.model';
 
-const upload = multer({
+// const upload = multer({
+//   storage: multer.memoryStorage(),
+//   limits: { fileSize: 2 * 1024 * 1024 },
+//   fileFilter: MFileFilter.imageFilter,
+// });
+
+// const uploadFile = multer({
+//   storage: multer.memoryStorage(),
+//   limits: { fileSize: 2 * 1024 * 1024 },
+//   fileFilter: MFileFilter.pdfFilter,
+// });
+
+// export const uploadPatientPic = upload.single('patientPic');
+// export const idProof = uploadFile.single('idProof');
+
+export const uploadPatientFiles = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 2 * 1024 * 1024 },
-  fileFilter: MFileFilter.imageFilter,
-});
-
-export const uploadPatientPic = upload.single('patientPic');
+  fileFilter: (req, file, cb) => {
+    if (file.fieldname === 'patientPic') {
+      return MFileFilter.imageFilter(req, file, cb);
+    }
+    if (file.fieldname === 'idProof') {
+      return MFileFilter.pdfFilter(req, file, cb);
+    }
+    cb(null, false);
+  },
+}).fields([
+  { name: 'patientPic', maxCount: 1 },
+  { name: 'idProof', maxCount: 5 },
+]);
 
 /**
  * Controllers
@@ -55,12 +77,6 @@ export const getAllPatient = catchAsync(
     if (req.query.isStatusAndFilterQuery) delete req.query.isStatusAndFilterQuery;
     if (req.query.status) delete req.query.status;
     if (req.query.centers) delete req.query.centers;
-    if (req.query.admissionType) delete req.query.admissionType;
-    if (req.query.illnessType) delete req.query.illnessType;
-    if (req.query.hyperTension) delete req.query.hyperTension;
-    if (req.query.heartDisease) delete req.query.heartDisease;
-    if (req.query.levelOfRisk) delete req.query.levelOfRisk;
-    if (req.query.leadType) delete req.query.leadType;
 
     let onlyPatient = false;
     if (req.query.onlyPatient && req.query.onlyPatient === 'true') {
@@ -169,14 +185,40 @@ export const createNewPatient = catchAsync(
     req.body.createdBy = req.user?._id;
     const data = await Patient.create(req.body);
 
-    if (req.file) {
-      const fileName = `${Date.now()}-${random.randomAlphaNumeric(6)}-${req.file?.originalname}`;
+    const files = req.files as { [fieldname: string]: Express.Multer.File[] } | undefined;
+    const patientPic = files?.['patientPic']?.[0];
+    const idProofFiles = files?.['idProof'] || [];
+
+    const idProofPaths: string[] = [];
+    const idProofNames: string[] = [];
+
+    if (patientPic) {
+      const fileName = `${Date.now()}-${random.randomAlphaNumeric(6)}-${patientPic?.originalname}`;
       const filePath = S3Path.patientPic(data._id?.toString() ?? '', fileName);
 
-      await S3.uploadFile(filePath, req.file?.buffer, req.file?.mimetype);
+      await S3.uploadFile(filePath, patientPic?.buffer, patientPic?.mimetype);
       await Patient.findByIdAndUpdate(data._id, {
         patientPic: filePath,
         patientPicFileName: fileName,
+        updatedBy: req.user?._id,
+      });
+    }
+
+    for (const file of idProofFiles) {
+      const fileName = `${Date.now()}-${random.randomAlphaNumeric(6)}-${file.originalname}`;
+      const filePath = S3Path.idProof(data._id?.toString() ?? '', fileName);
+
+      await S3.uploadFile(filePath, file.buffer, file.mimetype);
+      idProofPaths.push(filePath);
+      idProofNames.push(fileName);
+    }
+
+    if (idProofPaths.length > 0) {
+      await Patient.findByIdAndUpdate(data._id, {
+        $push: {
+          idProof: { $each: idProofPaths },
+          patientIdProofName: { $each: idProofNames },
+        },
         updatedBy: req.user?._id,
       });
     }
@@ -268,6 +310,8 @@ export const updateSinglePatient = catchAsync(
       'area',
       'patientPic',
       'patientPicFileName',
+      'idProof',
+      'patientIdProofName',
       'referredTypeId',
       'referralDetails',
       'education',
@@ -287,20 +331,48 @@ export const updateSinglePatient = catchAsync(
       if (check) return next(new AppError('Email address already registered', 400));
     }
 
-    if (req.file) {
-      const fileName = `${Date.now()}-${random.randomAlphaNumeric(6)}-${req.file?.originalname}`;
+    const files = req.files as { [fieldname: string]: Express.Multer.File[] } | undefined;
+    const patientPic = files?.['patientPic']?.[0];
+    const idProofFiles = files?.['idProof'] || [];
+    console.log('idProofFiles: ', idProofFiles);
+
+    const idProofPaths: string[] = [];
+    const idProofNames: string[] = [];
+
+    if (patientPic) {
+      const fileName = `${Date.now()}-${random.randomAlphaNumeric(6)}-${patientPic?.originalname}`;
       const filePath = S3Path.patientPic(req.params.id ?? '', fileName);
 
-      await S3.uploadFile(filePath, req.file?.buffer, req.file?.mimetype);
+      await S3.uploadFile(filePath, patientPic?.buffer, patientPic?.mimetype);
       filterObj.patientPic = filePath;
       filterObj.patientPicFileName = fileName;
     }
 
+    
     const patientPreviousDoc = await Patient.findById(req.params.id).lean();
     if (!patientPreviousDoc) return next(new AppError('Please Provide Valid Patient ID', 400));
-
+    
     const data = await Patient.findByIdAndUpdate(req.params.id, filterObj, { new: true });
     if (!data) return next(new AppError('Please Provide Valid Patient ID', 400));
+    
+    for (const file of idProofFiles) {
+      const fileName = `${Date.now()}-${random.randomAlphaNumeric(6)}-${file.originalname}`;
+      const filePath = S3Path.idProof(data._id?.toString() ?? '', fileName);
+
+      await S3.uploadFile(filePath, file.buffer, file.mimetype);
+      idProofPaths.push(filePath);
+      idProofNames.push(fileName);
+    }
+
+    if (idProofPaths.length > 0) {
+      await Patient.findByIdAndUpdate(data._id, {
+        $push: {
+          idProof: { $each: idProofPaths },
+          patientIdProofName: { $each: idProofNames },
+        },
+        updatedBy: req.user?._id,
+      });
+    }
 
     const admissionHistoryMap = await PatientAdmissionHistory.getLatestPatientHistory([
       data._id as ObjectId,
@@ -474,12 +546,6 @@ export const getAllSinglePatientDailyProgress = catchAsync(
       }
     }
 
-    const therapistRoles = await Role.find({
-      name: { $in: ['Therapist', 'Therapist+AM'] }, // Add as many names as needed
-    }).select('_id');
-
-    const therapistRoleIds = therapistRoles.map((el) => el._id);
-
     const result = await NurseNotes.aggregate([
       { $match: matchStage },
       { $addFields: { docType: { $literal: 'nurse' } } },
@@ -487,10 +553,8 @@ export const getAllSinglePatientDailyProgress = catchAsync(
         $unionWith: {
           coll: Collections.therapistNote.d,
           pipeline: [
-            { $match: matchStage }, // existing match stage
+            { $match: matchStage },
             { $addFields: { docType: { $literal: 'therapist' } } },
-
-            // Lookup therapist details
             {
               $lookup: {
                 from: Collections.user.d,
@@ -500,15 +564,6 @@ export const getAllSinglePatientDailyProgress = catchAsync(
               },
             },
             { $unwind: { path: '$therapistId', preserveNullAndEmptyArrays: true } },
-
-            // ✅ Filter by therapist roles here
-            {
-              $match: {
-                'therapistId.roleId': { $in: therapistRoleIds },
-              },
-            },
-
-            // Project final output
             {
               $project: {
                 _id: 1,
@@ -822,9 +877,6 @@ const _buildPatientFilterQuery = async (queryObj: IBasicObj) => {
   let query: IBasicObj = {
     $and: [],
   };
-  let leadQuery: IBasicObj = {
-    $and: [],
-  };
 
   if (queryObj.hasOwnProperty('status') && queryObj.status !== 'All') {
     let status = (queryObj.status as string).split(',');
@@ -842,79 +894,10 @@ const _buildPatientFilterQuery = async (queryObj: IBasicObj) => {
     });
   }
 
-  // Admission Type Filter
-  if (queryObj.hasOwnProperty('admissionType')) {
-    let admissionTypes = queryObj.admissionType as string;
-    query['$and'].push({
-      admissionType: admissionTypes,
-    });
-  }
-  // Illness Type Filter
-  if (queryObj.hasOwnProperty('illnessType')) {
-    let illnessTypes = queryObj.illnessType as string;
-    query['$and'].push({
-      illnessType: illnessTypes,
-    });
-  }
-
-  // Hyper Tension Filter
-  if (queryObj.hasOwnProperty('hyperTension')) {
-    let hyperTensions = queryObj.hyperTension as string;
-    query['$and'].push({
-      'patientReport.hyperTension': hyperTensions,
-    });
-  }
-
-  // Heart Disease Filter
-  if (queryObj.hasOwnProperty('heartDisease')) {
-    let heartDiseases = queryObj.heartDisease as string;
-    query['$and'].push({
-      'patientReport.heartDisease': heartDiseases,
-    });
-  }
-
-  // Level Of Risk Filter
-  if (queryObj.hasOwnProperty('levelOfRisk')) {
-    let levelOfRisk = queryObj.levelOfRisk as string;
-    query['$and'].push({
-      'patientReport.levelOfRisk': levelOfRisk,
-    });
-  }
-
-  // New Lead / Old Lead
-  if (queryObj.hasOwnProperty('leadType')) {
-    let isNewLead = false;
-    if (queryObj.leadType === 'NEW') isNewLead = true;
-    if (queryObj.leadType === 'OLD') isNewLead = false;
-
-    const leadsIds = await Lead.find({
-      isNewLead: isNewLead,
-      patientId: { $exists: true, $ne: null },
-    })
-      .setOptions({
-        skipReferralTypePopulate: true,
-        skipCenterPopulate: true,
-      })
-      .select('patientId')
-      .lean();
-    const patientIds = Array.from(new Set(leadsIds.map((el) => el.patientId?.toString())));
-
-    query['$and'].push({
-      patientId: { $in: patientIds },
-    });
-  }
-
   if (Object.keys(query['$and']).length > 0) {
     const patientIds = await PatientAdmissionHistory.find(query)
       .setOptions({ skipResAllPopulate: true })
       .select('patientId resourceAllocation')
-      .setOptions({
-        skipResAllPopulate: true,
-        skipUrlGeneration: true,
-        populateUser: true,
-        populateFeedback: false,
-      })
-      .select('patientId')
       .sort('-_id')
       .lean();
 

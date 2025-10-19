@@ -1,6 +1,5 @@
 import mongoose, { ObjectId } from 'mongoose';
 import { IPatient } from './i.patient';
-import { IBasicFile } from '../../generics';
 import { IUser } from '../../../models/user.model';
 import { IRelationship } from '../dropdown/i.relationship';
 import { IPatientCaseHistory } from './i.patient.case.history';
@@ -159,7 +158,7 @@ export interface IHistoryOfPresentIllness {
   durationThisEpisode?: string;
   precipitatingFactors?: string;
   impactOfPresentIllness?: string;
-  historyOfPresentIllness?: string;
+
   negativeHistory?: string;
   pastPsychiatricHistory?: string;
   pastPsychiatricTreatmentHistory?: string;
@@ -194,7 +193,6 @@ export interface IPatientCaseHistoryRevision extends mongoose.Document {
   mentalStatusExamination?: IMentalStatusExamination;
   insight?: IInsight;
   diagnosticFormulation?: IDiagnosticFormulation;
-  genogram?: IBasicFile;
 
   updatedBy?: IUser;
   createdBy?: IUser;

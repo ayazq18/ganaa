@@ -31,6 +31,7 @@ interface IState {
 
 const PatientVitalsReport = () => {
   const navigate = useNavigate();
+  const [selected, setSelected] = useState("All");
   const { auth } = useAuth();
   const [data, setData] = useState<IData>();
   const [state, setState] = useState<IState>({
@@ -99,7 +100,7 @@ const PatientVitalsReport = () => {
   const fetchVitalReport = async () => {
     setState((prev) => ({ ...prev, loading: true }));
     let centers;
-const selected = searchParams.get("filter") || "All";
+
     if (selected === "All" || !selected) {
       centers = auth.user.centerId.map((data) => data._id);
       if (centers.length <= 0) navigate("/");
@@ -130,10 +131,10 @@ const selected = searchParams.get("filter") || "All";
 
   useEffect(() => {
     fetchVitalReport();
-  }, [searchParams]);
+  }, [searchParams, selected]);
 
   return (
-    <div className="bg-[#F4F2F0] pb-5 min-h-[calc(100vh-64px)]">
+    <div className="bg-[#F4F2F0] min-h-[calc(100vh-64px)]">
       <div className="w-[1246px]! mx-auto">
         <div className="flex justify-between py-5 items-end w-full">
           <div className="flex flex-col gap-2">
@@ -192,12 +193,12 @@ const selected = searchParams.get("filter") || "All";
                 </div>
               </div>
             </CustomCalendar>
-            <Filter />
+            <Filter selected={selected} setSelected={setSelected} />
           </div>
         </div>
         <div className="bg-white p-5  overflow-y-auto rounded-2xl">
           <div className=" font-sans rounded-xl text-[13px] leading-[18px] text-[#1a1a1a]">
-            <div className=" overflow-y-auto rounded-md">
+            <div className="max-h-[70vh] overflow-y-auto rounded-md">
               <table className="w-full border-collapse">
                 <thead className="sticky top-0 z-30 bg-[#CCB69E]">
                   <tr className="rounded-t-md border-b border-[#c7bfa7] bg-[#CCB69E] select-none">
@@ -534,7 +535,7 @@ const selected = searchParams.get("filter") || "All";
                 </th>
                 <th className="px-4 py-3 w-1/12 text-nowrap whitespace-nowrap">B.P (mm Hg)</th>
                 <th className="px-4 py-3 w-1/12 text-nowrap whitespace-nowrap"> Pulse (bpm)</th>
-                <th className="px-4 py-3 w-1/12 text-nowrap whitespace-nowrap">Temperature (°F)</th>
+                <th className="px-4 py-3 w-1/12 text-nowrap whitespace-nowrap">Temperature (°C)</th>
                 <th className="px-4 py-3 w-1/12 text-nowrap whitespace-nowrap">SPO2 (%)</th>
                 <th className="px-4 py-3 w-1/12 text-nowrap whitespace-nowrap">Weight (kg)</th>
                 <th className="px-4 py-3 w-1/12 text-nowrap whitespace-nowrap">RBS(mg/dl)</th>

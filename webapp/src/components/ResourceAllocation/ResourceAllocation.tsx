@@ -178,7 +178,7 @@ const ResourceAllocation = () => {
       }
 
       const { data } = await getAllUser({
-        roles: "therapist,Therapist+AM",
+        roles: "therapist",
         centerId: id,
         sort: "firstName"
       });

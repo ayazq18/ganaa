@@ -4,7 +4,7 @@ import Lead from '../models/lead.model';
 import User from '../models/user.model';
 import AppError from '../utils/appError';
 import catchAsync from '../utils/catchAsync';
-import Collections from '../constant/collections';
+import { ILead } from '../interfaces/model/i.lead';
 import { IBasicObj } from '../interfaces/generics';
 import Loa from '../models/daily-progress/loa.model';
 import Center from '../models/resources/center.model';
@@ -18,11 +18,15 @@ import PatientFeedback from '../models/patient/patient.feedback.model';
 import PatientDischarge from '../models/patient/patient.discharge.model';
 import GroupActivity from '../models/group-activity/group.activity.model';
 import TherapistNote from '../models/daily-progress/therapist.note.model';
+import { IPatientFeedback } from '../interfaces/model/patient/i.patient.feedback';
+import { IPatientDischarge } from '../interfaces/model/patient/i.patient.discharge';
 import { buildDailyResourceAllocation } from '../jobs/daily.resource.allocation.report';
 import PatientAdmissionHistory from '../models/patient/patient.admission.history.model';
 import DailyResourceAllocationReport from '../models/reports/daily.resource.report.model';
 import { ICenterInfo, IGenderCounts } from '../interfaces/controller/i.dashboard.controller';
+import { IPatientAdmissionHistory } from '../interfaces/model/patient/i.patient.admission.history';
 import PatientAdmissionHistoryRevision from '../models/patient/patient.admission.history.revision.model';
+import { IDailyResourceAllocationReportSchema } from '../interfaces/model/reports/i.daily.resource.report';
 
 export const insightDashboard = catchAsync(
   async (req: UserRequest, res: Response, next: NextFunction) => {
@@ -67,7 +71,9 @@ export const therapistDashboard = catchAsync(
     if (end.getTime() - start.getTime() > maxSpan)
       return next(new AppError('Date range cannot exceed 31 days', 400));
 
-    let patientHistoryQuery: IBasicObj = {};
+    let patientHistoryQuery: IBasicObj = {
+      currentStatus: { $in: ['Inpatient', 'Discharge Initiated'] },
+    };
     let therapistQuery: IBasicObj = {};
     if (req.query.centerId) {
       const centerId = (req.query.centerId as string).split(',');
@@ -77,25 +83,13 @@ export const therapistDashboard = catchAsync(
 
     // Get All Patients Data That are currently Admitted
     const patientAdmissionHistory = await PatientAdmissionHistory.find(patientHistoryQuery)
-      .select('patientId dateOfAdmission dischargeId')
-      .populate({ path: 'dischargeId', select: 'date' })
+      .select('patientId')
       .setOptions({
         skipUrlGeneration: true,
         skipResAllPopulate: false,
         populateUser: true,
         populateFeedback: true,
       });
-
-    const dischargeResult: any = {};
-    patientAdmissionHistory.forEach((admission: any) => {
-      const patientId = admission.patientId;
-      const start = admission.dateOfAdmission;
-      const end = admission.dischargeId?.date;
-
-      if (!dischargeResult[patientId]) dischargeResult[patientId] = [];
-      dischargeResult[patientId].push({ start, end });
-    });
-
     const inpatientIds = patientAdmissionHistory.map((el) => el.patientId?.toString()) as string[];
 
     const inPatientAdmissionIds = patientAdmissionHistory.map((el) =>
@@ -112,11 +106,9 @@ export const therapistDashboard = catchAsync(
     }));
 
     // Get All Users Which has Therapist Role
-    const therapistRoles = await Role.find({
-      name: { $in: ['Therapist', 'Therapist+AM'] }, // Add as many names as needed
-    }).select('_id');
+    const therapistRoles = await Role.find({ name: 'Therapist' }).select('_id');
+    const therapistRoleIds = therapistRoles.map((el) => el._id?.toString()) as string[];
 
-    const therapistRoleIds = therapistRoles.map((el) => el._id?.toString());
     const therapists = await User.find({
       roleId: { $in: therapistRoleIds },
       ...therapistQuery,
@@ -150,7 +142,6 @@ export const therapistDashboard = catchAsync(
         patients: patientsWithCenterField,
         therapists,
         loa,
-        dischargeResult,
         notes: notes,
       },
     });
@@ -176,7 +167,9 @@ export const doctorDashboard = catchAsync(
     if (end.getTime() - start.getTime() > maxSpan)
       return next(new AppError('Date range cannot exceed 31 days', 400));
 
-    let patientHistoryQuery: IBasicObj = {};
+    let patientHistoryQuery: IBasicObj = {
+      currentStatus: { $in: ['Inpatient', 'Discharge Initiated'] },
+    };
     let doctorsQuery: IBasicObj = {};
     if (req.query.centerId) {
       const centerId = (req.query.centerId as string).split(',');
@@ -186,24 +179,13 @@ export const doctorDashboard = catchAsync(
 
     // Get All Patients Data That are currently Admitted
     const patientAdmissionHistory = await PatientAdmissionHistory.find(patientHistoryQuery)
-      .select('patientId dateOfAdmission dischargeId')
-      .populate({ path: 'dischargeId', select: 'date' })
+      .select('patientId')
       .setOptions({
         skipUrlGeneration: true,
         skipResAllPopulate: false,
         populateUser: true,
         populateFeedback: true,
       });
-
-    const dischargeResult: any = {};
-    patientAdmissionHistory.forEach((admission: any) => {
-      const patientId = admission.patientId;
-      const start = admission.dateOfAdmission;
-      const end = admission.dischargeId?.date;
-
-      if (!dischargeResult[patientId]) dischargeResult[patientId] = [];
-      dischargeResult[patientId].push({ start, end });
-    });
     const inpatientIds = patientAdmissionHistory.map((el) => el.patientId?.toString()) as string[];
 
     const inPatientAdmissionIds = patientAdmissionHistory.map((el) =>
@@ -254,7 +236,6 @@ export const doctorDashboard = catchAsync(
         patients: patientsWithCenterField,
         loa,
         doctors,
-        dischargeResult,
         notes: notes,
       },
     });
@@ -317,226 +298,65 @@ export const dailyReportDashboard = catchAsync(
 export const weeklyReportDashboard = catchAsync(
   async (req: UserRequest, res: Response, next: NextFunction) => {
     const { year } = req.query;
-    if (!year) return next(new AppError('Year is required', 400));
+
+    if (!year) {
+      return next(new AppError('Year is required', 400));
+    }
 
     const selectedYear = parseInt(year as string);
-    if (isNaN(selectedYear)) return next(new AppError('Invalid Year', 400));
 
-    const allWeeks = getSundayBasedWeeksInYear(selectedYear);
+    if (isNaN(selectedYear)) {
+      return next(new AppError('Invalid Year', 400));
+    }
+
+    const allWeeks = getSundayBasedWeeksInYear(Number(year));
+
     const result: IBasicObj = {};
+    let weekIndex = 1;
 
-    const weeklyPromises = allWeeks.map(async (week, index) => {
+    for (const week of allWeeks) {
       const startDate = new Date(week.startDate);
+      startDate.setHours(0, 0, 0, 0);
+
       const endDate = new Date(week.endDate);
+      endDate.setHours(23, 59, 59, 999);
 
-      const previousDate = _getPreviousDate(startDate);
-      const startOfPreviousDate = new Date(previousDate);
-      const endOfPreviousDate = new Date(previousDate);
-      startOfPreviousDate.setHours(0, 0, 0, 0);
-      endOfPreviousDate.setHours(23, 59, 59, 999);
+      const allAdmissions = await PatientAdmissionHistory.find({
+        dateOfAdmission: { $gte: startDate, $lte: endDate },
+      }).lean();
 
-      const rollingDates = _getFourWeekRange(startDate, endDate);
+      const allLeads = await Lead.find({
+        leadDateTime: { $gte: startDate, $lte: endDate },
+      }).lean();
 
-      const [
-        totalAdmission,
-        totalNewAdmission,
-        totalDischarge,
-        totalLeadsGenerated,
-        leadsFromDigitalMarketing,
-        clientSatisfactionScoreObject,
-        activeClientsAtStartOfWeekObject,
-        fourWeekRollingAverageObject,
-        averageOccupancyObject,
-      ] = await Promise.all([
-        PatientAdmissionHistory.countDocuments({
-          dateOfAdmission: { $gte: startDate, $lte: endDate },
-        }),
-        Lead.countDocuments({
-          leadDateTime: { $gte: startDate, $lte: endDate },
-          isNewLead: true,
-          patientAdmissionHistoryId: { $exists: true, $ne: null },
-        }),
-        PatientDischarge.countDocuments({ date: { $gte: startDate, $lte: endDate } }),
-        Lead.countDocuments({ leadDateTime: { $gte: startDate, $lte: endDate } }),
-        Lead.countDocuments({
-          leadDateTime: { $gte: startDate, $lte: endDate },
-          leadType: 'Online',
-        }),
-        PatientFeedback.aggregate([
-          { $match: { createdAt: { $gte: startDate, $lte: endDate } } },
-          { $unwind: '$questionAnswer' },
-          {
-            $addFields: {
-              numericAnswer: {
-                $convert: {
-                  input: '$questionAnswer.answer',
-                  to: 'double',
-                  onError: null,
-                  onNull: null,
-                },
-              },
-            },
-          },
-          { $match: { numericAnswer: { $ne: null } } },
-          {
-            $group: {
-              _id: null,
-              averageFeedback: { $avg: '$numericAnswer' },
-            },
-          },
-        ]),
-        DailyResourceAllocationReport.aggregate([
-          { $match: { date: { $gte: startOfPreviousDate, $lte: endOfPreviousDate } } },
-          { $unwind: '$reports' },
-          { $unwind: '$reports.roomTypes' },
-          {
-            $group: { _id: '$date', totalPerDay: { $sum: '$reports.roomTypes.totalOccupiedBeds' } },
-          },
-          { $project: { _id: 0, totalPerDay: 1 } },
-        ]),
-        await PatientAdmissionHistory.aggregate([
-          {
-            $lookup: {
-              from: Collections.patientDischarge.d,
-              localField: 'dischargeId',
-              foreignField: '_id',
-              as: 'discharge',
-            },
-          },
-          { $unwind: '$discharge' },
-          {
-            $match: {
-              'discharge.date': { $gte: rollingDates.startDate, $lte: rollingDates.endDate },
-            },
-          },
-          {
-            $addFields: {
-              lengthOfStay: {
-                $ceil: {
-                  $divide: [
-                    { $subtract: ['$discharge.date', '$dateOfAdmission'] },
-                    1000 * 60 * 60 * 24,
-                  ],
-                },
-              },
-            },
-          },
-          {
-            $group: {
-              _id: null,
-              totalLengthOfStay: { $sum: '$lengthOfStay' },
-              totalDischargedPatients: { $sum: 1 },
-            },
-          },
-          {
-            $project: {
-              _id: 0,
-              totalLengthOfStay: 1,
-              totalDischargedPatients: 1,
-              averageLengthOfStay: {
-                $cond: [
-                  { $eq: ['$totalDischargedPatients', 0] },
-                  0,
-                  { $divide: ['$totalLengthOfStay', '$totalDischargedPatients'] },
-                ],
-              },
-            },
-          },
-        ]),
-        DailyResourceAllocationReport.aggregate([
-          { $match: { date: { $gte: startDate, $lte: endDate } } },
-          { $unwind: '$reports' },
-          { $unwind: '$reports.roomTypes' },
-          {
-            $addFields: {
-              'reports.roomTypes.totalBeds': {
-                $multiply: ['$reports.roomTypes.maxOccupancy', '$reports.roomTypes.totalRooms'],
-              },
-            },
-          },
-          {
-            $group: {
-              _id: '$_id',
-              totalBedsPerDoc: { $sum: '$reports.roomTypes.totalBeds' },
-              totalOccupiedBedsPerDoc: { $sum: '$reports.roomTypes.totalOccupiedBeds' },
-            },
-          },
-          {
-            $group: {
-              _id: null,
-              totalBeds: { $sum: '$totalBedsPerDoc' },
-              totalOccupiedBeds: { $sum: '$totalOccupiedBedsPerDoc' },
-            },
-          },
-          {
-            $project: {
-              _id: 0,
-              totalBeds: 1,
-              totalOccupiedBeds: 1,
-              occupancyPercentage: {
-                $cond: [
-                  { $eq: ['$totalBeds', 0] },
-                  0,
-                  { $multiply: [{ $divide: ['$totalOccupiedBeds', '$totalBeds'] }, 100] },
-                ],
-              },
-            },
-          },
-        ]),
-      ]);
+      const dbReport = await DailyResourceAllocationReport.find({
+        date: { $gte: startDate, $lte: endDate },
+      });
 
-      // Calculate total conversion safely
-      const totalConversion =
-        isFinite(totalLeadsGenerated) && totalLeadsGenerated > 0
-          ? Math.round((totalAdmission / totalLeadsGenerated) * 100)
-          : 0;
+      const allDischarges = await PatientDischarge.find({
+        date: { $gte: startDate, $lte: endDate },
+      });
 
-      // Client Satisfaction Score
-      const clientSatisfactionScore =
-        clientSatisfactionScoreObject.length > 0
-          ? Math.round(clientSatisfactionScoreObject[0].averageFeedback)
-          : 0;
+      const formattedStart = _formatDate(startDate);
+      const formattedEnd = _formatDate(endDate);
 
-      // Active Clients at start of the week
-      const activeClientsAtStartOfWeek: number =
-        activeClientsAtStartOfWeekObject.length > 0
-          ? Math.round(activeClientsAtStartOfWeekObject[0].totalPerDay)
-          : 0;
+      const report = await _processWeeklyData(
+        startDate,
+        endDate,
+        allAdmissions,
+        allLeads,
+        dbReport,
+        allDischarges
+      );
 
-      // 4 Week Rolling Average Length of stay
-      const fourWeekRolling: number =
-        fourWeekRollingAverageObject.length > 0
-          ? Math.round(fourWeekRollingAverageObject[0].averageLengthOfStay)
-          : 0;
-
-      // Average Occupancy Rate (%)
-      const averageOccupancy: number =
-        fourWeekRollingAverageObject.length > 0
-          ? Math.round(averageOccupancyObject[0].occupancyPercentage)
-          : 0;
-
-      return {
-        [`Week ${index + 1}`]: {
-          startDate: _formatDate(startDate),
-          endDate: _formatDate(endDate),
-          report: {
-            activeClients: activeClientsAtStartOfWeek,
-            totalAdmission,
-            newAdmission: totalNewAdmission,
-            totalDischarges: totalDischarge,
-            averageOccupancy: averageOccupancy,
-            fourWeekRolling: fourWeekRolling,
-            totalLeadsGenerated,
-            leadsFromDigitalMarketing,
-            totalConversion,
-            clientSatisfaction: clientSatisfactionScore,
-          },
-        },
+      result[`Week ${weekIndex}`] = {
+        startDate: formattedStart,
+        endDate: formattedEnd,
+        report,
       };
-    });
 
-    const weeklyResults = await Promise.all(weeklyPromises);
-    weeklyResults.forEach((weekObj) => Object.assign(result, weekObj));
+      weekIndex++;
+    }
 
     res.status(200).json({
       status: 'success',
@@ -625,10 +445,7 @@ export const vitalReportDashboard = catchAsync(
     const doctorIds = doctors.map((el) => el._id?.toString()) as string[];
 
     // Therapist
-    const therapistRoles = await Role.find({
-      name: { $in: ['Therapist', 'Therapist+AM'] },
-    }).select('_id');
-
+    const therapistRoles = await Role.find({ name: 'Therapist' }).select('_id');
     const therapistRoleIds = therapistRoles.map((el) => el._id?.toString());
 
     const therapists = await User.find({
@@ -939,90 +756,182 @@ const _getInsightData = async (startDate: Date, endDate: Date): Promise<ICenterI
   return updatedInfo;
 };
 
-const _formatDate = (date: Date) => date.toString().split(' ').slice(0, 4).join(' ');
+const _processWeeklyData = async (
+  startDate: Date,
+  endDate: Date,
+  allAdmissions: IPatientAdmissionHistory[],
+  allLeads: ILead[],
+  dbReport: IDailyResourceAllocationReportSchema[],
+  allDischarges: IPatientDischarge[]
+) => {
+  const info = {
+    activeClients: 0,
+    totalAdmission: 0,
+    newAdmission: 0,
+    totalDischarges: 0,
+    averageOccupancy: 0,
+    fourWeekRolling: 0,
+    totalLeadsGenerated: 0,
+    leadsFromDigitalMarketing: 0,
+    totalConversion: 0,
+    conversions: 0,
+    clientSatisfaction: 0,
+  };
 
-const _formatDateOnT = (d: Date): string => {
-  const y = d.getFullYear();
-  const m = (d.getMonth() + 1).toString().padStart(2, '0');
-  const day = d.getDate().toString().padStart(2, '0');
-  return `${y}-${m}-${day}`;
-};
-
-const getSundayBasedWeeksInYear = (year: number) => {
-  const weeks: { startDate: string; endDate: string }[] = [];
-  const today = new Date();
-  today.setHours(23, 59, 59, 999);
-
-  // Jan 1
-  let date = new Date(year, 0, 1);
-
-  // Move to first Sunday
-  const dayOfWeek = date.getDay();
-  if (dayOfWeek !== 0) {
-    date.setDate(date.getDate() + (7 - dayOfWeek));
+  for (const admission of allAdmissions) {
+    const status = admission.currentStatus;
+    if (status === 'Inpatient') info.activeClients++;
+    if (status === 'Registered') info.newAdmission++;
+    if (status !== 'Discharge Initiated' && status !== 'Discharged') info.totalAdmission++;
   }
 
-  // Generate weeks
+  // 4 week rolling
+  const start = new Date(startDate);
+  const fourWeeksBefore = new Date(start.getTime() - 28 * 24 * 60 * 60 * 1000);
+
+  const discharges = await PatientDischarge.find({
+    date: {
+      $gte: fourWeeksBefore,
+      $lte: start,
+    },
+  }).lean();
+
+  let totalStayDays = 0;
+  let validCount = 0;
+  const results = [];
+
+  for (const discharge of discharges) {
+    const admission = await PatientAdmissionHistory.findById(
+      discharge.patientAdmissionHistoryId
+    ).lean();
+
+    if (!admission) continue;
+
+    if (admission.dateOfAdmission && discharge.date) {
+      const admissionDate = new Date(admission.dateOfAdmission);
+      const dischargeDate = new Date(discharge.date);
+
+      const stayDurationMs = dischargeDate.getTime() - admissionDate.getTime();
+      const stayInDays = Math.ceil(stayDurationMs / (1000 * 60 * 60 * 24));
+
+      totalStayDays += stayInDays;
+      validCount++;
+      results.push({
+        patientId: discharge.patientId,
+        admissionDate,
+        dischargeDate,
+        stayInDays,
+        status: discharge.status,
+      });
+    }
+  }
+  const averageStay = validCount > 0 ? (totalStayDays / validCount).toFixed(2) : '0.00';
+  info.fourWeekRolling = Number(averageStay);
+
+  // Average occupancy
+  const { totalOccupiedBeds, totalAvailableBeds } = dbReport.reduce(
+    (acc, report) => {
+      report.reports.forEach((center) => {
+        center.roomTypes.forEach((roomType) => {
+          acc.totalAvailableBeds += roomType.totalRooms * roomType.maxOccupancy;
+          acc.totalOccupiedBeds += roomType.totalOccupiedBeds;
+        });
+      });
+      return acc;
+    },
+    { totalOccupiedBeds: 0, totalAvailableBeds: 0 }
+  );
+  const occupancyRate =
+    totalAvailableBeds === 0 ? 0 : (totalOccupiedBeds / totalAvailableBeds) * 100;
+  info.averageOccupancy = Number(occupancyRate.toFixed(2));
+
+  info.totalDischarges += allDischarges.length;
+
+  await Promise.all(
+    allLeads.map(async (lead) => {
+      info.totalLeadsGenerated++;
+
+      if (lead?.leadType === 'Online') {
+        info.leadsFromDigitalMarketing++;
+      }
+
+      if (lead?.progressStatus === 'Admit') {
+        try {
+          const leadPatient = await Patient.findOne({
+            _id: lead.patientId,
+            createdAt: { $gte: startDate, $lte: endDate },
+          });
+
+          if (leadPatient) {
+            info.totalConversion++;
+            info.conversions++;
+          }
+        } catch (err) {
+          console.error(`Failed to fetch patient for leadId ${lead._id}`, err);
+        }
+      }
+    })
+  );
+
+const feedback = await PatientFeedback.find({
+  createdAt: { $gte: startDate, $lte: endDate },
+});
+
+let totalRating = 0;
+let totalCount = 0;
+
+feedback.forEach((entry: IPatientFeedback) => {
+  if (entry?.questionAnswer) {
+    entry.questionAnswer.forEach((qa) => {
+      const numericValue = Number(qa.answer);
+      if (!isNaN(numericValue)) {
+        totalRating += numericValue;
+        totalCount++;
+      }
+    });
+  }
+});
+
+info.clientSatisfaction = totalCount > 0
+  ? Math.round((totalRating / totalCount) * 10) / 10
+  : 0;
+
+  return info;
+};
+
+const _formatDate = (date: Date) => date.toString().split(' ').slice(0, 4).join(' ');
+
+const getSundayBasedWeeksInYear = (year: number): { startDate: string; endDate: string }[] => {
+  const weeks: { startDate: string; endDate: string }[] = [];
+  let date = new Date(year, 0, 1);
+  const today = new Date();
+  today.setHours(23, 59, 59, 999); // Normalize to end of today
+
+  // Find the first Sunday of the year
+  while (date.getDay() !== 0) {
+    date.setDate(date.getDate() + 1);
+  }
+
+  // Loop through Sundays and generate week ranges
   while (date.getFullYear() === year && date <= today) {
-    const startDate = new Date(date); // Sunday
-    const endDate = new Date(date);
-    endDate.setDate(endDate.getDate() + 6); // Saturday
+    const start = new Date(date);
+    const end = new Date(date);
+    end.setDate(end.getDate() + 6);
+
+    // Clamp end date to today's date if it goes beyond
+    const finalEnd = end > today ? today : end;
 
     weeks.push({
-      startDate: _formatDateOnT(startDate),
-      endDate: _formatDateOnT(endDate > today ? today : endDate),
+      startDate: formatDate(start),
+      endDate: formatDate(finalEnd),
     });
 
-    date.setDate(date.getDate() + 7); // next Sunday
+    date.setDate(date.getDate() + 7);
   }
 
   return weeks;
-};
 
-const _getFourWeekRange = (currentWeekStart: Date, currentWeekEnd: Date) => {
-  const start = new Date(currentWeekStart);
-  const end = new Date(currentWeekEnd);
-
-  const fourWeekStart = new Date(start);
-  fourWeekStart.setDate(start.getDate() - 7 * 3);
-
-  const fourWeekEnd = new Date(end);
-
-  fourWeekStart.setHours(0, 0, 0, 0);
-  fourWeekEnd.setHours(23, 59, 59, 999);
-
-  return {
-    startDate: fourWeekStart,
-    endDate: fourWeekEnd,
-  };
-};
-
-const _getPreviousDate = (date: Date | string): Date => {
-  const inputDate = new Date(date);
-  const previousDate = new Date(inputDate);
-  previousDate.setDate(inputDate.getDate() - 1);
-  return previousDate;
-};
-
-const _getPreviousWeekRange = (dateInput: Date | string) => {
-  const date = new Date(dateInput);
-
-  const day = date.getDay();
-
-  const endOfPrevWeek = new Date(date);
-  endOfPrevWeek.setDate(date.getDate() - day - 1);
-
-  const startOfPrevWeek = new Date(endOfPrevWeek);
-  startOfPrevWeek.setDate(endOfPrevWeek.getDate() - 6);
-
-  const format = (d: Date) => d.toLocaleDateString('en-CA', { timeZone: 'UTC' });
-
-  return {
-    startDate: startOfPrevWeek,
-    endDate: endOfPrevWeek,
-    formatted: {
-      startDate: format(startOfPrevWeek),
-      endDate: format(endOfPrevWeek),
-    },
-  };
+  function formatDate(d: Date): string {
+    return d.toISOString().split('T')[0];
+  }
 };

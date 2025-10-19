@@ -27,9 +27,11 @@ export interface IPatientDetails {
   area?: string;
   patientPic?: string;
   patientFileName?: string;
+  patientIdProofName?:string[];
+  idProof?: string[];
   referredTypeId?: ISelectOption;
   referralDetails?: string;
-
+  patientidProofUrl?: string;
   education?: string;
   familyIncome?: string;
   religion?: string;
@@ -38,7 +40,7 @@ export interface IPatientDetails {
   numberOfChildren?: ISelectOption;
   occupation?: string;
   diagnosis?: ISelectOption;
-
+  // file: null;
   injuryDetails?: IInjuryDetails[];
   diabeticStatus?: string;
   allergyArray?: ISelectOption[];
@@ -50,6 +52,35 @@ export interface IPatientDetails {
   hyperTension?: string;
   previousTreatmentRecordLink?: { filePath: string; fileUrl: string; fileName?: string }[];
   injuries?: string[];
+   // Add these missing fields:
+  center?: string;
+  patientName: string;
+  contact?: string;
+  address?: string;
+  admissionType?: string;
+  involuntaryAdmissionType?: string;
+  doctor?: string;
+  therapist?: string;
+  dischargeDate?: string;
+  dischargeStatus?: string;
+  nominatedRepresentative?: string;
+  currentStatus?: string;
+  stayDuration?: string;
+  dischargePlan?:string;
+  psychologist?:string;
+  followupDate?:string;
+  urge?:string;
+  adherence?:string;
+  prayer?:string;
+  literature?:string;
+  meeting?:string;
+  daycareAtGanaa?:string;
+  sponsor?:string;
+  stepProgram?:string;
+  reviewWithGanaaDoctor?:string;
+  feedbackFromFamily?:string;
+  UHID: string;
+    therapistName: string;
 }
 export interface IPatientAdmissionHistory {
   _id?: string;
@@ -68,25 +99,25 @@ export interface IPatientAdmissionHistory {
   isvoluntaryAdmissionForm?: boolean;
   isinVoluntaryAdmissionForm?: boolean;
   isminorAdmissionForm?: boolean;
-  isform90?: boolean;
   isfamilyDeclaration?: boolean;
   issection94?: boolean;
   iscapacityAssessment?: boolean;
   ishospitalGuidelineForm?: boolean;
   isfinacialCounselling?: boolean;
+  isadmissionAssessment?: boolean;
 
   voluntaryAdmissionFormLink?: { filePath: string; fileUrl: string; fileName?: string }[];
   applicationForAdmissionLink?: { filePath: string; fileUrl: string; fileName?: string }[];
   inVoluntaryAdmissionFormLink?: { filePath: string; fileUrl: string; fileName?: string }[];
   minorAdmissionFormLink?: { filePath: string; fileUrl: string; fileName?: string }[];
-  form90Link?: { filePath: string; fileUrl: string; fileName?: string }[];
   familyDeclarationLink?: { filePath: string; fileUrl: string; fileName?: string }[];
   section94Link?: { filePath: string; fileUrl: string; fileName?: string }[];
   capacityAssessmentLink?: { filePath: string; fileUrl: string; fileName?: string }[];
   hospitalGuidelineFormLink?: { filePath: string; fileUrl: string; fileName?: string }[];
   finacialCounsellingLink?: { filePath: string; fileUrl: string; fileName?: string }[];
   insuredFileLink?: { filePath: string; fileUrl: string; fileName?: string }[];
-
+  admissionAssessmentLink?: { filePath: string; fileUrl: string; fileName?: string }[];
+admissionAssessment?:{ filePath: string; fileUrl: string; fileName?: string }[];
   patientChecklist?: string[];
   patientIdProof?: string;
   patientIdProofNumber?: string;
@@ -129,6 +160,7 @@ const initialPatientDetails: IPatientDetails = {
   age: 0,
   email: "",
   patientFileName: "",
+  patientIdProofName: [],
   phoneNumberCountryCode: { label: "", value: "" },
   phoneNumber: "",
   alternativephoneNumberCountryCode: { label: "", value: "" },
@@ -139,7 +171,7 @@ const initialPatientDetails: IPatientDetails = {
   fullAddress: "",
   area: "",
   patientPic: "",
-
+  idProof: [],
   referredTypeId: { label: "", value: "" },
   referralDetails: "",
 
@@ -166,7 +198,36 @@ const initialPatientDetails: IPatientDetails = {
   heartDiseaseDescription: "",
   levelOfRisk: "",
   levelOfRiskDescription: "",
-  previousTreatmentRecordLink: []
+  previousTreatmentRecordLink: [],
+   // Add these missing fields with default values:
+    center: "",
+    patientName: "",
+    contact: "",
+    address: "",
+    admissionType: "",
+    involuntaryAdmissionType: "",
+    doctor: "",
+    therapist: "",
+    dischargeDate: "",
+    dischargeStatus: "",
+    nominatedRepresentative: "",
+    currentStatus: "",
+    stayDuration: "",
+    dischargePlan: "",
+    psychologist: "",
+    followupDate: "",
+    urge: "",
+    adherence: "",
+    prayer: "",
+    literature: "",
+    meeting: "",
+    daycareAtGanaa: "",
+    sponsor: "",
+    stepProgram: "",
+    reviewWithGanaaDoctor: "",
+    feedbackFromFamily: "",
+    UHID: "",
+    therapistName: "",
 };
 
 const initalPatientAdmission: IPatientAdmissionHistory = {
@@ -187,23 +248,24 @@ const initalPatientAdmission: IPatientAdmissionHistory = {
   isvoluntaryAdmissionForm: false,
   isinVoluntaryAdmissionForm: false,
   isminorAdmissionForm: false,
-  isform90: false,
   isfamilyDeclaration: false,
   issection94: false,
   iscapacityAssessment: false,
   ishospitalGuidelineForm: false,
   isfinacialCounselling: false,
+  isadmissionAssessment: false,
 
   voluntaryAdmissionFormLink: [],
   applicationForAdmissionLink: [],
   inVoluntaryAdmissionFormLink: [],
   minorAdmissionFormLink: [],
-  form90Link: [],
   familyDeclarationLink: [],
   section94Link: [],
   capacityAssessmentLink: [],
   hospitalGuidelineFormLink: [],
   finacialCounsellingLink: [],
+  admissionAssessmentLink: [],
+  admissionAssessment: [],
   insuredFileLink: [],
 
   patientCheck: "",

@@ -17,7 +17,6 @@ const RichTextEditor = ({
   showToolBar = true,
   className
 }: RichTextEditorProps) => {
-  maxLength = 50000;
   const [quill, setQuill] = useState<Quill | null>(null);
   const [isFocused, setIsFocused] = useState(false);
   const [editorContentLength, setEditorContentLength] = useState(0); // Track content length
@@ -323,7 +322,7 @@ const RichTextEditor = ({
 
             {!countHide && (
               <span className="opacity-[50%] text-xs">
-                {`Max ${maxLength - editorContentLength} Character`}
+                {`Max ${maxLength - editorContentLength} words`}
               </span>
             )}
           </div>

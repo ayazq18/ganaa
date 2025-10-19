@@ -56,14 +56,13 @@ const SideBar = ({
   }, []);
 
   const handleDelete = () => {
-    if (SingleleadData.progressStatus === "Admit") return;
     if (toggleDelete) {
       toggleDelete(SingleleadData._id);
       toggleSidebar();
     }
   };
+
   const handleAdmit = () => {
-    if (SingleleadData.progressStatus === "Admit") return;
     if (!SingleleadData?.centerId?.centerName) {
       toast.error("Please select a center before proceeding with admission.");
       return;
@@ -191,6 +190,7 @@ const SideBar = ({
                 className=" bg-primary-dark p-1 rounded-[6px]  cursor-pointer"
                 onClick={toggleSidebar}
               >
+                
                 <svg
                   className="w-3 h-3  text-white"
                   aria-hidden="true"
@@ -211,19 +211,17 @@ const SideBar = ({
               <div className="text-lg font-semibold text-black">Leads Preview</div>
             </div>
             <div className="flex gap-x-5 items-center ">
-              {SingleleadData.progressStatus !== "Admit" && (
-                <Button
-                  className={`text-xs! min-w-[20px]   py-2! bg-[#323E2A]! px-4! rounded-full! ${
-                    unQualified ? "cursor-not-allowed! bg-gray-400!" : "bg-[#323E2A]!"
-                  }`}
-                  name="next"
-                  variant="contained"
-                  size="base"
-                  onClick={handleAdmit}
-                >
-                  Admit
-                </Button>
-              )}
+              <Button
+                className={`text-xs! min-w-[20px]   py-2! bg-[#323E2A]! px-4! rounded-full! ${
+                  unQualified ? "cursor-not-allowed! bg-gray-400!" : "bg-[#323E2A]!"
+                }`}
+                name="next"
+                variant="contained"
+                size="base"
+                onClick={handleAdmit}
+              >
+                Admit
+              </Button>
 
               <Link
                 to={`/admin/lead/update-lead/${SingleleadData?._id}`}
@@ -232,19 +230,15 @@ const SideBar = ({
                 Edit
               </Link>
 
-              {SingleleadData.progressStatus !== "Admit" && (
-                <div
-                  onClick={handleQualified}
-                  className=" cursor-pointer opacity-70 font-semibold text-[#575F4A] underline text-xs "
-                >
-                  {`Mark As ${unQualified ? "qualified" : "Unqualified"} Leads`}
-                </div>
-              )}
-              {SingleleadData.progressStatus !== "Admit" && (
-                <div className={`text-red-700 cursor-pointer `} onClick={handleDelete}>
-                  <MdDelete size={20} />
-                </div>
-              )}
+              <div
+                onClick={handleQualified}
+                className=" cursor-pointer opacity-70 font-semibold text-[#575F4A] underline text-xs "
+              >
+                {`Mark As ${unQualified ? "qualified" : "Unqualified"} Leads`}
+              </div>
+              <div className={`text-red-700 cursor-pointer `} onClick={handleDelete}>
+                <MdDelete size={20} />
+              </div>
             </div>
           </div>
           <div className="flex w-full items-start mt-5  gap-5 py-4">
@@ -359,7 +353,7 @@ const SideBar = ({
         <div className="flex justify-between  py-10 px-4 mr-24">
           <div>
             <Select
-              disable={SingleleadData.progressStatus == "Admit"||unQualified}
+              disable={unQualified}
               label="Status Progress"
               labelClassName="text-[#636363]! text-xs!"
               containerClass="w-full!"

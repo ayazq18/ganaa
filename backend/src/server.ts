@@ -112,14 +112,12 @@ cron.schedule('*/5 * * * *', () => {
   console.log('Running job every five minute');
   updatePatientAdmissionHistoryStatus();
 });
-
-cron.schedule('55 23 * * *', () => {
-  console.log('Running job daily at 11:55 PM');
+cron.schedule('1 0 * * *', () => {
+  console.log('Running job daily at 12:01 AM');
   generateDailyResourceAllocationReport();
 });
-
-cron.schedule('30 0 * * 0', () => {
-  console.log('Running job every Sunday at 12:30 AM');
+cron.schedule('30 0 * * *', () => {
+  console.log('Running job daily at 12:30 AM');
   buildWeeklyReport();
 });
 

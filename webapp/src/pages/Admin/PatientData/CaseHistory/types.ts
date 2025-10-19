@@ -89,8 +89,6 @@ interface ISubstanceUseHistory {
 }
 export interface ICaseHistoryData {
   _id?: string;
-  file: File | null | string;
-  fileName: string;
   isAdvanceDirectiveSelected?: boolean | "";
   fatherName?: string;
   motherName?: string;
@@ -108,8 +106,7 @@ export interface ICaseHistoryData {
   perpetuating?: string;
   predisposing?: string;
   precipitatingFactors?: string;
-  impactOfPresentIllness: ISelectOption;
-  historyOfPresentIllness?: string;
+  impactOfPresentIllness?: ISelectOption;
   negativeHistory?: string;
   pastPsychiatricHistory?: string;
   pastPsychiatricTreatmentHistory?: string;

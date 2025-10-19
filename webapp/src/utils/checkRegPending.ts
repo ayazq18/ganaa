@@ -43,7 +43,6 @@ export function checkRegPending(data: Record<string, any>): {
     // "patientHistory.admissionChecklist.inVoluntaryAdmissionForm",
     // "patientHistory.admissionChecklist.finacialCounselling",
     // "patientHistory.admissionChecklist.minorAdmissionForm",
-    // "patientHistory.admissionChecklist.form90",
 
     // "patientHistory.admissionChecklist.orientationOfFamily",
     // "patientHistory.admissionChecklist.orientationOfPatient",
@@ -63,18 +62,22 @@ export function checkRegPending(data: Record<string, any>): {
     "patientHistory.resourceAllocation.assignedDoctorId._id",
     "patientHistory.resourceAllocation.assignedTherapistId._id",
     "patientHistory.resourceAllocation.careStaff",
-    "patientHistory.resourceAllocation.nurse"
+    "patientHistory.resourceAllocation.nurse",
 
     // "patientHistory.illnessType",
     // "patientHistory.patientCondition",
     // "patientHistory.conditionDetails",
     // "patientHistory.coverageStatus",
+ 
+
+   
   ];
 
   if (typeof data !== "object" || !Array.isArray(fields)) {
     return { isValid: true, missingFields };
   }
 
+  
   const inVoluntary = data?.patientHistory?.admissionType == "Involuntary";
 
   for (const field of fields) {

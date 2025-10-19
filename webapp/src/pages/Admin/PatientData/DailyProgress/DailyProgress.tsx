@@ -33,8 +33,6 @@ import { setloa } from "@/redux/slice/patientSlice";
 import { RootState } from "@/redux/store/store";
 import { RBACGuard } from "@/components/RBACGuard/RBACGuard";
 import { RESOURCES } from "@/constants/resources";
-import { BsFiletypePdf } from "react-icons/bs";
-import DowloadDailyProgress from "./DowloadDailyProgress/DowloadDailyProgress";
 // import { ShimmerPostDetails } from "react-shimmer-effects";
 
 const DailyProgress = () => {
@@ -51,7 +49,6 @@ const DailyProgress = () => {
     DateRangeModal: false,
     UHID: "",
     totalPage: "1",
-    age: "",
     firstName: "",
     lastName: "",
     currentStatus: "",
@@ -82,7 +79,6 @@ const DailyProgress = () => {
         firstName: `${data?.data?.firstName}`.trim(),
         lastName: data?.data?.lastName?.trim() || "",
         UHID: data?.data?.uhid,
-        age: data?.data?.age || "",
         admissionDate: patientAdmissionHistory?.data?.dateOfAdmission,
         currentStatus: patientAdmissionHistory?.data?.currentStatus,
         AssignedDoctor: `${
@@ -317,29 +313,6 @@ const DailyProgress = () => {
                       : "Date Range"}
                   </Button>
                 </DateRange>
-                <DowloadDailyProgress
-                  patientDetails={{
-                    UHID: state.UHID || "",
-                    dateOfAdmission: state.admissionDate || "",
-                    age: state.age || "",
-                    gender: state.gender || "",
-                    lastName: state.lastName || "",
-                    firstName: state.firstName || ""
-                  }}
-                  aid={aId}
-                  id={id}
-                  button={
-                    <Button
-                      type="submit"
-                      variant="outlined"
-                      size="base"
-                      className="flex text-xs! py-2! border-[#D4D4D4]!  border! rounded-lg! text-[#505050] "
-                    >
-                      <BsFiletypePdf className="mr-2" size={18} />
-                      Download All
-                    </Button>
-                  }
-                />
               </div>
             )}
             {/* {loading && <ShimmerPostDetails card cta variant="SIMPLE" />} */}
@@ -385,7 +358,7 @@ const DailyProgress = () => {
                               </div>
                             </div>
                             <div>
-                              <div className="font-medium text-gray-500">Temperature (°F)</div>
+                              <div className="font-medium text-gray-500">Temperature (°C)</div>
                               <div className="text-black font-semibold text-[13px]">
                                 {data?.temperature || "--"}
                               </div>
@@ -732,7 +705,7 @@ const DoctorPrescription = ({ doctordata }: { doctordata: IDailyProgress }) => {
               <div>
                 <div className=" text-gray-500 font-semibold">Duration</div>
                 <div className="font-semibold text-black">
-                  {data?.customDuration && data?.durationFrequency === "Custom Date"
+                  {data?.customDuration
                     ? data?.customDuration
                         .split("|")
                         .map((d) => moment(d).format("D MMMM"))

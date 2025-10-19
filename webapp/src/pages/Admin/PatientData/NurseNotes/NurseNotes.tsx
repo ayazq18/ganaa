@@ -63,8 +63,6 @@ import { setloa } from "@/redux/slice/patientSlice";
 import LoaBlankScreen from "@/components/LoaBlankScreen/LoaBlankScreen";
 import { RESOURCES } from "@/constants/resources";
 import { RBACGuard } from "@/components/RBACGuard/RBACGuard";
-import NurseDataDownload from "./NurseDataDownload/NurseDataDownload";
-import { BsFiletypePdf } from "react-icons/bs";
 
 const NurseNotes = () => {
   const { id, aId } = useParams();
@@ -307,12 +305,10 @@ const NurseNotes = () => {
   };
 
   const handleChange = useCallback((e: React.SyntheticEvent) => {
+    function isNumeric(value: string) {
+      return value === "" || /^\d*\.?\d*$/.test(value);
+    }
     const { name, value } = e.target as HTMLInputElement;
-
-    // Regex patterns
-    const positiveRegex = /^\d*\.?\d*$/; // only positive numbers + decimals
-    const tempRegex = /^-?\d*\.?\d*$/; // allow negative + decimals
-
     const numberFieldsName = [
       "pulse",
       "temperature",
@@ -323,11 +319,8 @@ const NurseNotes = () => {
       "bp2",
       "height"
     ];
-
     if (numberFieldsName.includes(name)) {
-      const regex = name === "temperature" ? tempRegex : positiveRegex;
-
-      if (value === "" || regex.test(value)) {
+      if (isNumeric(value)) {
         setData((prev) => ({ ...prev, [name]: value }));
       }
     } else {
@@ -819,8 +812,8 @@ const NurseNotes = () => {
                     />
                     <Input
                       type="text"
-                      maxLength={6}
-                      label="Temperature (°F)"
+                      maxLength={data.temperature.includes(".") ? 5 : 3}
+                      label="Temperature (°C)"
                       labelClassName="text-black!"
                       onChange={handleChange}
                       name="temperature"
@@ -922,21 +915,6 @@ const NurseNotes = () => {
                       : "Date Range"}
                   </Button>
                 </DateRange>
-                <NurseDataDownload
-                  patientDetails={state}
-                  aid={aId}
-                  button={
-                    <Button
-                      type="submit"
-                      variant="outlined"
-                      size="base"
-                      className="flex text-xs! py-2! border-[#D4D4D4]!  border! rounded-lg! text-[#505050] "
-                    >
-                      <BsFiletypePdf className="mr-2" size={18} />
-                      Download All
-                    </Button>
-                  }
-                />
                 {/* <Button
                   type="submit"
                   variant="outlined"
@@ -974,7 +952,7 @@ const NurseNotes = () => {
                     <th className="px-4 py-3 w-1/12 text-nowrap whitespace-nowrap">B.P (mm Hg)</th>
                     <th className="px-4 py-3 w-1/12 text-nowrap whitespace-nowrap"> Pulse (bpm)</th>
                     <th className="px-4 py-3 w-1/12 text-nowrap whitespace-nowrap">
-                      Temperature (°F)
+                      Temperature (°C)
                     </th>
                     <th className="px-4 py-3 w-1/12 text-nowrap whitespace-nowrap">SPO2 (%)</th>
                     <th className="px-4 py-3 w-1/12 text-nowrap whitespace-nowrap">Weight (kg)</th>
@@ -1047,19 +1025,6 @@ const NurseNotes = () => {
                                         <p>Edit</p>
                                       </div>
                                     </div>
-                                    <hr />
-                                    <NurseDataDownload
-                                      patientDetails={state}
-                                      data={[value]}
-                                      button={
-                                        <div className="text-xs font-semibold cursor-pointer p-2 px-3 text-nowrap whitespace-nowrap">
-                                          <div className="flex items-center  cursor-pointer">
-                                            <p>Download</p>
-                                          </div>
-                                        </div>
-                                      }
-                                    />
-
                                     <hr />
                                     <div className="text-xs font-semibold cursor-pointer p-2 px-3 text-nowrap whitespace-nowrap">
                                       <div
@@ -1177,7 +1142,7 @@ const NurseNotes = () => {
                             Pulse (bpm)
                           </th>
                           <th className="px-4 text-[8px] py-3 w-1/12 text-nowrap whitespace-nowrap">
-                            Temperature (°F)
+                            Temperature (°C)
                           </th>
                           <th className="px-4 text-[8px] py-3 w-1/12 text-nowrap whitespace-nowrap">
                             SPO2 (%)
@@ -1268,7 +1233,7 @@ const NurseNotes = () => {
                                 Pulse (bpm)
                               </th>
                               <th className="px-4 text-[8px] py-3 w-1/12 text-nowrap whitespace-nowrap">
-                                Temperature (°F)
+                                Temperature (°C)
                               </th>
                               <th className="px-4 text-[8px] py-3 w-1/12 text-nowrap whitespace-nowrap">
                                 SPO2 (%)
@@ -1415,3 +1380,107 @@ const NurseNotes = () => {
 };
 
 export default NurseNotes;
+
+// const targetRef = useRef<HTMLDivElement | null>(null);
+//   const headerRef = useRef<HTMLDivElement | null>(null);
+
+//   const handleDownload = async () => {
+//     const element = targetRef.current;
+//     const header = headerRef.current;
+//     if (!element || !header) return;
+
+//     try {
+//       const tables = element.querySelectorAll("table");
+//       const pdf = new jsPDF("p", "mm", "a4");
+//       const pdfWidth = pdf.internal.pageSize.getWidth();
+
+//       // Add header to the first page
+//       const headerCanvas = await html2canvas(header, {
+//         useCORS: true,
+//         scale: 2, // reduce scale
+//         backgroundColor: "#ffffff"
+//       });
+//       const headerImgWidth = pdfWidth;
+//       const headerImgHeight = (headerCanvas.height * headerImgWidth) / headerCanvas.width;
+//       pdf.addImage(
+//         headerCanvas.toDataURL("image/png"),
+//         "PNG",
+//         0,
+//         0,
+//         headerImgWidth,
+//         headerImgHeight
+//       );
+
+//       let yOffset = headerImgHeight;
+
+//       for (let i = 0; i < tables.length; i++) {
+//         const table = tables[i];
+//         const wrapper = table.parentElement;
+//         if (!wrapper) return;
+//         const canvas = await html2canvas(wrapper, {
+//           useCORS: true,
+//           scale: 2, // reduce scale
+//           backgroundColor: "#ffffff"
+//         });
+
+//         const imgWidth = pdfWidth;
+//         const canvasPerPage = document.createElement("canvas");
+//         const ctx = canvasPerPage.getContext("2d");
+//         if (!ctx) return;
+//         const pdfHeight = pdf.internal.pageSize.getHeight();
+//         const pageHeightPx = (canvas.width * pdfHeight) / pdfWidth;
+
+//         let position = 0;
+
+//         if (i > 0) {
+//           pdf.addPage();
+//           yOffset = 0;
+//         }
+
+//         while (position < canvas.height) {
+//           const sliceHeight = Math.min(pageHeightPx, canvas.height - position);
+
+//           canvasPerPage.width = canvas.width;
+//           canvasPerPage.height = sliceHeight;
+
+//           ctx.clearRect(0, 0, canvasPerPage.width, canvasPerPage.height);
+//           ctx.drawImage(
+//             canvas,
+//             0,
+//             position,
+//             canvas.width,
+//             sliceHeight,
+//             0,
+//             0,
+//             canvas.width,
+//             sliceHeight
+//           );
+
+//           const imgDataPart = canvasPerPage.toDataURL("image/png");
+//           if (i > 0 && position === 0) {
+//             // do nothing
+//           } else if (yOffset === headerImgHeight && i === 0 && position === 0) {
+//             // do nothing, yOffset is already set
+//           } else if (position > 0) {
+//             pdf.addPage();
+//             yOffset = 0;
+//           }
+//           pdf.addImage(
+//             imgDataPart,
+//             "PNG",
+//             0,
+//             yOffset,
+//             imgWidth,
+//             (sliceHeight * imgWidth) / canvas.width
+//           );
+//           yOffset += (sliceHeight * imgWidth) / canvas.width;
+
+//           position += sliceHeight;
+//         }
+//       }
+
+//       pdf.save("Notes.pdf");
+//     } catch (error) {
+//       console.error("Error generating PDF:", error);
+//     }
+//   };

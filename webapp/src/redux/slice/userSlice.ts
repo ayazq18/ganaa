@@ -6,7 +6,7 @@ type IGender = "Male" | "Female" | "Other" | "";
 interface ICenter {
   _id?: string;
   centerName?: string;
-  googleMapLink?: string;
+  centerUID?: string;
 }
 
 export interface IPermission {
@@ -23,7 +23,7 @@ export interface IRoles {
 export interface IUser {
   _id?: string;
   roleId?: IRoles;
-  centerId: ICenter[];
+  centerId?: ICenter;
   firstName?: string;
   lastName?: string;
   dob?: string;
@@ -59,15 +59,10 @@ const userSlice = createSlice({
   reducers: {
     setUsers(state, action: PayloadAction<{ data: IUser[]; pagination: IPagination }>) {
       state.data = action.payload.data;
-      state.pagination = action.payload.pagination;
-    },
-    resetUser(state) {
-      state.data = initialState.data;
-      state.pagination = initialState.pagination;
     }
   }
 });
 
-export const { setUsers,resetUser } = userSlice.actions;
+export const { setUsers } = userSlice.actions;
 
 export default userSlice.reducer;

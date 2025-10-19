@@ -130,48 +130,31 @@ const MedicalSummary = () => {
     }
   };
 
- const handleChangeForVitals = useCallback((e: React.SyntheticEvent) => {
-  if (!stepperData.discardModal.isFormChanged) {
-    dispatch(setDiscardModal({ isFormChanged: true }));
-  }
-
-  const { name, value } = e.target as HTMLInputElement;
-
-  function isNumeric(val: string) {
-    return val === "" || /^-?\d*\.?\d*$/.test(val); // allow negative + decimal
-  }
-
-  const numberFieldsName = [
-    "pulse",
-    "temperature",
-    "weight",
-    "spo2",
-    "rbs",
-    "bp1",
-    "bp2",
-    "height",
-  ];
-
-  if (numberFieldsName.includes(name)) {
-    if (isNumeric(value)) {
-      // Special case: Fahrenheit validation for temperature
-      if (name === "temperature") {
-        // Max length check (e.g., 6 chars: -459.6, 9999.9 etc.)
-        if (value.length > 6) return;
-
-        // Absolute zero validation
-        if (value !== "" && parseFloat(value) < -459.67) return;
+  const handleChangeForVitals = useCallback((e: React.SyntheticEvent) => {
+    if (!stepperData.discardModal.isFormChanged) dispatch(setDiscardModal({ isFormChanged: true }));
+    function isNumeric(value: string) {
+      return value === "" || /^\d*\.?\d*$/.test(value);
+    }
+    const { name, value } = e.target as HTMLInputElement;
+    const numberFieldsName = [
+      "pulse",
+      "temperature",
+      "weight",
+      "spo2",
+      "rbs",
+      "bp1",
+      "bp2",
+      "height"
+    ];
+    if (numberFieldsName.includes(name)) {
+      if (isNumeric(value)) {
+        setVitals((prev) => ({ ...prev, [name]: value }));
       }
-
+    } else {
       setVitals((prev) => ({ ...prev, [name]: value }));
     }
-  } else {
-    setVitals((prev) => ({ ...prev, [name]: value }));
-  }
-
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-}, []);
-
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleChangeQuill = useCallback((name: string, value: string) => {
     setVitals((prev) => ({ ...prev, [name]: value }));
@@ -1400,8 +1383,8 @@ const MedicalSummary = () => {
                 />
                 <Input
                   type="text"
-                  maxLength={6}
-                  label="Temperature (°F)"
+                  maxLength={vitals.temperature.includes(".") ? 5 : 3}
+                  label="Temperature (°C)"
                   labelClassName="text-black!"
                   onChange={handleChangeForVitals}
                   name="temperature"

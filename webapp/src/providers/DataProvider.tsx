@@ -16,6 +16,7 @@ import {
 import { useDispatch, useSelector } from "react-redux";
 
 import {
+  ICenter,
   IReferredType,
   IRelationship,
   setAllergy,
@@ -290,6 +291,20 @@ const DataProvider = ({ children }: IDataProvider) => {
   const fetchAllCenter = async () => {
     try {
       const now = Date.now();
+
+      const cachedData = localStorage.getItem(constants.dropdown.ALLCENTER);
+      if (cachedData) {
+        const data = JSON.parse(cachedData) as Record<string, unknown>;
+
+        if (now - (data.timestamp as number) < 3600000) {
+          dispatch(
+            setCenter({
+              data: data.data as ICenter[]
+            })
+          );
+          return;
+        }
+      }
 
       const { data } = await getAllCenter({
         limit: dropdownData.center.pagination.limit,

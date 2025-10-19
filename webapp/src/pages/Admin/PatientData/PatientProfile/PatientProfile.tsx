@@ -78,7 +78,6 @@ const PatientProfile = () => {
     voluntaryAdmissionForm: [],
     inVoluntaryAdmissionForm: [],
     minorAdmissionForm: [],
-    form90: [],
     familyDeclaration: [],
     section94: [],
     capacityAssessment: [],
@@ -175,6 +174,7 @@ const PatientProfile = () => {
         height: nurse?.data[0]?.height || "",
         weight: nurse?.data[0]?.weight || ""
       });
+
       setState({
         firstName: `${data?.data?.firstName || ""}`.trim(),
         lastName: `${data?.data?.lastName || ""}`.trim(),
@@ -208,7 +208,7 @@ const PatientProfile = () => {
         familyIncome: data?.data?.familyIncome || "",
         religion: data?.data?.religion || "",
         language: data?.data?.language || "",
-        married: data?.data?.isMarried ? "Yes" : "No",
+        married: data?.data?.ismarried ? "Yes" : "No",
         numberOfChildren: data?.data?.numberOfChildren || "",
         occupation: data?.data?.occupation || "",
 
@@ -237,7 +237,6 @@ const PatientProfile = () => {
           patientAdmissionHistory?.data?.admissionChecklist?.inVoluntaryAdmissionForm || [],
         minorAdmissionForm:
           patientAdmissionHistory?.data?.admissionChecklist?.minorAdmissionForm || [],
-        form90: patientAdmissionHistory?.data?.admissionChecklist?.form90 || [],
         familyDeclaration:
           patientAdmissionHistory?.data?.admissionChecklist?.familyDeclaration || [],
         section94: patientAdmissionHistory?.data?.admissionChecklist?.section94 || [],
@@ -704,8 +703,9 @@ const PatientProfile = () => {
                 <h2 className="text-[13px] font-bold">Admission Checklist</h2>
                 <h2 className="text-[10px] font-medium uppercase">Checklist</h2>
                 <div className="grid grid-cols-1 gap-x-10 gap-y-5 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4">
+                  {/* TODO: this will comment in sprint-5 */}
                   {/* <div>
-                    <p className="text-gray-500 text-xs font-medium">Continuous admission form</p>
+                    <p className="text-gray-500 text-xs font-medium">Application for admission</p>
                     {(state?.applicationForAdmission ?? [])?.length <= 0 ? (
                       <p className="font-semibold text-[13px]">--</p>
                     ) : (
@@ -736,14 +736,6 @@ const PatientProfile = () => {
                       <View data={state?.minorAdmissionForm} />
                     )}
                   </div>
-                  {/* <div>
-                    <p className="text-gray-500 text-xs font-medium">Form 90</p>
-                    {(state?.form90 ?? [])?.length <= 0 ? (
-                      <p className="font-semibold text-[13px]">--</p>
-                    ) : (
-                      <View data={state?.form90} />
-                    )}
-                  </div> */}
                   <div>
                     <p className="text-gray-500 text-xs font-medium">Family declaration</p>
                     {(state?.familyDeclaration ?? [])?.length <= 0 ? (
@@ -973,7 +965,7 @@ const PatientProfile = () => {
                     <p className="font-semibold text-[13px]">{nurseData.pulse || "--"}</p>
                   </div>
                   <div>
-                    <p className="text-gray-500 text-xs font-medium">Temperature (°F)</p>
+                    <p className="text-gray-500 text-xs font-medium">Temperature (°C)</p>
                     <p className="font-semibold text-[13px]">{nurseData.temperature || "--"}</p>
                   </div>
                   <div>

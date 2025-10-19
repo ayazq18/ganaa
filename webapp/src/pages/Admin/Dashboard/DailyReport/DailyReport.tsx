@@ -39,11 +39,10 @@ const DailyReport = () => {
   const [badName, setBadName] = useState<string[]>([]);
   function sortRoomTypes(roomList: string[]): string[] {
     const order: Record<string, number> = {
-      "Acute": 1,
-      "Single": 2,
-      "Double-sharing":3,
-      "Triple-sharing": 4,
-      "Quad-sharing": 5,
+      Single: 1,
+      "Double-sharing": 2,
+      "Triple-sharing": 3,
+      "Quad-sharing": 4
     };
 
     return roomList.sort((a, b) => order[a] - order[b]);
@@ -106,7 +105,7 @@ const DailyReport = () => {
     fetchDailyReport();
   }, [searchParams.get("endDate")]);
   return (
-    <div className="bg-[#F4F2F0] mx-auto pb-5 min-h-[calc(100vh-64px)] min-w-[80%]">
+    <div className="bg-[#F4F2F0] mx-auto min-h-[calc(100vh-64px)] min-w-[80%]">
       <div className="mx-auto">
         <div className="w-[80%] mx-auto">
           <div className="flex justify-between py-5 items-end w-full">
@@ -157,7 +156,7 @@ const DailyReport = () => {
             </div>
           </div>
           <div className="bg-white p-5   rounded-2xl">
-            <div className="font-sans  rounded-xl overflow-y-auto text-[13px] leading-[18px] text-[#1a1a1a]">
+            <div className="font-sans  h-[505px]! rounded-xl overflow-y-auto text-[13px] leading-[18px] text-[#1a1a1a]">
               <div className="mx-auto overflow-x-auto rounded-md">
                 {data.length ? (
                   <table className="w-full  border-collapse">
@@ -315,13 +314,13 @@ const DailyReport = () => {
                           .sort((a, b) => a.centerName.localeCompare(b.centerName))
                           ?.map((data) => (
                             <td key={data?.centerId} className=" py-4 text-center font-bold ">
-                              {data?.centerGenders?.male || "0"}
+                              {data?.centerGenders?.male || "--"}
                             </td>
                           ))}
 
                         <td className="  sticky right-0 z-10 bg-white py-4 text-center font-bold">
                           {data?.reduce((acc, curr) => acc + (curr?.centerGenders?.male ?? 0), 0) ||
-                            "0"}
+                            "--"}
                         </td>
                       </tr>
                       <tr className="border-b border-[#d9d4c9]">
@@ -333,7 +332,7 @@ const DailyReport = () => {
                           .sort((a, b) => a.centerName.localeCompare(b.centerName))
                           ?.map((data) => (
                             <td key={data?.centerId} className=" py-4 text-center font-bold ">
-                              {data?.centerGenders?.female || "0"}
+                              {data?.centerGenders?.female || "--"}
                             </td>
                           ))}
 
@@ -341,7 +340,7 @@ const DailyReport = () => {
                           {data?.reduce(
                             (acc, curr) => acc + (curr?.centerGenders?.female ?? 0),
                             0
-                          ) || "0"}
+                          ) || "--"}
                         </td>
                       </tr>
 
@@ -354,12 +353,12 @@ const DailyReport = () => {
                           .sort((a, b) => a.centerName.localeCompare(b.centerName))
                           ?.map((data) => (
                             <td key={data?.centerId} className=" py-4 text-center font-bold ">
-                              {data?.newAdmission || "0"}
+                              {data?.newAdmission || "--"}
                             </td>
                           ))}
 
                         <td className="  sticky right-0 z-10 bg-white py-4 text-center font-bold">
-                          {data?.reduce((acc, curr) => acc + (curr?.newAdmission ?? 0), 0) || "0"}
+                          {data?.reduce((acc, curr) => acc + (curr?.newAdmission ?? 0), 0) || "--"}
                         </td>
                       </tr>
 
@@ -372,13 +371,13 @@ const DailyReport = () => {
                           .sort((a, b) => a.centerName.localeCompare(b.centerName))
                           ?.map((data) => (
                             <td key={data?.centerId} className=" py-4 text-center font-bold ">
-                              {data?.repeatAdmission || "0"}
+                              {data?.repeatAdmission || "--"}
                             </td>
                           ))}
 
                         <td className="  sticky right-0 z-10 bg-white py-4 text-center font-bold">
                           {data?.reduce((acc, curr) => acc + (curr?.repeatAdmission ?? 0), 0) ||
-                            "0"}
+                            "--"}
                         </td>
                       </tr>
 
@@ -391,13 +390,13 @@ const DailyReport = () => {
                           .sort((a, b) => a.centerName.localeCompare(b.centerName))
                           ?.map((data) => (
                             <td key={data?.centerId} className=" py-4 text-center font-bold ">
-                              {data?.centerDischarge || "0"}
+                              {data?.centerDischarge || "--"}
                             </td>
                           ))}
 
                         <td className="  sticky right-0 z-10 bg-white py-4 text-center font-bold">
                           {data?.reduce((acc, curr) => acc + (curr?.centerDischarge ?? 0), 0) ||
-                            "0"}
+                            "--"}
                         </td>
                       </tr>
 

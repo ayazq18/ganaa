@@ -62,20 +62,6 @@ export const createNewRoomNumber = catchAsync(
   }
 );
 
-export const createBulkNewRoomNumber = catchAsync(
-  async (req: UserRequest, res: Response, next: NextFunction) => {
-    if (!req.body.roomNumbers)
-      return next(new AppError('Room Numbers Array is Mandatory', 400));
-
-    const data = await RoomNumber.create(req.body.roomNumbers);
-
-    res.status(200).json({
-      status: 'success',
-      data: data,
-    });
-  }
-);
-
 export const getSingleRoomNumber = catchAsync(
   async (req: UserRequest, res: Response, next: NextFunction) => {
     if (req.params.id === null) return next(new AppError('ID in Params is Mandatory', 400));
@@ -112,21 +98,6 @@ export const deleteSingleRoomNumber = catchAsync(
     if (req.params.id === null) return next(new AppError('ID in Params is Mandatory', 400));
 
     await RoomNumber.findByIdAndUpdate(req.params.id, { isDeleted: true });
-
-    res.status(200).json({
-      status: 'success',
-      message: 'Data deleted successfully',
-    });
-  }
-);
-
-export const deleteBulkRoomNumber = catchAsync(
-  async (req: UserRequest, res: Response, next: NextFunction) => {
-    console.log(req.body.roomNumbers);
-    if (!req.body.roomNumbers)
-      return next(new AppError('Room Numbers Array is Mandatory', 400));
-
-    await RoomNumber.updateMany({ _id: { $in: req.body.roomNumbers } }, { isDeleted: true });
 
     res.status(200).json({
       status: 'success',

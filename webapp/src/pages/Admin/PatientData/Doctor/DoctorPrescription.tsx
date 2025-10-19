@@ -48,7 +48,8 @@ import {
   getAllUser,
   getSingleMedicine,
   getSinglePatient,
-  getSinglePatientAdmissionHistory
+  getSinglePatientAdmissionHistory,
+  updateDoctorPrescription
 } from "@/apis";
 
 import {
@@ -153,18 +154,57 @@ const DoctorPrescription = () => {
 
   const [doctorPrescriptions, setDoctorPrescriptions] = useState<IDoctorPrescrition[]>([]);
   const [doctorPrescriptions1, setDoctorPrescriptions1] = useState<IDoctorPrescrition[]>([]);
+
   const groupByDate = (
-    items: IDoctorPrescrition[]
+    items: IDoctorPrescrition[],
+    excludeDateTime?: string // pass doctorPrescriptions1[0]?.noteDateTime here
   ): Array<{
-    date: string;
+    date: string; // formatted like "06 Jan, 2024"
     data: IDoctorPrescrition[];
   }> => {
-    return items.slice(1, items.length).map((item) => {
-      return {
-        date: item.noteDateTime,
-        data: [item] // individual items, not grouped
-      };
+    const map: { [date: string]: IDoctorPrescrition[] } = {};
+
+    items.forEach((item) => {
+      const dateObj = new Date(item.noteDateTime);
+      const dateKey = dateObj.toISOString().split("T")[0]; // YYYY-MM-DD
+
+      if (!map[dateKey]) map[dateKey] = [];
+      map[dateKey].push(item);
     });
+
+    return Object.entries(map)
+      .sort(([dateA], [dateB]) => dateB.localeCompare(dateA))
+      .flatMap(([dateKey, data]) => {
+        // If any entry in this group matches excludeDateTime
+        const hasExcluded = excludeDateTime
+          ? data.some((d) => d.noteDateTime === excludeDateTime)
+          : false;
+
+        // If only one item and it matches, skip the group entirely
+        if (hasExcluded && data.length === 1) return [];
+
+        // If more than one, filter out the excluded item
+        const filteredData = hasExcluded
+          ? data.filter((d) => d.noteDateTime !== excludeDateTime)
+          : data;
+
+        // Skip if filtering removed everything
+        if (filteredData.length === 0) return [];
+
+        // Format the date
+        const dateObj = new Date(dateKey);
+        const day = dateObj.toLocaleString("en-GB", { day: "2-digit" });
+        const month = dateObj.toLocaleString("en-GB", { month: "short" });
+        const year = dateObj.getFullYear();
+        const formattedDate = `${day} ${month}, ${year}`;
+
+        return [
+          {
+            date: formattedDate,
+            data: filteredData
+          }
+        ];
+      });
   };
 
   const [allDoctors, setAllDoctors] = useState<IUser[]>([]);
@@ -184,7 +224,7 @@ const DoctorPrescription = () => {
   const [toggleAddFrequencyInput, setToggleAddFrequencyInput] = useState(false);
 
   const [calenderView, setCalenderView] = useState(false);
-  const [all, setAll] = useState<number | null>(null);
+  const [all, setAll] = useState("");
 
   const [updateIndex, setUpdateIndex] = useState<number | null>(null);
 
@@ -497,6 +537,7 @@ const DoctorPrescription = () => {
       // });
 
       // if (hasInvalidUsage) return; // Stop execution if any usage is invalid
+
       setPrescriptionToBeSaved((prev) =>
         updateIndex !== undefined && updateIndex !== null
           ? prev.map((item, i) => (i === updateIndex ? prescriptionState : item))
@@ -601,10 +642,16 @@ const DoctorPrescription = () => {
         noteDateTime: formattedDateTime,
         medicinesInfo
       };
-
-      const response = await createDoctorPrescription(body);
-      if (response && response?.status === 201) {
-        toast.success("Prescription saved successfully");
+      if (data.id) {
+        const response = await updateDoctorPrescription(data.id, body);
+        if (response && response?.status === 201) {
+          toast.success("Prescription Update successfully");
+        }
+      } else {
+        const response = await createDoctorPrescription(body);
+        if (response && response?.status === 201) {
+          toast.success("Prescription saved successfully");
+        }
       }
       fetchDoctorPrescriptions();
       setData((prev) => ({
@@ -791,6 +838,7 @@ const DoctorPrescription = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const contentRef = useRef<HTMLTableElement>(null) as React.RefObject<HTMLTableElement>;
   return (
     <div className="bg-[#F4F2F0] min-h-[calc(100vh-64px)]">
       <div className=" container">
@@ -1317,8 +1365,7 @@ const DoctorPrescription = () => {
                                     </p>
                                   </td>
                                   <td className="px-3 py-3 text-black text-xs text-nowrap whitespace-nowrap">
-                                    {value?.durationFrequency.value == "Custom Date" &&
-                                    value?.customDuration
+                                    {value?.customDuration
                                       ? value?.customDuration
                                           .split("|")
                                           .map((d) => moment(d).format("D MMMM"))
@@ -1426,7 +1473,7 @@ const DoctorPrescription = () => {
           )}
         </RBACGuard>
 
-        <div className="px-8 w-full overflow-auto bg-white font-semibold text-xs py-5">
+        <div className="px-8 bg-white font-semibold text-xs py-5">
           {(searchParams.get("startDate") || doctorPrescriptions.length > 0) && (
             <div className="flex justify-between items-center w-full py-4 pl-3">
               <p className="text-[14px] font-semibold ml-4">All Records</p>
@@ -1466,7 +1513,7 @@ const DoctorPrescription = () => {
           )}
 
           {doctorPrescriptions.length > 0 ? (
-            <div className="max-w-screen lg:overflow-visible overflow-scroll scrollbar-hidden ">
+            <div className="max-w-full lg:overflow-visible overflow-scroll scrollbar-hidden ">
               <table className="sm:w-[1000px] lg:w-full text-sm text-left">
                 <thead className="bg-[#E9E8E5] w-full  top-0 sticky z-10 ">
                   <tr className="text-[#505050] text-xs font-medium">
@@ -1528,12 +1575,9 @@ const DoctorPrescription = () => {
                         )}
 
                         {/* Medicine Name */}
-                        <td
-                          title={`${med?.medicine?.name || "--"} (${med.medicine.genericName})`}
-                          className="px-6  py-3 border-b text-black text-xs font-semibold"
-                        >
+                        <td className="px-6  py-3 border-b text-black text-xs font-semibold">
                           <div className="truncate w-32 text-wrap ">
-                            {med?.medicine?.name || "--"}({med.medicine.genericName})
+                            {med?.medicine?.name || "--"}
                           </div>
                         </td>
 
@@ -1555,7 +1599,7 @@ const DoctorPrescription = () => {
                         {/* Duration */}
                         <td className="px-4  py-3 border-b text-black text-xs text-nowrap whitespace-nowrap">
                           <div className=" w-32 ml-2 text-wrap ">
-                            {med?.customDuration && med?.durationFrequency == "Custom Date"
+                            {med?.customDuration
                               ? med?.customDuration
                                   .split("|")
                                   .map((d) => moment(d).format("D MMMM"))
@@ -1564,10 +1608,7 @@ const DoctorPrescription = () => {
                           </div>
                         </td>
 
-                        <td
-                          title={med?.instructions || ""}
-                          className="px-6    py-3 border-b text-black text-xs"
-                        >
+                        <td className="px-6    py-3 border-b text-black text-xs">
                           <div className="truncate w-64  ">{med?.instructions || "--"}</div>
                         </td>
 
@@ -1642,182 +1683,296 @@ const DoctorPrescription = () => {
                       </tr>
                     ))
                   )}
-                  {groupByDate(doctorPrescriptions).map((data, i) => {
-                    return (
-                      <>
-                        <tr className="text-[#505050] border-b w-full  bg-[#F3F3F3]  text-xs font-medium">
-                          <td colSpan={8} className="pr-5 pl-3 py-3 text-left align-top ">
-                            <div className=" w-full items-center flex justify-between ">
-                              <div className="flex px-3 flex-col w-full justify-start">
-                                <p className="font-bold">{formatDate(data?.date)}</p>
-                                <p className="text-gray-500">
-                                  {data.date && convertBackendDateToTime(data.date)}
-                                </p>
-                              </div>
-                              <div className="p-2 mr-10 w-full flex items-center">
-                                <p>Previous Prescription</p>
-                              </div>
+                  {groupByDate(doctorPrescriptions, doctorPrescriptions1[0]?.noteDateTime).map(
+                    (data) => {
+                      return (
+                        <>
+                          <tr className="text-[#505050] border-b w-full  bg-[#F3F3F3]  text-xs font-medium">
+                            <td colSpan={8} className="pr-5 pl-3 py-3 text-left align-top ">
+                              <div className=" w-full items-center flex justify-between ">
+                                <div className="flex px-3 flex-col w-full justify-start">
+                                  <p className="font-bold">{data.date}</p>
+                                  <p className="text-gray-500">
+                                    {/* {doctorPrescriptions[1]?.noteDateTime &&
+                               convertBackendDateToTime(
+                                 doctorPrescriptions[1]?.noteDateTime
+                               )} */}
+                                    {/* {data.date} */}
+                                  </p>
+                                </div>
+                                <div className="p-2 mr-10 w-full flex items-center">
+                                  <p>Previous Prescription</p>
+                                </div>
 
-                              <div
-                                onClick={() => (i == all ? setAll(null) : setAll(i))}
-                                className={`p-2 cursor-pointer w-fit rounded-[6px]  bg-[#E5E5E5] ${
-                                  i == all ? "rotate-180" : ""
-                                } transition duration-300 `}
-                              >
-                                <FaAngleDown />
-                              </div>
-                            </div>
-                          </td>
-                        </tr>
-                        {i == all &&
-                          data.data.map((dataa: IDoctorPrescrition, index: number) =>
-                            dataa.medicinesInfo.map((med, i) => (
-                              <tr
-                                className="text-[#505050]  text-xs font-medium"
-                                key={`${index}-${i}`}
-                              >
-                                {i === 0 && (
-                                  <td
-                                    rowSpan={dataa.medicinesInfo.length}
-                                    className="pl-6 py-3 text-left  "
-                                  >
-                                    <div className="flex flex-col justify-start">
-                                      <p className="font-bold">{formatDate(dataa?.noteDateTime)}</p>
-                                      <p className="text-gray-500">
-                                        {dataa?.noteDateTime &&
-                                          convertBackendDateToTime(dataa?.noteDateTime)}
-                                      </p>
-                                    </div>
-                                  </td>
-                                )}
-
-                                {i === 0 && (
-                                  <td
-                                    rowSpan={dataa.medicinesInfo.length}
-                                    className="px-6 text-nowrap py-3 text-black text-sm"
-                                  >
-                                    {dataa?.doctorId?.firstName + " " + dataa?.doctorId?.lastName}
-                                  </td>
-                                )}
-
-                                <td
-                                  title={`${med?.medicine?.name || "--"} (${
-                                    med.medicine.genericName
-                                  })`}
-                                  className="px-6 py-3 border-b text-black text-xs font-semibold"
+                                <div
+                                  onClick={() =>
+                                    data.date == all ? setAll("") : setAll(data.date)
+                                  }
+                                  className={`p-2 cursor-pointer w-fit rounded-[6px]  bg-[#E5E5E5] ${
+                                    data.date == all ? "rotate-180" : ""
+                                  } transition duration-300 `}
                                 >
-                                  <div className="truncate w-32 text-wrap ">
-                                    {med?.medicine?.name || "--"}({med?.medicine?.genericName})
-                                  </div>
-                                </td>
-
-                                <td className="px-5 w-96  py-3 border-b text-black text-xs">
-                                  <div className="flex items-center flex-wrap gap-2 my-2">
-                                    {med?.usages?.map((d, i) => (
-                                      <span
-                                        key={i}
-                                        className="bg-[#ECF3CA] mr-1 text-black text-nowrap px-1 py-[2px] rounded-[10px] border-[#C9D686] border"
-                                      >
-                                        <span className="text-xs font-bold">{d?.frequency}</span>,{" "}
-                                        {d?.quantity} Tablet {d?.dosage} {d?.when}
-                                      </span>
-                                    ))}
-                                  </div>
-                                </td>
-
-                                <td className="px-4  ml-2 py-3 border-b text-black text-xs text-nowrap whitespace-nowrap">
-                                  <div className=" w-32 ml-2 text-wrap">
-                                    {med?.customDuration
-                                      ? med?.customDuration
-                                          .split("|")
-                                          .map((d) => moment(d).format("D MMMM"))
-                                          .join(" to ")
-                                      : med?.durationFrequency || "--"}
-                                  </div>
-                                </td>
-
-                                <td
-                                  title={med?.instructions || ""}
-                                  className="px-6    py-3 border-b text-black text-xs"
+                                  <FaAngleDown />
+                                </div>
+                              </div>
+                            </td>
+                          </tr>
+                          {data.date == all &&
+                            data.data.map((dataa: IDoctorPrescrition, index: number) =>
+                              dataa.medicinesInfo.map((med, i) => (
+                                <tr
+                                  className="text-[#505050]  text-xs font-medium"
+                                  key={`${index}-${i}`}
                                 >
-                                  <div className="truncate w-64 ">{med?.instructions || "--"}</div>
-                                </td>
-
-                                <td className="px-6 py-3 border-b text-black text-xs text-nowrap whitespace-nowrap">
-                                  {med?.prescribedWhen || "--"}
-                                </td>
-
-                                {i === 0 && (
-                                  <RBACGuard
-                                    resource={RESOURCES.DOCTOR_PRESCRIPTION}
-                                    action="write"
-                                  >
+                                  {i === 0 && (
                                     <td
                                       rowSpan={dataa.medicinesInfo.length}
-                                      className="pl-6 align-middle border-b py-3 relative pr-1"
+                                      className="pl-6 py-3 text-left  "
                                     >
-                                      <div
-                                        onClick={() => {
-                                          if (!patientData.loa.loa) {
-                                            setState((prev) => ({
-                                              ...prev,
-                                              popId: state.popId == dataa._id ? null : dataa._id
-                                            }));
-                                          }
-                                        }}
-                                        className="bg-[#E5EBCD] relative flex w-5 h-7 items-center justify-center rounded-md hover:bg-[#D4E299] cursor-pointer"
-                                      >
-                                        <img src={kabab} alt="icon" className="w-full h-full" />
-                                        {state.popId == dataa._id && (
-                                          <div className="absolute right-3 top-0 shadow-[0px_0px_20px_#00000017] mt-2 w-fit bg-white border border-gray-300 rounded-lg z-10 flex items-center justify-center">
-                                            <div className="p-1 text-nowrap whitespace-nowrap gap-0 flex-col flex justify-center bg-white shadow-lg rounded-lg w-fit">
-                                              <div
-                                                onClick={() => {
-                                                  handleUpdate(dataa);
-                                                  window.scrollTo({ top: 0 });
-                                                }}
-                                                className="text-xs font-semibold cursor-pointer p-2 px-3"
-                                              >
-                                                <p>Edit</p>
-                                              </div>
-                                              <hr />
-                                              <DoctorDataDownload
-                                                patientDetails={state}
-                                                data={[dataa]}
-                                                button={
-                                                  <div className="text-xs font-semibold cursor-pointer p-2 px-3 text-nowrap whitespace-nowrap">
-                                                    <div className="flex items-center  cursor-pointer">
-                                                      <p>Download</p>
-                                                    </div>
-                                                  </div>
-                                                }
-                                              />
-
-                                              <hr />
-                                              <div
-                                                onClick={() => handleDelete(dataa._id)}
-                                                className="text-xs font-semibold cursor-pointer p-2 px-3 text-red-600"
-                                              >
-                                                <p>Delete</p>
-                                              </div>
-                                            </div>
-                                          </div>
-                                        )}
+                                      <div className="flex flex-col justify-start">
+                                        <p className="font-bold">
+                                          {formatDate(dataa?.noteDateTime)}
+                                        </p>
+                                        <p className="text-gray-500">
+                                          {dataa?.noteDateTime &&
+                                            convertBackendDateToTime(dataa?.noteDateTime)}
+                                        </p>
                                       </div>
                                     </td>
-                                  </RBACGuard>
-                                )}
-                              </tr>
-                            ))
+                                  )}
+
+                                  {i === 0 && (
+                                    <td
+                                      rowSpan={dataa.medicinesInfo.length}
+                                      className="px-6 text-nowrap py-3 text-black text-sm"
+                                    >
+                                      {dataa?.doctorId?.firstName + " " + dataa?.doctorId?.lastName}
+                                    </td>
+                                  )}
+
+                                  <td className="px-6 py-3 border-b text-black text-xs font-semibold">
+                                    <div className="truncate w-32 text-wrap ">
+                                      {med?.medicine?.name || "--"}
+                                    </div>
+                                  </td>
+
+                                  <td className="px-5 w-96  py-3 border-b text-black text-xs">
+                                    <div className="flex items-center flex-wrap gap-2 my-2">
+                                      {med?.usages?.map((d, i) => (
+                                        <span
+                                          key={i}
+                                          className="bg-[#ECF3CA] mr-1 text-black text-nowrap px-1 py-[2px] rounded-[10px] border-[#C9D686] border"
+                                        >
+                                          <span className="text-xs font-bold">{d?.frequency}</span>,{" "}
+                                          {d?.quantity} Tablet {d?.dosage} {d?.when}
+                                        </span>
+                                      ))}
+                                    </div>
+                                  </td>
+
+                                  <td className="px-4  ml-2 py-3 border-b text-black text-xs text-nowrap whitespace-nowrap">
+                                    <div className=" w-32 ml-2 text-wrap">
+                                      {med?.customDuration
+                                        ? med?.customDuration
+                                            .split("|")
+                                            .map((d) => moment(d).format("D MMMM"))
+                                            .join(" to ")
+                                        : med?.durationFrequency || "--"}
+                                    </div>
+                                  </td>
+
+                                  <td className="px-6    py-3 border-b text-black text-xs">
+                                    <div className="truncate w-64 ">
+                                      {med?.instructions || "--"}
+                                    </div>
+                                  </td>
+
+                                  <td className="px-6 py-3 border-b text-black text-xs text-nowrap whitespace-nowrap">
+                                    {med?.prescribedWhen || "--"}
+                                  </td>
+
+                                  {i === 0 && (
+                                    <RBACGuard
+                                      resource={RESOURCES.DOCTOR_PRESCRIPTION}
+                                      action="write"
+                                    >
+                                      <td
+                                        rowSpan={dataa.medicinesInfo.length}
+                                        className="pl-6 align-middle border-b py-3 relative pr-1"
+                                      >
+                                        <div
+                                          onClick={() => {
+                                            if (!patientData.loa.loa) {
+                                              setState((prev) => ({
+                                                ...prev,
+                                                popId: state.popId == dataa._id ? null : dataa._id
+                                              }));
+                                            }
+                                          }}
+                                          className="bg-[#E5EBCD] relative flex w-5 h-7 items-center justify-center rounded-md hover:bg-[#D4E299] cursor-pointer"
+                                        >
+                                          <img src={kabab} alt="icon" className="w-full h-full" />
+                                          {state.popId == dataa._id && (
+                                            <div className="absolute right-3 top-0 shadow-[0px_0px_20px_#00000017] mt-2 w-fit bg-white border border-gray-300 rounded-lg z-10 flex items-center justify-center">
+                                              <div className="p-1 text-nowrap whitespace-nowrap gap-0 flex-col flex justify-center bg-white shadow-lg rounded-lg w-fit">
+                                                <div
+                                                  onClick={() => {
+                                                    handleUpdate(dataa);
+                                                    window.scrollTo({ top: 0 });
+                                                  }}
+                                                  className="text-xs font-semibold cursor-pointer p-2 px-3"
+                                                >
+                                                  <p>Edit</p>
+                                                </div>
+                                                <hr />
+                                                <DoctorDataDownload
+                                                  patientDetails={state}
+                                                  data={[dataa]}
+                                                  button={
+                                                    <div className="text-xs font-semibold cursor-pointer p-2 px-3 text-nowrap whitespace-nowrap">
+                                                      <div className="flex items-center  cursor-pointer">
+                                                        <p>Download</p>
+                                                      </div>
+                                                    </div>
+                                                  }
+                                                />
+
+                                                <hr />
+                                                <div
+                                                  onClick={() => handleDelete(dataa._id)}
+                                                  className="text-xs font-semibold cursor-pointer p-2 px-3 text-red-600"
+                                                >
+                                                  <p>Delete</p>
+                                                </div>
+                                              </div>
+                                            </div>
+                                          )}
+                                        </div>
+                                      </td>
+                                    </RBACGuard>
+                                  )}
+                                </tr>
+                              ))
+                            )}
+                        </>
+                      );
+                    }
+                  )}
+
+                  {/* {all &&
+                    doctorPrescriptions.map((data: IDoctorPrescrition, index: number) =>
+                      data.medicinesInfo.map((med, i) => (
+                        <tr
+                          className="text-[#505050] align-top text-xs font-medium"
+                          key={`${index}-${i}`}
+                        >
+                          {i === 0 && (
+                            <td
+                              rowSpan={data.medicinesInfo.length}
+                              className="pl-8 py-3 text-left align-top "
+                            >
+                              <div className="flex flex-col justify-start">
+                                <p className="font-bold">
+                                  {formatDate(data?.noteDateTime)}
+                                </p>
+                                <p className="text-gray-500">
+                                  {data?.noteDateTime &&
+                                    convertBackendDateToTime(data?.noteDateTime)}
+                                </p>
+                              </div>
+                            </td>
                           )}
-                      </>
-                    );
-                  })}
+
+                          {i === 0 && (
+                            <td
+                              rowSpan={data.medicinesInfo.length}
+                              className="px-6 py-3 text-black align-top text-sm"
+                            >
+                              {data?.doctorId?.firstName + " " + data?.doctorId?.lastName}
+                            </td>
+                          )}
+
+                          <td className="px-6  py-3 border-b text-black text-xs font-semibold">
+                            {med?.medicine?.name || "--"}
+                          </td>
+
+                          <td className="px-6  py-3 border-b text-black text-xs">
+                            <div className="flex items-center flex-wrap gap-2 my-2">
+                              {med?.usages?.map((d, i) => (
+                                <span
+                                  key={i}
+                                  className="bg-[#ECF3CA] mr-1 text-black text-nowrap px-1 py-[2px] rounded-[10px] border-[#C9D686] border"
+                                >
+                                  <span className="text-xs font-bold">{d?.frequency}</span>,{" "}
+                                  {d?.quantity} Tablet {d?.dosage} {d?.when}
+                                </span>
+                              ))}
+                            </div>
+                          </td>
+
+                          <td className="px-6  py-3 border-b text-black text-xs text-nowrap whitespace-nowrap">
+                            {med?.customDuration
+                              ? med?.customDuration
+                                  .split("|")
+                                  .map((d) => moment(d).format("D MMMM"))
+                                  .join(" to ")
+                              : med?.durationFrequency || "--"}
+                          </td>
+
+                          <td className="px-6  py-3 border-b text-black text-xs">
+                            {med?.instructions || "--"}
+                          </td>
+
+                          <td className="px-6 py-3 border-b text-black text-xs text-nowrap whitespace-nowrap">
+                            {med?.prescribedWhen || "--"}
+                          </td>
+
+
+                          {i === 0 && (
+                            <td
+                              rowSpan={data.medicinesInfo.length}
+                              className="pl-6 align-middle border-b py-3 relative pr-1"
+                            >
+                              <div
+                                onClick={() =>
+                                  setState((prev) => ({
+                                    ...prev,
+                                    popId: state.popId == index ? null : index
+                                  }))
+                                }
+                                className="bg-[#E5EBCD] relative flex w-5 h-7 items-center justify-center rounded-md hover:bg-[#D4E299] cursor-pointer"
+                              >
+                                <img src={kabab} alt="icon" className="w-full h-full" />
+                                {state.popId == index && (
+                                  <div className="absolute right-3 top-0 shadow-[0px_0px_20px_#00000017] mt-2 w-fit bg-white border border-gray-300 rounded-lg z-10 flex items-center justify-center">
+                                    <div className="p-1 text-nowrap whitespace-nowrap gap-0 flex-col flex justify-center bg-white shadow-lg rounded-lg w-fit">
+                                      <div
+                                        onClick={() => handleUpdate(data)}
+                                        className="text-xs font-semibold cursor-pointer p-2 px-3"
+                                      >
+                                        <p>Edit</p>
+                                      </div>
+                                      <hr />
+                                      <div
+                                        onClick={() => handleDelete(data._id)}
+                                        className="text-xs font-semibold cursor-pointer p-2 px-3 text-red-600"
+                                      >
+                                        <p>Delete</p>
+                                      </div>
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            </td>
+                          )}
+                        </tr>
+                      ))
+                    )} */}
                 </tbody>
               </table>
             </div>
           ) : (
-            <div className="flex  justify-center items-center bg-white py-[33px] font-semibold text-xs h-full">
+            <div className="flex justify-center items-center bg-white py-[33px] font-semibold text-xs h-full">
               <EmptyRecord />
             </div>
           )}
@@ -1832,6 +1987,161 @@ const DoctorPrescription = () => {
 
       <div className="container">
         <Pagination totalPages={state.totalPages} />
+      </div>
+      <div
+        style={{
+          position: "absolute",
+          top: "-9999px",
+          left: "0",
+          visibility: "visible",
+          zIndex: -1,
+          width: "100%"
+        }}
+      >
+        {doctorPrescriptions.length > 0 ? (
+          <div className="p-10  w-full text-lg!  font-bold!">
+            <table
+              style={{ pageBreakInside: "avoid", breakInside: "avoid" }}
+              ref={contentRef}
+              className="sm:w-[1000px] p-10 lg:w-full text-sm text-left"
+            >
+              <thead style={{ background: "#E9E8E5" }} className="bg-[#E9E8E5] w-full  ">
+                <tr className="text-[#505050] text-xs font-medium">
+                  <th
+                    style={{ color: "#505050" }}
+                    className={` ${
+                      all ? "px-8" : "px-8"
+                    } py-3   font-medium text-[#505050] text-lg!  pl-6    text-nowrap whitespace-nowrap`}
+                  >
+                    Date & Time
+                  </th>
+                  <th
+                    style={{ color: "#505050" }}
+                    className="px-6 py-3  font-medium text-[#505050]  text-lg!  text-nowrap whitespace-nowrap"
+                  >
+                    Doctor
+                  </th>
+                  <th
+                    style={{ color: "#505050" }}
+                    className="px-6 py-3 font-medium text-[#505050]  text-lg!  text-nowrap whitespace-nowrap"
+                  >
+                    Medicine & Dosage
+                  </th>
+                  <th
+                    style={{ color: "#505050" }}
+                    className="px-6 py-3 font-medium text-[#505050]  text-lg!  text-nowrap whitespace-nowrap"
+                  >
+                    Frequency/Routine
+                  </th>
+                  <th
+                    style={{ color: "#505050" }}
+                    className="px-6 py-3 font-medium text-[#505050]  text-lg!  text-nowrap whitespace-nowrap"
+                  >
+                    Duration
+                  </th>
+                  <th
+                    style={{ color: "#505050" }}
+                    className="px-6 py-3 font-medium text-[#505050]  text-lg! "
+                  >
+                    Instructions
+                  </th>
+                  <th
+                    style={{ color: "#505050" }}
+                    className="px-6 py-3 font-medium text-[#505050]  text-lg!  text-nowrap whitespace-nowrap"
+                  >
+                    Prescribed When
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white  w-full h-full">
+                {doctorPrescriptions1.map((data: IDoctorPrescrition, index: number) =>
+                  data.medicinesInfo.map((med, i) => (
+                    <tr
+                      style={{ pageBreakInside: "avoid", breakInside: "avoid", color: "#505050" }}
+                      // style={{  }}
+                      className="text-[#505050] align-top  text-lg! font-medium"
+                      key={`${index}-${i}`}
+                    >
+                      {/* ✅ Render Date Column Only Once per Prescription */}
+                      {i === 0 && (
+                        <td rowSpan={data.medicinesInfo.length} className="pl-6 py-3 text-left  ">
+                          <div className="flex flex-col justify-start">
+                            <p className="font-bold">{formatDate(data?.noteDateTime)}</p>
+                            <p className="text-gray-500">
+                              {data?.noteDateTime && convertBackendDateToTime(data?.noteDateTime)}
+                            </p>
+                          </div>
+                        </td>
+                      )}
+
+                      {/* Doctor Name */}
+                      {i === 0 && (
+                        <td
+                          rowSpan={data.medicinesInfo.length}
+                          className="px-6  py-3 text-nowrap text-lg! text-black  "
+                        >
+                          {data?.doctorId?.firstName + " " + data?.doctorId?.lastName}
+                        </td>
+                      )}
+
+                      {/* Medicine Name */}
+                      <td className="px-6  py-3 border-b text-black text-lg! font-semibold">
+                        <div className="truncate w-32 text-wrap ">
+                          {med?.medicine?.name || "--"}
+                        </div>
+                      </td>
+
+                      {/* Frequency/Routine */}
+                      <td className="px-5 w-96  py-3 border-b text-black text-lg!">
+                        <div className="flex items-center flex-wrap gap-2 my-2">
+                          {med?.usages?.map((d, i) => (
+                            <span
+                              style={{ background: "#ECF3CA", borderColor: "#C9D686" }}
+                              key={i}
+                              className="bg-[#ECF3CA] mr-1 text-black text-nowrap px-1 py-[2px] rounded-[10px] border-[#C9D686] border"
+                            >
+                              <span className="text-lg! font-bold">{d?.frequency}</span>,{" "}
+                              {d?.quantity} Tablet {d?.dosage} {d?.when}
+                            </span>
+                          ))}
+                        </div>
+                      </td>
+
+                      {/* Duration */}
+                      <td className="px-4  py-3 border-b text-black text-lg! text-nowrap whitespace-nowrap">
+                        <div className=" w-32 ml-2 text-wrap ">
+                          {med?.customDuration
+                            ? med?.customDuration
+                                .split("|")
+                                .map((d) => moment(d).format("D MMMM"))
+                                .join(" to ")
+                            : med?.durationFrequency || "--"}
+                        </div>
+                      </td>
+
+                      <td className="px-6 py-3 border-b text-black text-lg whitespace-normal">
+                        <div className="w-[200px] break-words">{med?.instructions || "--"}</div>
+                      </td>
+
+                      {/* Prescribed When */}
+                      <td className="px-6 py-3 border-b text-black text-lg! text-nowrap whitespace-nowrap">
+                        {med?.prescribedWhen || "--"}
+                      </td>
+
+                      {/* Instructions */}
+
+                      {/* Actions */}
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <div className=" justify-center items-center bg-white py-[33px] font-semibold text-lg! h-full">
+            <EmptyRecord />
+          </div>
+        )}
       </div>
     </div>
   );

@@ -579,7 +579,7 @@ const ExistingPatient = () => {
                         <div className="flex items-start flex-col">
                           <p
                             className="text-xs font-semibold"
-                            title={modalData?.firstName +' '+ modalData?.lastName}
+                            title={modalData?.firstName + modalData?.lastName}
                           >
                             {capitalizeFirstLetter(
                               modalData?.firstName?.length > 15

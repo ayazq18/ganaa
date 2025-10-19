@@ -1,6 +1,5 @@
 import multer from 'multer';
 import { NextFunction, Response } from 'express';
-import Env from '../constant/env';
 import * as S3 from '../utils/s3Helper';
 import AppError from '../utils/appError';
 import { random } from '../utils/random';
@@ -110,17 +109,7 @@ export const getAllBasicUsers = catchAsync(
     if (!req.query.roles) return next(new AppError('Roles are Mandatory', 400));
 
     let rolesToSerach: string[] = [];
-    const validRoles = [
-      'doctor',
-      'therapist',
-      'admin',
-      'sales',
-      'finance',
-      'admission manager',
-      'Therapist+AM',
-      'ROM+AM',
-      "IT"
-    ];
+    const validRoles = ['doctor', 'therapist', 'admin', 'sales', 'finance', 'admission manager'];
 
     const roles = req.query.roles.toString()?.split(',');
     roles.map((role) => validRoles.includes(role) && rolesToSerach.push(role));
@@ -134,7 +123,7 @@ export const getAllBasicUsers = catchAsync(
       .get();
 
     const features = new APIFeatures<IUser>(
-      User.find({isDeleted:false})
+      User.find()
         .select(
           'firstName lastName gender centerId roleId email dob profilePic phoneNumber isDeleted'
         )
@@ -148,7 +137,7 @@ export const getAllBasicUsers = catchAsync(
     const rawQuery = features.rawQuery();
     const data = await features.query;
     const paginationInfo = await PaginationInfo.exec(
-      User.countDocuments({isDeleted:false}),
+      User.countDocuments(),
       filteredQuery,
       rawQuery
     );
@@ -163,7 +152,7 @@ export const getAllBasicUsers = catchAsync(
 
 export const getAllUsers = catchAsync(
   async (req: UserRequest, res: Response, next: NextFunction) => {
-    const features = new APIFeatures<IUser>(User.find({isDeleted:false}), req.query)
+    const features = new APIFeatures<IUser>(User.find(), req.query)
       .filter()
       .sort()
       .limitFields()
@@ -171,7 +160,7 @@ export const getAllUsers = catchAsync(
 
     const rawQuery = features.rawQuery();
     const data = await features.query;
-    const paginationInfo = await PaginationInfo.exec(User.countDocuments({isDeleted:false}), req.query, rawQuery);
+    const paginationInfo = await PaginationInfo.exec(User.countDocuments(), req.query, rawQuery);
 
     res.status(200).json({
       status: 'success',
@@ -208,13 +197,17 @@ export const createNewUsers = catchAsync(
       if (emailCheck) return next(new AppError('Email Already Exists', 400));
     }
 
+    const randomPassword = random.randomAlphaNumeric(10);
+
     let data: IUser | null = await User.create({
       ...filteredBody,
       isDeleted: false,
       isEmailVerified: true,
-      password: Env.DEFAULT_USER_PASSWORD,
+      password: randomPassword,
       isSystemGeneratedPassword: true,
     });
+
+    // TODO: Send Password to Email
 
     if (req.file) {
       const fileName = `${Date.now()}-${random.randomAlphaNumeric(6)}-${req.file?.originalname}`;

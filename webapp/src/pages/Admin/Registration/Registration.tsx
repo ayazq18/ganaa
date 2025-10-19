@@ -255,9 +255,6 @@ const Registration = () => {
           minorAdmissionFormLink:
             patientAdmissionHistory?.data?.admissionChecklist?.minorAdmissionForm ||
             patientData?.patientAdmission?.minorAdmissionFormLink,
-          form90Link:
-            patientAdmissionHistory?.data?.admissionChecklist?.form90 ||
-            patientData?.patientAdmission?.form90Link,
 
           familyDeclarationLink:
             patientAdmissionHistory?.data?.admissionChecklist?.familyDeclaration ||
@@ -317,8 +314,6 @@ const Registration = () => {
             patientAdmissionHistory?.data?.admissionChecklist?.minorAdmissionForm?.length > 0
               ? true
               : false,
-          isform90:
-            patientAdmissionHistory?.data?.admissionChecklist?.form90?.length > 0 ? true : false,
           orientationOfFamily:
             patientAdmissionHistory?.data?.admissionChecklist?.orientationOfFamily?.length > 0
               ? true

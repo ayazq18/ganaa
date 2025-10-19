@@ -65,6 +65,7 @@ export const ROUTES = {
   CASE_HISTORY: "in-patient/:id/case-history/:aId",
   DOCTOR_NOTES: "in-patient/:id/daily-progress/:aId/doctor/notes",
   DOCTOR_PRESCRIPTION: "in-patient/:id/daily-progress/:aId/doctor/prescription",
+  PATIENT_FOLLOWUP: "all-patient/:id/patient-followup/:aId",
 
   DISCHARGE: "in-patient/:id/discharge/:aId",
   GROUP_ACTIVITY: "in-patient/group-activity",

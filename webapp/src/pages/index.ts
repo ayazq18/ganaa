@@ -1,6 +1,7 @@
 export { default as Root } from "@/pages/Root/Root";
 
 // Unprotected Pages
+
 export { default as Home } from "@/pages/Home//Home";
 export { default as NotFound } from "@/pages/NotFound/NotFound";
 export { default as InValidScreen } from "@/pages/InValidScreen/InValidScreen";
@@ -50,10 +51,6 @@ export { default as Error } from "@/pages/Error/Error";
 export { default as CustomCalenderForDoctor } from "@/pages/Admin/PatientData/Doctor/CustomCalenderForDocotor/CustomCalenderForDoctor";
 
 //dashboard
-export { default as User } from "@/pages/Admin/Dashboard/User/User";
-export { default as Dashboard } from "@/pages/Admin/Dashboard/Dashboard";
-export { default as Center } from "@/pages/Admin/Dashboard/Center/Center";
-export { default as Allergy } from "@/pages/Admin/Dashboard/Allergy/Allergy";
 export { default as Insights } from "@/pages/Admin/Dashboard/Insights/Insights";
 export { default as DailyReport } from "@/pages/Admin/Dashboard/DailyReport/DailyReport";
 export { default as WeeklyReport } from "@/pages/Admin/Dashboard/WeeklyReport/WeeklyReport";

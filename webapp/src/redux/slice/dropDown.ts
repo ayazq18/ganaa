@@ -24,7 +24,7 @@ export interface ICountry {
 export interface ICenter {
   _id: string;
   centerName: string;
-  googleMapLink: string;
+  centerUID: string;
   createdAt: string;
 }
 export interface IInsight {
@@ -33,7 +33,6 @@ export interface IInsight {
 export interface IAllergy {
   _id: string;
   name: string;
-  isDeleted: boolean;
 }
 export interface ISessionType {
   name: string;

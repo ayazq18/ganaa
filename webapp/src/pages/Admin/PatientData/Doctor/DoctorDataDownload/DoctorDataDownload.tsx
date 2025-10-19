@@ -138,18 +138,17 @@ const DoctorDataDownload = ({
 
                     return entry.medicinesInfo.map((med: any, idx: number) => {
                       const usages = med.usages || [];
-                      const medicineName = `${med.medicine?.name} (${med.medicine?.genericName})`;
+                      const medicineName = med.medicine?.name || "-";
                       //   const dosage = usages.map((u: any) => u.dosage).join(", ");
                       const frequency = usages
                         .map((u: any) => `${u.frequency} ${u.quantity} Tab${u.dosage} ${u.when}`)
                         .join(", ");
-                      const duration =
-                        med.customDuration && med?.durationFrequency === "Custom Date"
-                          ? med.customDuration
-                              .split("|")
-                              .map((d: string) => moment(d).format("D MMMM"))
-                              .join(" to ")
-                          : med.durationFrequency || "-";
+                      const duration = med.customDuration
+                        ? med.customDuration
+                            .split("|")
+                            .map((d: string) => moment(d).format("D MMMM"))
+                            .join(" to ")
+                        : med.durationFrequency || "-";
                       const instruction = med.instructions || "-";
                       const prescribedWhen = med.prescribedWhen || "-";
 
@@ -167,7 +166,7 @@ const DoctorDataDownload = ({
                 ]
               },
               layout: {
-                fillColor: (rowIndex: number) => (rowIndex === 0 ? "#e0e0e0" : null)
+                fillColor: (rowIndex: number) => (rowIndex === 0 ? "#ecfab1" : null)
               },
               margin: [0, 0, 0, 0]
             }
@@ -176,10 +175,6 @@ const DoctorDataDownload = ({
           styles: {
             header: {
               fontSize: 9,
-              bold: true
-            },
-             tableHeader: {
-              fontSize: 12,
               bold: true
             },
             tableContent: {
@@ -275,18 +270,17 @@ const DoctorDataDownload = ({
 
                     return entry.medicinesInfo.map((med: any, idx: number) => {
                       const usages = med.usages || [];
-                      const medicineName = `${med.medicine?.name} (${med.medicine?.genericName})`;
+                      const medicineName = med.medicine?.name || "-";
                       //   const dosage = usages.map((u: any) => u.dosage).join(", ");
                       const frequency = usages
                         .map((u: any) => `${u.frequency} ${u.quantity} Tab ${u.dosage} ${u.when}`)
                         .join(", ");
-                      const duration =
-                        med.customDuration && med?.durationFrequency === "Custom Date"
-                          ? med.customDuration
-                              .split("|")
-                              .map((d: string) => moment(d).format("D MMMM"))
-                              .join(" to ")
-                          : med.durationFrequency || "-";
+                      const duration = med.customDuration
+                        ? med.customDuration
+                            .split("|")
+                            .map((d: string) => moment(d).format("D MMMM"))
+                            .join(" to ")
+                        : med.durationFrequency || "-";
                       const instruction = med.instructions || "-";
                       const prescribedWhen = med.prescribedWhen || "-";
 
@@ -304,7 +298,7 @@ const DoctorDataDownload = ({
                 ]
               },
               layout: {
-                fillColor: (rowIndex: number) => (rowIndex === 0 ? "#e0e0e0" : null)
+                fillColor: (rowIndex: number) => (rowIndex === 0 ? "#ecfab1" : null)
               },
               margin: [0, 0, 0, 0]
             }
@@ -313,10 +307,6 @@ const DoctorDataDownload = ({
           styles: {
             header: {
               fontSize: 9,
-              bold: true
-            },
-            tableHeader: {
-              fontSize: 12,
               bold: true
             },
             tableContent: {

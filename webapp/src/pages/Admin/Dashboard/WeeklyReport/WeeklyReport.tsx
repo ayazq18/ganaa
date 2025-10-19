@@ -27,6 +27,7 @@ const WeeklyReport = () => {
       let monthsParam = searchParams.get("Year");
 
       if (!monthsParam) {
+        // If no param, set current month-year as default
         const now = new Date();
         const defaultYear = now.getFullYear();
         monthsParam = `${defaultYear}`;
@@ -43,9 +44,7 @@ const WeeklyReport = () => {
         year: year.toString()
       });
 
-      const reversedData = Object.fromEntries(Object.entries(response.data.data).reverse());
-
-      setData(reversedData);
+      setData(response.data.data);
     } catch (error) {
       console.error(error);
     }
@@ -66,12 +65,12 @@ const WeeklyReport = () => {
     }
   };
 
-  // useEffect(() => {
-  //   if (data && scrollRef.current) {
-  //     const wrapper = scrollRef.current;
-  //     wrapper.scrollLeft = wrapper.scrollWidth;
-  //   }
-  // }, [data]);
+  useEffect(() => {
+    if (data && scrollRef.current) {
+      const wrapper = scrollRef.current;
+      wrapper.scrollLeft = wrapper.scrollWidth;
+    }
+  }, [data]);
 
   return (
     <div className="bg-[#F4F2F0] min-h-screen">
@@ -82,6 +81,16 @@ const WeeklyReport = () => {
           </div>
           <div className="flex justify-end gap-2 mb-3"></div>
           <div className="flex gap-4">
+            {/* <DateRange>
+              <Button
+                variant="outlined"
+                size="base"
+                className="flex bg-white text-xs! py-2! border-[#D4D4D4]!  border! rounded-lg! text-[#505050] "
+              >
+                <img src={calender} alt="calender" />
+                Date Range
+              </Button>
+            </DateRange> */}
             <YearSelector />
           </div>
         </div>
@@ -122,15 +131,18 @@ const WeeklyReport = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  <tr className="cursor-pointer text-nowrap border-b border-[#EEE2D2] bg-[#EEE2D2] text-[12px] font-semibold text-black select-none">
+                  <tr className="cursor-pointer border-b border-[#EEE2D2] bg-[#EEE2D2] text-[12px] font-semibold text-black select-none">
                     <td colSpan={data && Object.keys(data).length + 1} className=" px-3 py-2">
                       <div className="flex w-[240px] sticky left-3 z-20 justify-between">
                         <p>Admissions & Client Flow </p>
+                        {/* <div className="bg-white rounded-sm text-black p-0.5">
+                          <IoIosArrowDown className=" text-black text-sm" />
+                        </div> */}
                       </div>
                     </td>
                   </tr>
 
-                  <tr className="border-b text-nowrap border-[#d9d4c9]">
+                  <tr className="border-b border-[#d9d4c9]">
                     <td className=" py-4  w-[240px] bg-white sticky left-0 z-20 px-3  pl-3 font-semibold">
                       Active Clients at start of the week
                     </td>
@@ -144,8 +156,8 @@ const WeeklyReport = () => {
                       })}
                   </tr>
 
-                  <tr className="border-b text-nowrap border-[#d9d4c9]">
-                    <td className=" py-4  w-[240px] bg-white sticky left-0 z-20  pl-3   font-semibold text-black">
+                  <tr className="border-b border-[#d9d4c9]">
+                    <td className=" py-4  w-[240px] bg-white sticky left-0 z-20 flex  items-center pl-3   font-semibold text-black">
                       Total Admission
                     </td>
                     {data &&
@@ -158,8 +170,8 @@ const WeeklyReport = () => {
                       })}
                   </tr>
 
-                  <tr className="border-b text-nowrap border-[#d9d4c9]">
-                    <td className=" py-4  w-[240px] bg-white sticky left-0 z-20  pl-3  text-[12px] font-semibold text-black">
+                  <tr className="border-b border-[#d9d4c9]">
+                    <td className=" py-4  w-[240px] bg-white sticky left-0 z-20 flex items-center pl-3  text-[12px] font-semibold text-black">
                       New Admission
                     </td>
                     {data &&
@@ -172,7 +184,7 @@ const WeeklyReport = () => {
                       })}
                   </tr>
 
-                  <tr className="border-b text-nowrap border-[#d9d4c9]">
+                  <tr className="border-b border-[#d9d4c9]">
                     <td className=" py-4  w-[240px] bg-white sticky left-0 z-20 pl-3 font-semibold text-black">
                       Total Discharges
                     </td>
@@ -186,8 +198,8 @@ const WeeklyReport = () => {
                       })}
                   </tr>
 
-                  <tr className="border-b text-nowrap border-[#d9d4c9]">
-                    <td className=" py-4  w-[240px] bg-white sticky left-0 z-20  text-black  pl-3 font-semibold">
+                  <tr className="border-b border-[#d9d4c9]">
+                    <td className=" py-4  w-[240px] bg-white sticky left-0 z-20 flex  items-center text-black  pl-3 font-semibold">
                       Average Occupancy Rate (%){" "}
                       <i className="fas fa-info-circle ml-1 text-[13px]"></i>
                     </td>
@@ -201,10 +213,10 @@ const WeeklyReport = () => {
                       })}
                   </tr>
 
-                  <tr className="border-b text-nowrap border-[#d9d4c9]">
-                    <td className=" py-1  w-[240px] bg-white sticky left-0 z-20  text-black pl-3 font-semibold">
+                  <tr className="border-b border-[#d9d4c9]">
+                    <td className=" py-1  w-[240px] bg-white sticky left-0 z-20 flex  items-center text-black pl-3 font-semibold">
                       <div>
-                        <div>4 Week Rolling Average Length of stay</div>
+                        <div>4 Week Rolling Average Length of stay (%)</div>
                       </div>
                       <i className="fas fa-info-circle ml-1 text-[13px]"></i>
                     </td>
@@ -212,22 +224,25 @@ const WeeklyReport = () => {
                       Object.keys(data).map((value) => {
                         return (
                           <td className=" py-4 text-center font-bold">
-                            {data[value].report.fourWeekRolling}
+                            {data[value].report.fourWeekRolling} %
                           </td>
                         );
                       })}
                   </tr>
 
-                  <tr className="cursor-pointer text-nowrap border-t border-[#EEE2D2] bg-[#EEE2D2] text-[12px] font-semibold text-black select-none">
+                  <tr className="cursor-pointer border-t border-[#EEE2D2] bg-[#EEE2D2] text-[12px] font-semibold text-black select-none">
                     <td colSpan={data && Object.keys(data).length + 1} className="px-3 py-2">
                       <div className="flex justify-between w-[240px] sticky left-3 z-50 ">
                         <p>Digital Marketing</p>
+                        {/* <div className="bg-white rounded-sm text-black p-0.5">
+                          <IoIosArrowDown className=" text-black text-sm" />
+                        </div> */}
                       </div>
                     </td>
                   </tr>
 
-                  <tr className="border-b text-nowrap border-[#d9d4c9]">
-                    <td className=" py-4  w-[240px] bg-white sticky left-0 z-20  pl-3  font-semibold text-black">
+                  <tr className="border-b border-[#d9d4c9]">
+                    <td className=" py-4  w-[240px] bg-white sticky left-0 z-20 flex  items-center pl-3  font-semibold text-black">
                       Total Leads Generated
                     </td>
                     {data &&
@@ -240,8 +255,8 @@ const WeeklyReport = () => {
                       })}
                   </tr>
 
-                  <tr className="border-b text-nowrap border-[#d9d4c9]">
-                    <td className=" py-4  w-[240px] bg-white sticky left-0 z-20  pl-3  text-[12px] font-semibold text-black">
+                  <tr className="border-b border-[#d9d4c9]">
+                    <td className=" py-4  w-[240px] bg-white sticky left-0 z-20 flex  items-center pl-3  text-[12px] font-semibold text-black">
                       Leads from Digital Marketing
                     </td>
                     {data &&
@@ -254,8 +269,8 @@ const WeeklyReport = () => {
                       })}
                   </tr>
 
-                  <tr className="border-b text-nowrap border-[#d9d4c9]">
-                    <td className=" py-4  w-[240px] bg-white sticky left-0 z-20  pl-3  font-semibold text-black">
+                  <tr className="border-b border-[#d9d4c9]">
+                    <td className=" py-4  w-[240px] bg-white sticky left-0 z-20 flex  items-center pl-3  font-semibold text-black">
                       Total Conversion
                     </td>
                     {data &&
@@ -268,16 +283,33 @@ const WeeklyReport = () => {
                       })}
                   </tr>
 
-                  <tr className="cursor-pointer border-t text-nowrap border-[#EEE2D2] bg-[#EEE2D2] text-[12px] font-semibold text-black select-none">
+                  {/* <tr className="border-b border-[#d9d4c9]">
+                    <td className=" py-4 flex w-[240px] items-center   text-[12px] font-semibold text-black">
+                      Conversations
+                    </td>
+                    {data &&
+                      Object.keys(data).map((value) => {
+                        return (
+                          <td className=" py-4 text-center font-bold">
+                            {data[value].report.conversations}
+                          </td>
+                        );
+                      })}
+                  </tr> */}
+
+                  <tr className="cursor-pointer border-t border-[#EEE2D2] bg-[#EEE2D2] text-[12px] font-semibold text-black select-none">
                     <td colSpan={data && Object.keys(data).length + 1} className="px-3 py-2">
                       <div className="flex justify-between w-[240px] sticky left-3 z-50">
                         <p>Operational Metrics</p>
+                        {/* <div className="bg-white rounded-sm text-black p-0.5">
+                          <IoIosArrowDown className=" text-black text-sm" />
+                        </div> */}
                       </div>
                     </td>
                   </tr>
 
                   <tr className="border-b border-[#d9d4c9]">
-                    <td className=" py-4  w-[240px] bg-white sticky left-0 z-20 pl-3 text-nowrap  font-semibold text-black">
+                    <td className=" py-4  w-[240px] bg-white sticky left-0 z-20 flex  items-center pl-3  font-semibold text-black">
                       Client Satisfaction Score
                     </td>
                     {data &&

@@ -39,10 +39,8 @@ roleSchema.pre(/^find/, function (next) {
 
 // Static method
 roleSchema.statics.getRoleIdsByNames = async function (names: string[]): Promise<ObjectId[]> {
-  const escapeRegex = (str: string) => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-
   const regexConditions = names.map((name) => ({
-    name: { $regex: new RegExp(`^${escapeRegex(name)}$`, 'i') },
+    name: { $regex: new RegExp(`^${name}$`, 'i') },
   }));
 
   const roles = await this.find({ $or: regexConditions }, { _id: 1 });

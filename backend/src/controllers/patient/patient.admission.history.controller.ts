@@ -47,7 +47,7 @@ interface MulterS3File extends Express.Multer.File {
 
 const uploadMemoryFields = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: 5 * 1024 * 1024 },
+  limits: { fileSize: 3 * 1024 * 1024 },
   fileFilter: MFileFilter.imageAndPdfFilter,
 });
 
@@ -70,12 +70,11 @@ const upload = multer({
       cb(null, filePath);
     },
   }),
-  limits: { fileSize: 5 * 1024 * 1024 },
+  limits: { fileSize: 3 * 1024 * 1024 },
   fileFilter: MFileFilter.imageAndPdfFilter,
 });
 
 export const uploadPatientReport = upload.single('report');
-
 export const uploadPatientMedicalReports = upload.fields([
   { name: 'injuriesRecord', maxCount: 5 },
   { name: 'previousTreatmentRecord', maxCount: 5 },
@@ -84,7 +83,6 @@ export const uploadPatientMedicalReports = upload.fields([
 
 export const uploadPatientAdmissionChecklist = uploadMemoryFields.fields([
   { name: 'applicationForAdmission', maxCount: 5 },
-  { name: 'form90', maxCount: 5 },
   { name: 'voluntaryAdmissionForm', maxCount: 5 },
   { name: 'inVoluntaryAdmissionForm', maxCount: 5 },
   { name: 'minorAdmissionForm', maxCount: 5 },
@@ -93,6 +91,7 @@ export const uploadPatientAdmissionChecklist = uploadMemoryFields.fields([
   { name: 'capacityAssessment', maxCount: 5 },
   { name: 'hospitalGuidelineForm', maxCount: 5 },
   { name: 'finacialCounselling', maxCount: 5 },
+  { name: 'admissionAssessment', maxCount: 5 },
   { name: 'orientationOfFamily', maxCount: 5 },
   { name: 'orientationOfPatient', maxCount: 5 },
   { name: 'insuredFile', maxCount: 5 },
@@ -228,9 +227,11 @@ export const updateSinglePatientAdmissionHistory = catchAsync(
     }
 
     const patient = await Patient.findById(req.params.patientId).lean();
+console.log('✌️patient --->', patient);
     if (!patient) return next(new AppError('Please Send Valid Patient ID', 400));
 
     const admissionHistoryDoc = await getAdmissionHistoryDoc(req.params.id, req.params.patientId);
+console.log('✌️admissionHistoryDoc --->', admissionHistoryDoc);
     if (!admissionHistoryDoc.isSuccess)
       return next(new AppError(admissionHistoryDoc.message ?? 'Something went wrong', 400));
     if (admissionHistoryDoc.data?.currentStatus === 'Discharged')
@@ -265,7 +266,13 @@ export const updateSinglePatientAdmissionCheckList = catchAsync(
     if (req.body.createdBy) delete req.body.createdBy;
     if (req.body.updatedBy) delete req.body.updatedBy;
 
-    const checkIds = await Helper.validateDocIds({ patientId: req.params.patientId });
+  // Debug: log incoming files and body to help debug missing data
+  // eslint-disable-next-line no-console
+  console.log('updateSinglePatientAdmissionCheckList - req.files:', req.files);
+  // eslint-disable-next-line no-console
+  console.log('updateSinglePatientAdmissionCheckList - req.body:', req.body);
+
+  const checkIds = await Helper.validateDocIds({ patientId: req.params.patientId });
     if (!checkIds.isSuccess)
       return next(new AppError(checkIds.message || 'Something went Wrong', 400));
 
@@ -280,7 +287,6 @@ export const updateSinglePatientAdmissionCheckList = catchAsync(
     const filesKeys = [
       'applicationForAdmission',
       'voluntaryAdmissionForm',
-      'form90',
       'inVoluntaryAdmissionForm',
       'minorAdmissionForm',
       'familyDeclaration',
@@ -288,6 +294,7 @@ export const updateSinglePatientAdmissionCheckList = catchAsync(
       'capacityAssessment',
       'hospitalGuidelineForm',
       'finacialCounselling',
+      'admissionAssessment',
       'insuredFile',
     ];
 
@@ -398,12 +405,14 @@ export const updateSinglePatientAdmissionCheckList = catchAsync(
       updatedBy: req.user?._id,
       admissionChecklist,
     };
+    // console.log('✌️updateQuery --->', updateQuery);
 
     const updatedData = await PatientAdmissionHistory.findByIdAndUpdate(
       req.params.id,
       { $set: updateQuery },
       { new: true }
     );
+    // console.log('✌️updatedData --->', updatedData);
     if (!updatedData) return next(new AppError('Please Provide Valid Patient ID', 400));
 
     // TODO: Add Check, If No Data is Changed Then Don't Create Revision History
@@ -441,7 +450,7 @@ export const updateSinglePatientResourceAllocation = catchAsync(
 
     if (req.body.roomNumberId) {
       const roomAvailability = await isRoomAvailable(req.body.roomNumberId);
-      if (!roomAvailability) return next(new AppError('Room is Not available for Booking', 400));
+      if (!roomAvailability) return next(new AppError('Room is Not avaiable for Booking', 400));
     }
 
     const admissionHistoryDoc = await getAdmissionHistoryDoc(req.params.id, req.params.patientId);

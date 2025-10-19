@@ -97,7 +97,7 @@ const CreateLead = () => {
     nextFollowUpDate: "",
     centerVisitDateTime: ""
   });
-  const [updateStatus, setUpdateStatus] = useState<boolean>(false);
+
   const [data, setData] = useState({ comment: "" });
 
   const leadData = useSelector((store: RootState) => store.leads);
@@ -159,9 +159,6 @@ const CreateLead = () => {
   const fetchLead = async (id: string) => {
     const { data } = await getSingleLead(id);
     if (data.status === "success") {
-      if (data?.data?.progressStatus) {
-        setUpdateStatus(true);
-      }
       dispatch(
         setLead({
           ...leadData.lead,
@@ -322,7 +319,7 @@ const CreateLead = () => {
         page: 1,
         isDeleted: false,
         sort: "-leadDateTime",
-        roles: "admin,sales,admission manager,Therapist+AM,ROM+AM" //doctor
+        roles: "admin,sales,admission manager" //doctor
       });
       setAllDoctors(
         data.data.map((data: { _id: string; firstName: string; lastName: string }) => ({
@@ -866,7 +863,6 @@ const CreateLead = () => {
               labelClassName="text-black! font-bold! text-[15px]!"
               options={progressStatusOption}
               placeholder="Select"
-              disable={updateStatus}
               value={state.progressStatus}
               onChange={handleSelect}
               name="progressStatus"
