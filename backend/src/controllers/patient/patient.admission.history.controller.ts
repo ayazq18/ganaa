@@ -75,7 +75,6 @@ const upload = multer({
 });
 
 export const uploadPatientReport = upload.single('report');
-
 export const uploadPatientMedicalReports = upload.fields([
   { name: 'injuriesRecord', maxCount: 5 },
   { name: 'previousTreatmentRecord', maxCount: 5 },
@@ -93,6 +92,7 @@ export const uploadPatientAdmissionChecklist = uploadMemoryFields.fields([
   { name: 'capacityAssessment', maxCount: 5 },
   { name: 'hospitalGuidelineForm', maxCount: 5 },
   { name: 'finacialCounselling', maxCount: 5 },
+  { name: 'admissionAssessment', maxCount: 5 },
   { name: 'orientationOfFamily', maxCount: 5 },
   { name: 'orientationOfPatient', maxCount: 5 },
   { name: 'insuredFile', maxCount: 5 },
@@ -228,9 +228,11 @@ export const updateSinglePatientAdmissionHistory = catchAsync(
     }
 
     const patient = await Patient.findById(req.params.patientId).lean();
+console.log('✌️patient --->', patient);
     if (!patient) return next(new AppError('Please Send Valid Patient ID', 400));
 
     const admissionHistoryDoc = await getAdmissionHistoryDoc(req.params.id, req.params.patientId);
+console.log('✌️admissionHistoryDoc --->', admissionHistoryDoc);
     if (!admissionHistoryDoc.isSuccess)
       return next(new AppError(admissionHistoryDoc.message ?? 'Something went wrong', 400));
     if (admissionHistoryDoc.data?.currentStatus === 'Discharged')
@@ -288,6 +290,7 @@ export const updateSinglePatientAdmissionCheckList = catchAsync(
       'capacityAssessment',
       'hospitalGuidelineForm',
       'finacialCounselling',
+      'admissionAssessment',
       'insuredFile',
     ];
 
@@ -398,12 +401,14 @@ export const updateSinglePatientAdmissionCheckList = catchAsync(
       updatedBy: req.user?._id,
       admissionChecklist,
     };
+    // console.log('✌️updateQuery --->', updateQuery);
 
     const updatedData = await PatientAdmissionHistory.findByIdAndUpdate(
       req.params.id,
       { $set: updateQuery },
       { new: true }
     );
+    // console.log('✌️updatedData --->', updatedData);
     if (!updatedData) return next(new AppError('Please Provide Valid Patient ID', 400));
 
     // TODO: Add Check, If No Data is Changed Then Don't Create Revision History

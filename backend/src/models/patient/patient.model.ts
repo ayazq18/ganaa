@@ -74,6 +74,115 @@ const patientSchema = new mongoose.Schema<IPatient>({
   patientPicFileName: {
     type: String,
   },
+  idProof: {
+    type: [String], // Array of file paths
+    default: [],
+  },
+  patientIdProofName: {
+    type: [String], // <-- Change from String to [String]
+    default: [],
+  },
+
+  center: {
+    type: String,
+    trim: true,
+  },
+  patientName: {
+    type: String,
+    trim: true,
+  },
+  contact: {
+    type: String,
+    trim: true,
+  },
+  dischargeDate: {
+    type: Date,
+  },
+  stayDuration: {
+    type: String,
+    trim: true,
+  },
+  psychologist: {
+    type: String,
+    trim: true,
+  },
+  dischargePlan: {
+    type: String,
+    trim: true,
+  },
+  dischargePlanShared: {
+    type: String,
+    trim: true,
+  },
+  followupDate: {
+    type: Date,
+  },
+  therapistFollowUp: {
+    type: String,
+    trim: true,
+  },
+  urge: {
+    type: String,
+    trim: true,
+    enum: ['Yes', 'No', ''],
+  },
+  urgeOther: {
+    type: String,
+    trim: true,
+  },
+  medicationAdherence: {
+    type: String,
+    trim: true,
+    enum: ['Deteriorating', 'Static', 'Improving', ''],
+  },
+  doingPrayer: {
+    type: String,
+    trim: true,
+    enum: ['Yes', 'No', ''],
+  },
+  readingAALiterature: {
+    type: String,
+    trim: true,
+    enum: ['Yes', 'No', ''],
+  },
+  attendingMeeting: {
+    type: String,
+    trim: true,
+    enum: ['At Ganaa', 'Outside', ''],
+  },
+  attendingDaycareAtGanaa: {
+    type: String,
+    trim: true,
+    enum: ['Yes', 'No', ''],
+  },
+  makingASponsor: {
+    type: String,
+    trim: true,
+    enum: ['Yes', 'No', ''],
+  },
+  doing12StepProgram: {
+    type: String,
+    trim: true,
+    enum: ['Yes', 'No', ''],
+  },
+  doingReviewWithGanaaDoctor: {
+    type: String,
+    trim: true,
+    enum: ['Yes', 'No', ''],
+  },
+  feedbackFromFamily: {
+    type: String,
+    trim: true,
+  },
+  currentStatus: {
+    type: String,
+    trim: true,
+    enum: ['Sober', 'Relapsed', 'Struggling', 'Vanished', ''],
+  },
+  totalDurationOfIllness: {
+    type: String,
+    trim: true,
+  },
 
   // Reference
   referredTypeId: {
@@ -142,6 +251,19 @@ const generateSignedUrl = async (doc: any) => {
     } else {
       delete doc.patientPic;
       doc.patientPicUrl = signedUrl;
+    }
+  }
+
+  // For idProof (array)
+  const idProofKeys = doc?.idProof;
+  if (Array.isArray(idProofKeys) && idProofKeys.length > 0) {
+    const signedUrls = await Promise.all(idProofKeys.map((key: string) => getSignedUrlByKey(key)));
+    if (doc._doc) {
+      delete doc._doc.idProof;
+      doc._doc.patientIdProofUrls = signedUrls;
+    } else {
+      delete doc.idProof;
+      doc.patientIdProofUrls = signedUrls;
     }
   }
 };

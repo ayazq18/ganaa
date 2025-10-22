@@ -1,8 +1,11 @@
 import multer from 'multer';
 import mongoose, { ObjectId } from 'mongoose';
 import { Response, NextFunction } from 'express';
+<<<<<<< HEAD
 import Lead from '../../models/lead.model';
 import Role from '../../models/role.model';
+=======
+>>>>>>> main
 import * as S3 from '../../utils/s3Helper';
 import User from '../../models/user.model';
 import AppError from '../../utils/appError';
@@ -28,13 +31,37 @@ import { IPatientRevision } from '../../interfaces/model/patient/i.patient.revis
 import { IPatientDischarge } from '../../interfaces/model/patient/i.patient.discharge';
 import PatientAdmissionHistory from '../../models/patient/patient.admission.history.model';
 
-const upload = multer({
+// const upload = multer({
+//   storage: multer.memoryStorage(),
+//   limits: { fileSize: 2 * 1024 * 1024 },
+//   fileFilter: MFileFilter.imageFilter,
+// });
+
+// const uploadFile = multer({
+//   storage: multer.memoryStorage(),
+//   limits: { fileSize: 2 * 1024 * 1024 },
+//   fileFilter: MFileFilter.pdfFilter,
+// });
+
+// export const uploadPatientPic = upload.single('patientPic');
+// export const idProof = uploadFile.single('idProof');
+
+export const uploadPatientFiles = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 2 * 1024 * 1024 },
-  fileFilter: MFileFilter.imageFilter,
-});
-
-export const uploadPatientPic = upload.single('patientPic');
+  fileFilter: (req, file, cb) => {
+    if (file.fieldname === 'patientPic') {
+      return MFileFilter.imageFilter(req, file, cb);
+    }
+    if (file.fieldname === 'idProof') {
+      return MFileFilter.pdfFilter(req, file, cb);
+    }
+    cb(null, false);
+  },
+}).fields([
+  { name: 'patientPic', maxCount: 1 },
+  { name: 'idProof', maxCount: 5 },
+]);
 
 /**
  * Controllers
@@ -169,14 +196,40 @@ export const createNewPatient = catchAsync(
     req.body.createdBy = req.user?._id;
     const data = await Patient.create(req.body);
 
-    if (req.file) {
-      const fileName = `${Date.now()}-${random.randomAlphaNumeric(6)}-${req.file?.originalname}`;
+    const files = req.files as { [fieldname: string]: Express.Multer.File[] } | undefined;
+    const patientPic = files?.['patientPic']?.[0];
+    const idProofFiles = files?.['idProof'] || [];
+
+    const idProofPaths: string[] = [];
+    const idProofNames: string[] = [];
+
+    if (patientPic) {
+      const fileName = `${Date.now()}-${random.randomAlphaNumeric(6)}-${patientPic?.originalname}`;
       const filePath = S3Path.patientPic(data._id?.toString() ?? '', fileName);
 
-      await S3.uploadFile(filePath, req.file?.buffer, req.file?.mimetype);
+      await S3.uploadFile(filePath, patientPic?.buffer, patientPic?.mimetype);
       await Patient.findByIdAndUpdate(data._id, {
         patientPic: filePath,
         patientPicFileName: fileName,
+        updatedBy: req.user?._id,
+      });
+    }
+
+    for (const file of idProofFiles) {
+      const fileName = `${Date.now()}-${random.randomAlphaNumeric(6)}-${file.originalname}`;
+      const filePath = S3Path.idProof(data._id?.toString() ?? '', fileName);
+
+      await S3.uploadFile(filePath, file.buffer, file.mimetype);
+      idProofPaths.push(filePath);
+      idProofNames.push(fileName);
+    }
+
+    if (idProofPaths.length > 0) {
+      await Patient.findByIdAndUpdate(data._id, {
+        $push: {
+          idProof: { $each: idProofPaths },
+          patientIdProofName: { $each: idProofNames },
+        },
         updatedBy: req.user?._id,
       });
     }
@@ -268,6 +321,8 @@ export const updateSinglePatient = catchAsync(
       'area',
       'patientPic',
       'patientPicFileName',
+      'idProof',
+      'patientIdProofName',
       'referredTypeId',
       'referralDetails',
       'education',
@@ -287,20 +342,48 @@ export const updateSinglePatient = catchAsync(
       if (check) return next(new AppError('Email address already registered', 400));
     }
 
-    if (req.file) {
-      const fileName = `${Date.now()}-${random.randomAlphaNumeric(6)}-${req.file?.originalname}`;
+    const files = req.files as { [fieldname: string]: Express.Multer.File[] } | undefined;
+    const patientPic = files?.['patientPic']?.[0];
+    const idProofFiles = files?.['idProof'] || [];
+    console.log('idProofFiles: ', idProofFiles);
+
+    const idProofPaths: string[] = [];
+    const idProofNames: string[] = [];
+
+    if (patientPic) {
+      const fileName = `${Date.now()}-${random.randomAlphaNumeric(6)}-${patientPic?.originalname}`;
       const filePath = S3Path.patientPic(req.params.id ?? '', fileName);
 
-      await S3.uploadFile(filePath, req.file?.buffer, req.file?.mimetype);
+      await S3.uploadFile(filePath, patientPic?.buffer, patientPic?.mimetype);
       filterObj.patientPic = filePath;
       filterObj.patientPicFileName = fileName;
     }
 
+    
     const patientPreviousDoc = await Patient.findById(req.params.id).lean();
     if (!patientPreviousDoc) return next(new AppError('Please Provide Valid Patient ID', 400));
-
+    
     const data = await Patient.findByIdAndUpdate(req.params.id, filterObj, { new: true });
     if (!data) return next(new AppError('Please Provide Valid Patient ID', 400));
+    
+    for (const file of idProofFiles) {
+      const fileName = `${Date.now()}-${random.randomAlphaNumeric(6)}-${file.originalname}`;
+      const filePath = S3Path.idProof(data._id?.toString() ?? '', fileName);
+
+      await S3.uploadFile(filePath, file.buffer, file.mimetype);
+      idProofPaths.push(filePath);
+      idProofNames.push(fileName);
+    }
+
+    if (idProofPaths.length > 0) {
+      await Patient.findByIdAndUpdate(data._id, {
+        $push: {
+          idProof: { $each: idProofPaths },
+          patientIdProofName: { $each: idProofNames },
+        },
+        updatedBy: req.user?._id,
+      });
+    }
 
     const admissionHistoryMap = await PatientAdmissionHistory.getLatestPatientHistory([
       data._id as ObjectId,

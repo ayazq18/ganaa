@@ -24,10 +24,10 @@ import { TableShimmer } from "@/components/Shimmer/Shimmer";
 import Search from "@/components/Search/Search";
 import Filter from "@/components/Filter/Filter";
 import { useAuth } from "@/providers/AuthProvider";
-import Filtered from "@/components/Filtered/Filtered";
 
 const AllPatientData = () => {
   const navigate = useNavigate();
+  const [selected, setSelected] = useState("All");
   const [searchParams, _setSearchParams] = useSearchParams();
 
   const dispatch = useDispatch();
@@ -341,8 +341,7 @@ const AllPatientData = () => {
                   { title: "UHID", value: "uhid" }
                 ]}
               />
-              <Filtered />
-              <Filter />
+              <Filter selected={selected} setSelected={setSelected} />
             </div>
           </div>
 
@@ -533,50 +532,94 @@ const AllPatientData = () => {
                                  } overflow-hidden shadow-[0px_0px_20px_#00000017] mt-2 w-fit bg-white border border-gray-300 rounded-xl z-10 flex items-center justify-center`}
                               >
                                 <div className="p-2  text-nowrap whitespace-nowrap gap-2 flex-col flex justify-center items-start bg-white shadow-lg rounded-lg w-fit">
-                                  {patient?.patientHistory?.patientReport?.previousTreatmentRecord
-                                    ?.length > 0 ? (
-                                    <div
-                                      onClick={() => {
-                                        setPreviousTreatMentRecord(
-                                          patient?.patientHistory?.patientReport
-                                            ?.previousTreatmentRecord
-                                        );
-                                        setDisplayModal(true);
-                                      }}
-                                      className="text-xs font-semibold cursor-pointer p-2 text-nowrap whitespace-nowrap"
-                                    >
-                                      <div className="flex items-center gap-2 cursor-pointer">
-                                        <div className="bg-gray-200 rounded-full p-2 w-7 h-7 flex items-center justify-center ">
-                                          <LuFileText />
-                                        </div>
-                                        <div>
-                                          <p className="">View Test Report</p>
-                                          <p className="text-xs text-[#636363]">
-                                            Check Test Report
-                                          </p>
-                                        </div>
-                                      </div>
-                                    </div>
-                                  ) : (
-                                    <div
-                                      onClick={() => {
-                                        toast.error("No Medical Record Found");
-                                      }}
-                                      className="text-xs font-semibold cursor-pointer p-2 text-nowrap whitespace-nowrap"
-                                    >
-                                      <div className="flex items-center gap-2 cursor-pointer">
-                                        <div className="bg-gray-200 rounded-full p-2 w-7 h-7 flex items-center justify-center ">
-                                          <LuFileText />
-                                        </div>
-                                        <div>
-                                          <p className="">View Test Report</p>
-                                          <p className="text-xs text-[#636363]">
-                                            Check Test Report
-                                          </p>
+                                  {/* {patient?.patientHistory?.patientReport?.previousTreatmentRecord
+                                    ?.length < 0 ? ( */}
+                                    <>
+                                      <div
+                                        onClick={() => {
+                                          setPreviousTreatMentRecord(
+                                            patient?.patientHistory?.patientReport
+                                              ?.previousTreatmentRecord
+                                          );
+                                          setDisplayModal(true);
+                                        }}
+                                        className="text-xs font-semibold cursor-pointer p-2 text-nowrap whitespace-nowrap"
+                                      >
+                                        <div className="flex items-center gap-2 cursor-pointer">
+                                          <div className="bg-gray-200 rounded-full p-2 w-7 h-7 flex items-center justify-center ">
+                                            <LuFileText />
+                                          </div>
+                                          <div>
+                                            <p className="">View Test Report</p>
+                                            <p className="text-xs text-[#636363]">
+                                              Check Test Report
+                                            </p>
+                                          </div>
                                         </div>
                                       </div>
-                                    </div>
-                                  )}
+
+                                      {patient?.patientHistory?.currentStatus === "Discharged" && (
+                                        <Link
+                                          to={`/admin/patients/all-patient/${patient?._id}/patient-followup/${patient?.patientHistory?._id}`}
+                                          className="text-xs cursor-pointer font-semibold p-2 "
+                                        >
+                                          <div className="flex items-center gap-2 cursor-pointer">
+                                            <div className="bg-gray-200 rounded-full p-2 w-7 h-7 flex items-center justify-center ">
+                                              <LuFileText />
+                                            </div>
+                                            <div>
+                                              <p className="">Patient Followup</p>
+                                              <p className="text-xs text-[#636363]">
+                                                Patient Followup Report
+                                              </p>
+                                            </div>
+                                          </div>
+                                        </Link>
+                                      )}
+                                    </>
+                                  {/* ) : (
+                                    <>
+                                      <div
+                                        onClick={() => {
+                                          toast.error("No Medical Record Found");
+                                        }}
+                                        className="text-xs font-semibold cursor-pointer p-2 text-nowrap whitespace-nowrap"
+                                      >
+                                        <div className="flex items-center gap-2 cursor-pointer">
+                                          <div className="bg-gray-200 rounded-full p-2 w-7 h-7 flex items-center justify-center ">
+                                            <LuFileText />
+                                          </div>
+                                          <div>
+                                            <p className="">View Test Report</p>
+                                            <p className="text-xs text-[#636363]">
+                                              Check Test Report
+                                            </p>
+                                          </div>
+                                        </div>
+                                      </div>
+
+                                      {patient?.patientHistory?.currentStatus === "Discharged" && (
+                                        <div
+                                          onClick={() => {
+                                            toast.error("No Medical Record Found");
+                                          }}
+                                          className="text-xs font-semibold cursor-pointer p-2 text-nowrap whitespace-nowrap"
+                                        >
+                                          <div className="flex items-center gap-2 cursor-pointer">
+                                            <div className="bg-gray-200 rounded-full p-2 w-7 h-7 flex items-center justify-center ">
+                                              <LuFileText />
+                                            </div>
+                                            <div>
+                                              <p className="">Patient Followup</p>
+                                              <p className="text-xs text-[#636363]">
+                                                Patient Followup Report
+                                              </p>
+                                            </div>
+                                          </div>
+                                        </div>
+                                      )}
+                                    </>
+                                  )} */}
                                   {patient?.patientHistory?.currentStatus != "Discharged" && (
                                     <hr className="w-full" />
                                   )}

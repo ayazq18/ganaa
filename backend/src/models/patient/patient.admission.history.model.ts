@@ -70,6 +70,7 @@ const patientAdmissionHistorySchema = new mongoose.Schema<IPatientAdmissionHisto
     familyDeclaration: [{ fileName: { type: String }, filePath: { type: String } }],
     section94: [{ fileName: { type: String }, filePath: { type: String } }],
     capacityAssessment: [{ fileName: { type: String }, filePath: { type: String } }],
+    admissionAssessment: [{ fileName: { type: String }, filePath: { type: String } }],
     hospitalGuidelineForm: [{ fileName: { type: String }, filePath: { type: String } }],
     finacialCounselling: [{ fileName: { type: String }, filePath: { type: String } }],
     orientationOfFamily: [{ type: String }],
@@ -253,6 +254,7 @@ const generateSignedUrl = async (doc: any) => {
     'familyDeclaration',
     'section94',
     'capacityAssessment',
+    'admissionAssessment', 
     'hospitalGuidelineForm',
     'finacialCounselling',
     'insuredFile',
@@ -277,6 +279,7 @@ const generateSignedUrl = async (doc: any) => {
         }
       }
     }
+    
   }
 
   // Process Medical Report

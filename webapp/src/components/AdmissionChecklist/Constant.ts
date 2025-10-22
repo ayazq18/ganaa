@@ -11,5 +11,6 @@ export const checklist = [
 export const list = [
   { title: "Capacity assessment", name: "capacityAssessment" },
   { title: "Hospital guidelines form", name: "hospitalGuidelineForm" },
-  { title: "Financial conuselling", name: "finacialCounselling" }
+  { title: "Financial conuselling", name: "finacialCounselling" },
+  { title: "Admission assessment", name: "admissionAssessment" }
 ];

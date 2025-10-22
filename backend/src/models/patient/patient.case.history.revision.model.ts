@@ -239,7 +239,6 @@ const patientCaseHistoryRevisionSchema = new mongoose.Schema<IPatientCaseHistory
     firstName: String,
     lastName: String,
   },
-
   updatedBy: {
     _id: mongoose.Schema.Types.ObjectId,
     roleId: {

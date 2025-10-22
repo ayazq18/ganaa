@@ -4,6 +4,7 @@ interface IHospitalCenter {
   _id: string;
   centerName: string;
   googleMapLink: string;
+  centerUID: string;
   createdAt: string;
 }
 

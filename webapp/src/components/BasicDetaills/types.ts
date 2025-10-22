@@ -3,6 +3,7 @@ import { ISelectOption } from "@/components/Select/types";
 export interface BasicDetailsState {
   showModal: boolean;
   croppedImage: string;
+  idProof: (string | File)[];
   loading: boolean;
   firstName: string;
   lastName: string;

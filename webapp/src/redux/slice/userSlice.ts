@@ -7,6 +7,7 @@ interface ICenter {
   _id?: string;
   centerName?: string;
   googleMapLink?: string;
+  centerUID?: string;
 }
 
 export interface IPermission {

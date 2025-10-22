@@ -25,6 +25,7 @@ export interface ICenter {
   _id: string;
   centerName: string;
   googleMapLink: string;
+  centerUID: string;
   createdAt: string;
 }
 export interface IInsight {

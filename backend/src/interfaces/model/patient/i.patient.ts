@@ -21,6 +21,9 @@ export interface IPatient extends mongoose.Document {
   patientPic: string;
   patientPicUrl?: string;
   patientPicFileName: string;
+  patientidProofUrl?: string;
+  idProof: [string];
+  patientIdProofName: [string];
 
   // Reference
   referredTypeId: ObjectId | IReferredType;
@@ -41,4 +44,29 @@ export interface IPatient extends mongoose.Document {
   updatedBy?: ObjectId | IUser;
 
   createdAt: Date;
+
+   // New fields for patient followup
+  center?: string;
+  patientName?: string;
+  contact?: string;
+  dischargeDate?: Date;
+  stayDuration?: string;
+  psychologist?: string;
+  dischargePlan?: string;
+  dischargePlanShared?: string;
+  followupDate?: Date;
+  therapistFollowUp?: string;
+  urge?: string;
+  urgeOther?: string;
+  medicationAdherence?: string;
+  doingPrayer?: string;
+  readingAALiterature?: string;
+  attendingMeeting?: string;
+  attendingDaycareAtGanaa?: string;
+  makingASponsor?: string;
+  doing12StepProgram?: string;
+  doingReviewWithGanaaDoctor?: string;
+  feedbackFromFamily?: string;
+  currentStatus?: string;
+  totalDurationOfIllness?: string;
 }

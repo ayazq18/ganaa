@@ -1,6 +1,10 @@
 export { default as Root } from "@/pages/Root/Root";
 
 // Unprotected Pages
+<<<<<<< HEAD
+=======
+
+>>>>>>> main
 export { default as Home } from "@/pages/Home//Home";
 export { default as NotFound } from "@/pages/NotFound/NotFound";
 export { default as InValidScreen } from "@/pages/InValidScreen/InValidScreen";

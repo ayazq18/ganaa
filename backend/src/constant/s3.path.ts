@@ -4,6 +4,7 @@ export const S3Path: S3PathsMap = {
 
   /// Patient File Paths
   patientPic: (patientId, filename) => `patients/${patientId}/${filename}`,
+  idProof: (patientId, filename) => `patients/${patientId}/idproof/${filename}`,
   patientFamilyDetailsDoc: (patientId, filename) => `patients/${patientId}/family-details/${filename}`,
   patientTestReportDoc: (patientId, filename) => `patients/${patientId}/test-report/${filename}`,
   patientChecklistDoc: (patientId, filename) => `patients/${patientId}/checklist/${filename}`,

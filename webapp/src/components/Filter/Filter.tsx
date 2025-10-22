@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { useAuth } from "@/providers/AuthProvider";
 import SingleSelect from "../MultiSelect/MultiSelect";
+<<<<<<< HEAD
 import { useSearchParams } from "react-router-dom";
 
 const Filter = () => {
@@ -10,6 +11,21 @@ const Filter = () => {
 
   const centerDropdown = useMemo(() => {
     const centerList = auth.user.centerId ?? [];
+=======
+
+const Filter = ({
+  selected = "All",
+  setSelected
+}: {
+  selected: string;
+  setSelected: (_values: string) => void;
+}) => {
+  const { auth } = useAuth();
+
+  const centerDropdown = useMemo(() => {
+    const centerList = auth.user.centerId ?? [];
+    console.log('centerList: ', centerList);
+>>>>>>> main
 
     const allOption = centerList.length > 1 ? [{ value: "All", label: "All" }] : [];
 

@@ -30,6 +30,24 @@ const groupActivitySchema = new mongoose.Schema<IGroupActivity>({
         require: true,
         trim: true,
       },
+      notes: [
+        {
+          centerId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Center', // assuming you have a Center model
+            required: true,
+          },
+          text: {
+            type: String,
+            trim: true,
+            default: '',
+          },
+          createdAt: {
+            type: Date,
+            default: Date.now,
+          },
+        },
+      ],
       createdAt: {
         type: Date,
         default: Date.now,

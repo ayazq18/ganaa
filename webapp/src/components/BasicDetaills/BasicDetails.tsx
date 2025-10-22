@@ -18,7 +18,8 @@ import {
   CropperImage,
   CustomCalendar,
   CustomTimePicker,
-  Modal
+  Modal,
+  CheckBox
 } from "@/components";
 
 import calender from "@/assets/images/calender.svg";
@@ -29,6 +30,7 @@ import { ISelectOption } from "@/components/Select/types";
 import {
   createSinglePatientResources,
   existPatient,
+  getSinglePatient,
   updatePatient,
   updateSinglePatinetAdmissionHistory
 } from "@/apis";
@@ -51,19 +53,29 @@ import {
 } from "@/validations/Yup/BasicDetailValidation";
 import { useAuth } from "@/providers/AuthProvider";
 
+// const isFile = (item: any): item is File => {
+//   return item instanceof File;
+// };
+
 const BasicDetails = () => {
   const { auth } = useAuth();
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [existModal, setExistModal] = useState<boolean>(false);
   const [uhid, setUhid] = useState<string>();
 
+  const [idProofFiles, setIdProofFiles] = useState<File[]>([]);
+  const [patientIdProofUrls, setIdProofUrls] = useState<string[]>([]); // uploaded or fetched URLs
+  const [idProofError, setIdProofError] = useState<string>("");
+
   const patientData = useSelector((store: RootState) => store.patient);
+  console.log("patientData: ", patientData);
   const stepperData = useSelector((store: RootState) => store.stepper);
   const dropdownData = useSelector((store: RootState) => store.dropdown);
 
   const [state, setState] = useState<BasicDetailsState>({
     showModal: false,
     croppedImage: "",
+    idProof: [],
     loading: false,
     firstName: "",
     lastName: "",
@@ -96,6 +108,8 @@ const BasicDetails = () => {
     involuntaryAdmissionType: { label: "", value: "" }
   });
 
+  console.log("state: ", state);
+
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
@@ -124,6 +138,92 @@ const BasicDetails = () => {
   useEffect(() => {
     window.scrollTo({ top: 0 });
   }, []);
+
+  // ...existing code...
+
+  const handleDropIdProof = (files: File[]) => {
+    if (!files || files.length === 0) return;
+
+    const validFiles: File[] = [];
+    for (const file of files) {
+      if (file.type !== "application/pdf") {
+        setIdProofError("Only PDF files are allowed.");
+        return;
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        setIdProofError("File size should be less than 5MB.");
+        return;
+      }
+      validFiles.push(file);
+    }
+
+    setIdProofFiles((prev) => [...prev, ...validFiles]);
+    setState((prev) => ({
+      ...prev,
+      idProof: [...(prev.idProof || []), ...validFiles]
+    }));
+    setIdProofError("");
+    setIdProofUrls([]); // reset URLs if uploading new ones
+  };
+
+  const handleDeleteIdProof = (index: number) => {
+    // Check if we're deleting a locally uploaded file or a stored URL
+    const isDeletingLocalFile = index < idProofFiles.length;
+
+    if (isDeletingLocalFile) {
+      // Delete from local files
+      setIdProofFiles((prev) => prev.filter((_, i) => i !== index));
+    } else {
+      // Delete from stored URLs (adjust index for URL array)
+      const urlIndex = index - idProofFiles.length;
+      setIdProofUrls((prev) => prev.filter((_, i) => i !== urlIndex));
+    }
+
+    // Update the state.idProof array
+    setState((prev) => ({
+      ...prev,
+      idProof: Array.isArray(prev.idProof)
+        ? prev.idProof.filter((_: any, i: number) => i !== index)
+        : []
+    }));
+  };
+
+useEffect(() => {
+  const id = patientData.patientDetails._id;
+  if (typeof id === "string" && id.trim() !== "") {
+    (async () => {
+      try {
+        const response = await getSinglePatient(id);
+        const patient = response.data.data;
+
+        // Only update ID proof related data, not the entire form state
+        if (patient.idProof || patient.patientIdProofUrls) {
+          const idProofUrls = Array.isArray(patient.idProof)
+            ? patient.idProof
+            : Array.isArray(patient.patientIdProofUrls)
+            ? patient.patientIdProofUrls
+            : [];
+
+          setIdProofUrls(idProofUrls);
+          
+          // Update only ID proof in the state without affecting other fields
+          setState((prev) => ({
+            ...prev,
+            idProof: idProofUrls
+          }));
+        }
+      } catch (error) {
+        console.error("Error fetching patient:", error);
+      }
+    })();
+  }
+}, [patientData.patientDetails._id]);
+
+  useEffect(() => {
+    if (patientData.patientDetails.idProof) {
+      setIdProofUrls(patientData.patientDetails.idProof);
+    }
+  }, [patientData.patientDetails.idProof]);
 
   const phonecode = useMemo<ISelectOption[]>(() => {
     if (dropdownData.country.loading) return [];
@@ -234,7 +334,15 @@ const BasicDetails = () => {
 
   const updatePateintData = (pid: string) => {
     const formData = new FormData();
-    const states = compareObjects(patientData?.patientDetails, { ...state, patientPic: "" }, true);
+    const states = compareObjects(
+      patientData?.patientDetails,
+      {
+        ...state,
+        patientPic: "",
+        idProof: undefined
+      },
+      true
+    );
     if (states.firstName !== undefined)
       formData.append(
         "firstName",
@@ -278,58 +386,51 @@ const BasicDetails = () => {
     if (typeof state.patientPic == "string" && state.patientPic.trim() === "")
       formData.append("patientPic", state.patientPic);
 
+    if (Array.isArray(state.idProof)) {
+      state.idProof
+        .filter((file): file is File => file instanceof File)
+        .forEach((file) => formData.append("idProof", file));
+    }
+
+    // if (typeof state.idProof === "string" && state.idProof.trim() !== "") {
+    //   formData.append("idProof", state.idProof);
+    // }
+
     if (![...formData.entries()].length) {
+      console.log("No changes detected, skipping update.");
       return;
     }
 
+    console.log("formData: ", formData);
     return updatePatient(formData, pid);
   };
 
- const updatePateintAddmissionData = (pid: string, aid: string) => {
-  const previous = {
-    dateOfAdmission: patientData.patientAdmission.dateOfAdmission || "",
-    involuntaryAdmissionType: patientData.patientAdmission.involuntaryAdmissionType,
-    admissionType: patientData.patientAdmission.admissionType || "",
-    time: state.time || ""
-  };
-
-  const current = {
-    dateOfAdmission: state.dateOfAdmission || "",
-    involuntaryAdmissionType: state.involuntaryAdmissionType,
-    admissionType: state.admissionType || "",
-    time: state.time || ""
-  };
-
-  const updated = compareObjects(previous, current, true);
-  const payload: Record<string, unknown> = {};
-
-  // Admission Type Handling
-  if (updated.admissionType !== undefined|| updated.involuntaryAdmissionType !== undefined) {
-    if (current.admissionType === "Voluntary") {
-      payload.admissionType = "Voluntary";
-      payload.involuntaryAdmissionType = ""; // Clear involuntary if switching
-    } else if (current.admissionType === "Involuntary") {
-      payload.admissionType = "Involuntary";
-      if (updated.involuntaryAdmissionType?.value !== undefined) {
-        payload.involuntaryAdmissionType = updated.involuntaryAdmissionType.value;
-      }
+  const updatePateintAddmissionData = (pid: string, aid: string) => {
+    const updatedPatientData = compareObjects(patientData.patientAdmission, state, true);
+    const payload: { [key: string]: unknown } = {};
+    if (
+      updatedPatientData.involuntaryAdmissionType?.value !== undefined &&
+      updatedPatientData.admissionType !== undefined &&
+      updatedPatientData.admissionType === "Involuntary"
+    ) {
+      payload.involuntaryAdmissionType = updatedPatientData.involuntaryAdmissionType.value;
     }
-  }
+    if (updatedPatientData.admissionType !== undefined) {
+      payload.admissionType = updatedPatientData.admissionType;
+    }
 
-  // Date + Time Handling
-  if (updated.dateOfAdmission !== undefined || updated.time !== undefined) {
-    const isValidDate = state.dateOfAdmission && state.time;
-    if (isValidDate) {
-      const formattedDateTime = new Date(`${state.dateOfAdmission}T${state.time}`).toISOString(); // Add T for ISO format
+    if (updatedPatientData.dateOfAdmission !== undefined || updatedPatientData.time !== undefined) {
+      const formattedDateTime = new Date(`${state.dateOfAdmission} ${state.time}`).toISOString();
       payload.dateOfAdmission = formattedDateTime;
+      // payload.dateOfAdmission = utcDate.toISOString();
     }
-  }
 
-  if (!Object.keys(payload).length) return;
+    if (!Object.entries(payload).length) {
+      return;
+    }
 
-  return updateSinglePatinetAdmissionHistory(payload, pid, aid);
-};
-
+    return updateSinglePatinetAdmissionHistory(payload, pid, aid);
+  };
 
   const handleSubmit = async (
     _e: SyntheticEvent,
@@ -369,6 +470,7 @@ const BasicDetails = () => {
       setErrors({});
       if (patientData.patientDetails._id) {
         const patientResponse = await updatePateintData(patientData.patientDetails._id);
+        console.log("patientResponse: ", patientResponse);
 
         if (patientResponse && patientResponse.data.status === "success") {
           const {
@@ -394,7 +496,10 @@ const BasicDetails = () => {
             ...prev,
             patientPic: patientResponse?.data?.data?.patientPicUrl
               ? patientResponse?.data?.data?.patientPicUrl
-              : patientResponse?.data?.data?.patientPic
+              : patientResponse?.data?.data?.patientPic,
+            idProof: patientResponse?.data?.data?.patientIdProofUrls
+              ? patientResponse?.data?.data?.patientIdProofUrls
+              : patientResponse?.data?.data?.idProof
           }));
 
           dispatch(
@@ -402,9 +507,13 @@ const BasicDetails = () => {
               ...patientData.patientDetails,
               uhid: patientResponse?.data?.data?.uhid,
               patientFileName: patientResponse.data?.data?.patientPicFileName,
+              patientIdProofName: patientResponse.data?.data?.patientIdProofName,
               patientPic: patientResponse?.data?.data?.patientPicUrl
                 ? patientResponse?.data?.data?.patientPicUrl
                 : patientResponse?.data?.data?.patientPic,
+              idProof: patientResponse?.data?.data?.patientIdProofUrls
+                ? patientResponse?.data?.data?.patientIdProofUrls
+                : patientResponse?.data?.data?.idProof,
               firstName,
               lastName,
               dob,
@@ -505,7 +614,10 @@ const BasicDetails = () => {
             ...prev,
             patientPic: patientResponse?.data?.data?.patientPicUrl
               ? patientResponse?.data?.data?.patientPicUrl
-              : state.patientPic
+              : state.patientPic,
+            idProof: patientResponse?.data?.data?.patientIdProofUrls
+              ? patientResponse?.data?.data?.patientIdProofUrls
+              : patientResponse?.data?.data?.idProof
           }));
           dispatch(
             setPatientDetails({
@@ -513,7 +625,9 @@ const BasicDetails = () => {
               _id: patientResponse?.data?.data?._id,
               uhid: patientResponse?.data?.data?.uhid,
               patientFileName: patientResponse?.data?.data?.patientPicFileName,
+              patientIdProofName: patientResponse?.data?.data?.patientIdProofName,
               patientPic: patientResponse?.data?.data?.patientPicUrl,
+              idProof: patientResponse?.data?.data?.patientIdProofUrls,
               firstName,
               lastName,
               dob,
@@ -690,9 +804,13 @@ const BasicDetails = () => {
               ...patientData.patientDetails,
               uhid: patientResponse?.data?.data?.uhid,
               patientFileName: patientResponse.data?.data?.patientPicFileName,
+              patientIdProofName: patientResponse?.data?.data?.patientIdProofName,
               patientPic: patientResponse?.data?.data?.patientPicUrl
                 ? patientResponse?.data?.data?.patientPicUrl
                 : patientResponse?.data?.data?.patientPic,
+              idProof: patientResponse?.data?.data?.patientIdProofUrls
+                ? patientResponse?.data?.data?.patientIdProofUrls
+                : patientResponse?.data?.data?.idProof,
               firstName,
               lastName,
               dob,
@@ -801,7 +919,9 @@ const BasicDetails = () => {
               _id: patientResponse?.data?.data?._id,
               uhid: patientResponse?.data?.data?.uhid,
               patientFileName: patientResponse?.data?.data?.patientPicFileName,
+              patientIdProofName: patientResponse?.data?.data?.patientIdProofName,
               patientPic: patientResponse?.data?.data?.patientPicUrl,
+              idProof: patientResponse?.data?.data?.patientIdProofUrls,
               firstName,
               lastName,
               dob,
@@ -1449,6 +1569,37 @@ const BasicDetails = () => {
               onChange={handleChange}
             />
             {errors?.patientPic && <p className="text-red-600">{errors?.patientPic}</p>}
+          </div>
+
+          <div className="flex flex-col items-start">
+            <label className="block mb-1.5 ml-0.5 text-sm font-medium">ID Proof</label>
+            <div className="flex flex-col gap-1">
+              <CheckBox
+                name="idProof"
+                checked={true}
+                files={idProofFiles} // Currently uploaded files
+                filesString={
+                  state.idProof && state.idProof.length > 0
+                    ? state.idProof
+                        .filter((url): url is string => typeof url === "string")
+                        .map((url, idx) => ({
+                          filePath: url,
+                          fileUrl: url,
+                          fileName:
+                            patientData.patientDetails.patientIdProofName?.[idx] ||
+                            `ID_Proof_${idx + 1}.pdf`
+                        }))
+                    : undefined
+                }
+                ContainerClass="-ml-5"
+                checkHide
+                handleDeletes={handleDeleteIdProof}
+                handleDrop={handleDropIdProof}
+                handleCheck={() => {}}
+              />
+              <span className="text-[11px] text-gray-500">Format: PDF, Max size: 5MB each</span>
+              {idProofError && <span className="text-xs text-red-500">{idProofError}</span>}
+            </div>
           </div>
         </div>
         <div className="grid lg:grid-cols-2 md:grid-cols-1 w-full items-start gap-20">

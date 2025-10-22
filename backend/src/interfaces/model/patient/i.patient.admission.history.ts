@@ -52,6 +52,7 @@ export interface IAdmissionChecklist {
   familyDeclaration: { fileName: string; filePath: string }[];
   section94: { fileName: string; filePath: string }[];
   capacityAssessment: { fileName: string; filePath: string }[];
+  admissionAssessment: { fileName: string; filePath: string }[];
   hospitalGuidelineForm: { fileName: string; filePath: string }[];
   finacialCounselling: { fileName: string; filePath: string }[];
   orientationOfFamily: string[];
