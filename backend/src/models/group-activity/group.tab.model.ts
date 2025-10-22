@@ -7,9 +7,6 @@ const groupTabSchema = new mongoose.Schema<IGroupTab>({
   activityDateTime: {
     type: Date,
     required: [true, 'Activity Datetime is Mandatory'],
-<<<<<<< HEAD
-    unique: true,
-=======
   },
 
   // Scope tab info to a specific center so notes can be per-center
@@ -17,7 +14,6 @@ const groupTabSchema = new mongoose.Schema<IGroupTab>({
     type: mongoose.Schema.ObjectId,
     ref: Collections.center?.name || 'Center',
     required: true,
->>>>>>> main
   },
 
   tabInfo: [

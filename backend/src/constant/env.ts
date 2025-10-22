@@ -39,10 +39,7 @@ export default class Env {
     if (!Env.isExist(Env.JWT_SECRET)) return 'JWT Secret is mandatory';
     if (!Env.isExist(Env.JWT_EXPIRES_IN)) return 'JWT Expire Time is mandatory';
     if (!Env.isExist(Env.JWT_ISSUER_NAME)) return 'JWT Issuer Name is mandatory';
-<<<<<<< HEAD
     if (!Env.isExist(Env.DEFAULT_USER_PASSWORD)) return 'Reset Password is mandatory';
-=======
->>>>>>> main
 
     // CORS
     if (!Env.isExist(Env.CORS_ORIGIN)) return 'CORS Origin is mandatory';

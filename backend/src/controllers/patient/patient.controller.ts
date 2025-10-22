@@ -1,11 +1,8 @@
 import multer from 'multer';
 import mongoose, { ObjectId } from 'mongoose';
 import { Response, NextFunction } from 'express';
-<<<<<<< HEAD
 import Lead from '../../models/lead.model';
 import Role from '../../models/role.model';
-=======
->>>>>>> main
 import * as S3 from '../../utils/s3Helper';
 import User from '../../models/user.model';
 import AppError from '../../utils/appError';

@@ -31,10 +31,7 @@ import {
   createSinglePatientResources,
   existPatient,
   getSinglePatient,
-  updatePatient,
-  updateSinglePatinetAdmissionHistory
 } from "@/apis";
-
 import handleError from "@/utils/handleError";
 import compareObjects from "@/utils/compareObjects";
 
@@ -53,9 +50,9 @@ import {
 } from "@/validations/Yup/BasicDetailValidation";
 import { useAuth } from "@/providers/AuthProvider";
 
-// const isFile = (item: any): item is File => {
-//   return item instanceof File;
-// };
+const isFile = (item: any): item is File => {
+  return item instanceof File;
+};
 
 const BasicDetails = () => {
   const { auth } = useAuth();
@@ -436,7 +433,6 @@ useEffect(() => {
     _e: SyntheticEvent,
     btnType: "SAVE" | "SAVE_AND_NEXT" | "SAVE_AND_NEXT_DISCARD"
   ) => {
-    if (state.loading) return;
     dispatch(setDiscardModal({ isDiscardModalOpen: false }));
     setState((prev) => ({ ...prev, loading: true }));
 
